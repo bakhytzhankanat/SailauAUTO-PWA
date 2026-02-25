@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Env and secrets (never commit)
+.env
+.env.*
+!.env.example
+
+# Build
+dist/
+build/
+
+# Logs and OS
+*.log
+.DS_Store
+
+# Vercel
+.vercel

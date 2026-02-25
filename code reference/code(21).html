@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daily Service Calendar V2</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                        "status-planned": "#3B82F6",
+                        "status-reached": "#F97316",
+                        "status-progress": "#EAB308",
+                        "status-completed": "#22C55E",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        'xl': '16px',
+                    },
+                    spacing: {
+                        'hour': '180px',}
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }.h-hour {
+            height: 180px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-screen overflow-hidden bg-[#0F0F0F] text-white">
+<header class="px-4 pt-4 pb-2 flex justify-between items-center bg-[#0F0F0F] z-10 border-b border-[#2A2A2A]">
+<div class="flex flex-col">
+<span class="text-xl font-bold text-white">25 Ақпан 2026</span>
+<span class="text-sm font-semibold text-[#30867b]">Бүгін</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="bg-[#1C1C1C] border border-[#2A2A2A] w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:bg-[#2A2A2A] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[#9E9E9E] text-2xl">search</span>
+</button>
+<button class="bg-[#30867b] w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:bg-opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-white text-2xl">add</span>
+</button>
+</div>
+</header>
+<div class="px-4 py-3 bg-[#0F0F0F]">
+<div class="bg-[#1C1C1C] rounded-lg p-1 flex border border-[#2A2A2A]">
+<button class="flex-1 py-1.5 text-sm font-medium rounded bg-[#30867b] text-white shadow-sm transition-all">Күн</button>
+<button class="flex-1 py-1.5 text-sm font-medium rounded text-[#9E9E9E] hover:text-white transition-all">Апта</button>
+</div>
+</div>
+<main class="flex-1 flex flex-col relative overflow-hidden">
+<div class="flex border-b border-[#2A2A2A] bg-[#0F0F0F] z-10 ml-12 sticky top-0">
+<div class="flex-1 py-2 text-center text-sm font-medium text-[#9E9E9E] border-r border-[#2A2A2A]">Бокс 1</div>
+<div class="flex-1 py-2 text-center text-sm font-medium text-[#9E9E9E]">Бокс 2</div>
+</div>
+<div class="flex-1 overflow-y-auto hide-scroll relative">
+<div class="absolute top-0 left-0 w-full pointer-events-none z-0">
+<div class="flex h-hour border-b border-[#2A2A2A] border-dashed border-opacity-30 relative">
+<div class="w-12 flex-shrink-0 text-[10px] text-[#9E9E9E] text-right pr-2 pt-1 border-r border-[#2A2A2A]">10:00</div>
+<div class="flex-1 border-r border-[#2A2A2A] border-dashed border-opacity-30"></div>
+<div class="flex-1"></div>
+</div>
+<div class="flex h-hour border-b border-[#2A2A2A] border-dashed border-opacity-30 relative">
+<div class="w-12 flex-shrink-0 text-[10px] text-[#9E9E9E] text-right pr-2 pt-1 border-r border-[#2A2A2A]">11:00</div>
+<div class="flex-1 border-r border-[#2A2A2A] border-dashed border-opacity-30"></div>
+<div class="flex-1"></div>
+</div>
+<div class="flex h-hour border-b border-[#2A2A2A] border-dashed border-opacity-30 relative">
+<div class="w-12 flex-shrink-0 text-[10px] text-[#9E9E9E] text-right pr-2 pt-1 border-r border-[#2A2A2A]">12:00</div>
+<div class="flex-1 border-r border-[#2A2A2A] border-dashed border-opacity-30"></div>
+<div class="flex-1"></div>
+</div>
+<div class="flex h-hour border-b border-[#2A2A2A] border-dashed border-opacity-30 relative">
+<div class="w-12 flex-shrink-0 text-[10px] text-[#9E9E9E] text-right pr-2 pt-1 border-r border-[#2A2A2A]">13:00</div>
+<div class="flex-1 border-r border-[#2A2A2A] border-dashed border-opacity-30"></div>
+<div class="flex-1"></div>
+</div>
+<div class="flex h-hour border-b border-[#2A2A2A] border-dashed border-opacity-30 relative">
+<div class="w-12 flex-shrink-0 text-[10px] text-[#9E9E9E] text-right pr-2 pt-1 border-r border-[#2A2A2A]">14:00</div>
+<div class="flex-1 border-r border-[#2A2A2A] border-dashed border-opacity-30"></div>
+<div class="flex-1"></div>
+</div>
+<div class="flex h-hour border-b border-[#2A2A2A] border-dashed border-opacity-30 relative">
+<div class="w-12 flex-shrink-0 text-[10px] text-[#9E9E9E] text-right pr-2 pt-1 border-r border-[#2A2A2A]">15:00</div>
+<div class="flex-1 border-r border-[#2A2A2A] border-dashed border-opacity-30"></div>
+<div class="flex-1"></div>
+</div>
+<div class="flex h-hour border-b border-[#2A2A2A] border-dashed border-opacity-30 relative">
+<div class="w-12 flex-shrink-0 text-[10px] text-[#9E9E9E] text-right pr-2 pt-1 border-r border-[#2A2A2A]">16:00</div>
+<div class="flex-1 border-r border-[#2A2A2A] border-dashed border-opacity-30"></div>
+<div class="flex-1"></div>
+</div>
+<div class="flex h-hour border-b border-[#2A2A2A] border-dashed border-opacity-30 relative">
+<div class="w-12 flex-shrink-0 text-[10px] text-[#9E9E9E] text-right pr-2 pt-1 border-r border-[#2A2A2A]">17:00</div>
+<div class="flex-1 border-r border-[#2A2A2A] border-dashed border-opacity-30"></div>
+<div class="flex-1"></div>
+</div>
+</div>
+<div class="absolute w-full flex items-center z-30 pointer-events-none" style="top: 510px;">
+<div class="w-12 flex-shrink-0 text-[10px] font-bold text-[#30867b] text-right pr-1 bg-[#0F0F0F] z-10">12:50</div>
+<div class="flex-1 h-[1px] bg-[#30867b] relative">
+<div class="absolute -top-[3px] -left-[2px] w-[7px] h-[7px] bg-[#30867b] rounded-full"></div>
+<span class="absolute -top-5 left-2 text-[10px] text-[#30867b] font-medium bg-[#0F0F0F] px-1 py-0.5 rounded border border-[#30867b] border-opacity-30">Қазір 12:50</span>
+</div>
+</div>
+<div class="relative w-full h-[1440px] ml-12 pl-1" style="width: calc(100% - 3rem);">
+<div class="absolute inset-0 flex">
+<div class="flex-1 relative pr-1 pt-2 border-r border-[#2A2A2A] border-dashed border-opacity-20">
+<div class="absolute top-[5px] left-1 right-1 h-[260px] bg-[#1C1C1C] border-l-4 border-l-yellow-500 border-y border-r border-y-[#2A2A2A] border-r-[#2A2A2A] rounded-r-md p-3 shadow-md hover:bg-[#252525] transition-colors cursor-pointer z-10 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-yellow-500 flex items-center gap-1 bg-yellow-500 bg-opacity-10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[12px]">build</span> Жұмыс үстінде
+                                    </span>
+<span class="text-[11px] font-mono text-[#9E9E9E]">10:00 - 11:30</span>
+</div>
+<div class="text-sm font-bold text-white leading-tight mb-1">Toyota Alphard</div>
+<div class="text-[11px] text-[#9E9E9E] mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">person</span> Арман О. • +7 701 111 2233</div>
+<div class="text-[11px] text-[#9E9E9E] mb-2 font-mono bg-[#2A2A2A] inline-block px-1 rounded">KZ 777 ABC 02</div>
+<div class="text-[11px] text-white leading-relaxed">Актуаторды ауыстыру, май ауыстыру, ходовка диагностика</div>
+</div>
+<div class="text-[10px] text-[#9E9E9E] flex items-center gap-1 border-t border-[#2A2A2A] pt-2 mt-1">
+<span class="material-symbols-outlined text-[12px]">engineering</span> Аслан Б.
+                            </div>
+</div>
+<div class="absolute top-[545px] left-1 right-1 h-[170px] bg-[#1C1C1C] border-l-4 border-l-blue-500 border-y border-r border-y-[#2A2A2A] border-r-[#2A2A2A] rounded-r-md p-3 shadow-md hover:bg-[#252525] transition-colors cursor-pointer z-10 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-blue-500 flex items-center gap-1 bg-blue-500 bg-opacity-10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[12px]">schedule</span> Жоспарланған
+                                    </span>
+<span class="text-[11px] font-mono text-[#9E9E9E]">13:00 - 14:00</span>
+</div>
+<div class="text-sm font-bold text-white leading-tight mb-1">Honda Elysion</div>
+<div class="text-[11px] text-[#9E9E9E] mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">person</span> Данияр К. • +7 777 333 4455</div>
+<div class="text-[11px] text-[#9E9E9E] mb-2 font-mono bg-[#2A2A2A] inline-block px-1 rounded">KZ 123 KZA 02</div>
+<div class="text-[11px] text-white leading-relaxed">Диагностика</div>
+</div>
+</div>
+</div>
+<div class="flex-1 relative pl-1 pt-2">
+<div class="absolute top-[185px] left-1 right-1 h-[215px] bg-[#1C1C1C] border-l-4 border-l-orange-500 border-y border-r border-y-[#2A2A2A] border-r-[#2A2A2A] rounded-r-md p-3 shadow-md hover:bg-[#252525] transition-colors cursor-pointer z-20 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-orange-500 flex items-center gap-1 bg-orange-500 bg-opacity-10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[12px]">notifications_active</span> Уақыт жетті
+                                    </span>
+<span class="text-[11px] font-mono text-[#9E9E9E]">11:00 - 12:15</span>
+</div>
+<div class="text-sm font-bold text-white leading-tight mb-1">Toyota Estima</div>
+<div class="text-[11px] text-[#9E9E9E] mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">person</span> Серік Ж. • +7 707 555 6677</div>
+<div class="text-[11px] text-[#9E9E9E] mb-2 font-mono bg-[#2A2A2A] inline-block px-1 rounded">KZ 888 XAA 02</div>
+<div class="text-[11px] text-white leading-relaxed">Колодки ауыстыру алдыңғы және артқы</div>
+</div>
+<div class="text-[10px] text-[#9E9E9E] flex items-center gap-1 border-t border-[#2A2A2A] pt-2 mt-1">
+<span class="material-symbols-outlined text-[12px]">engineering</span> Ержан К.
+                            </div>
+</div>
+<div class="absolute top-[725px] left-1 right-1 h-[130px] bg-[#1C1C1C] border-l-4 border-l-green-500 border-y border-r border-y-[#2A2A2A] border-r-[#2A2A2A] rounded-r-md p-3 shadow-md opacity-80 hover:opacity-100 transition-opacity cursor-pointer z-10 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-green-500 flex items-center gap-1 bg-green-500 bg-opacity-10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> Аяқталды
+                                    </span>
+<span class="text-[11px] font-mono text-[#9E9E9E]">14:00 - 14:45</span>
+</div>
+<div class="text-sm font-bold text-white leading-tight mb-1">Nissan Elgrand</div>
+<div class="text-[11px] text-[#9E9E9E] mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">person</span> Болат Т. • +7 702 999 8811</div>
+<div class="text-[11px] text-white leading-relaxed">Май ауыстыру</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<nav class="bg-[#1C1C1C] border-t border-[#2A2A2A] px-2 pb-safe pt-2">
+<div class="flex justify-around items-end pb-4">
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center bg-[#30867b] bg-opacity-20 mb-1">
+<span class="material-symbols-outlined text-[#30867b]">calendar_month</span>
+</div>
+<span class="text-[10px] text-[#30867b] font-medium">Күнтізбе</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">add_box</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Жазба қосу</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">inventory_2</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Қойма</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">notifications</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Ескертпелер</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">settings</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Баптаулар</span>
+</button>
+</div>
+</nav>
+
+</body></html>

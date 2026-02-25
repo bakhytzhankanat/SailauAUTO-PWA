@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Job Completed Success Summary</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                        "status-success": "#22C55E",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    spacing: {
+                        'safe-bottom': 'env(safe-area-inset-bottom)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            overscroll-behavior: none;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }.compact-text {
+            font-size: 0.7rem; 
+            line-height: 1rem;
+        }
+        .compact-header {
+            font-size: 0.8rem;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-[100dvh] bg-[#0F0F0F] text-white overflow-hidden">
+<header class="px-4 py-2 flex items-center gap-3 bg-[#0F0F0F] z-10 border-b border-[#2A2A2A] shrink-0">
+<button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#1C1C1C] transition-colors">
+<span class="material-symbols-outlined text-white text-xl">arrow_back</span>
+</button>
+<h1 class="text-base font-bold text-white flex-1 text-center pr-8">Тапсырыс аяқталды</h1>
+</header>
+<main class="flex-1 flex flex-col px-3 py-2 overflow-hidden">
+<div class="flex items-center justify-center gap-2 py-1 shrink-0">
+<div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>
+</div>
+<p class="text-green-500 font-medium text-xs">Жұмыс сәтті аяқталды</p>
+</div>
+<div class="flex-1 flex flex-col gap-2 min-h-0">
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] flex flex-col shrink-0">
+<div class="flex border-b border-[#2A2A2A]">
+<div class="flex-1 p-2 border-r border-[#2A2A2A]">
+<p class="text-[10px] text-[#9E9E9E] uppercase tracking-wider mb-0.5">Клиент</p>
+<h3 class="font-semibold text-white text-xs truncate">Арман Омаров</h3>
+<p class="text-[10px] text-[#9E9E9E]">+7 701 111 2233</p>
+</div>
+<div class="flex-1 p-2">
+<p class="text-[10px] text-[#9E9E9E] uppercase tracking-wider mb-0.5">Көлік</p>
+<h3 class="font-semibold text-white text-xs truncate">Toyota Alphard</h3>
+<div class="text-[10px] text-[#9E9E9E]">KZ 777 ABC 02</div>
+</div>
+</div>
+<div class="p-2 bg-[#1C1C1C]/50">
+<ul class="flex flex-wrap gap-x-3 gap-y-1">
+<li class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[#30867b] text-[10px]">build</span>
+<span class="text-[10px] text-white">Актуаторды ауыстыру</span>
+</li>
+<li class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[#30867b] text-[10px]">water_drop</span>
+<span class="text-[10px] text-white">Май ауыстыру</span>
+</li>
+<li class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[#30867b] text-[10px]">search</span>
+<span class="text-[10px] text-white">Ходовка диагностика</span>
+</li>
+</ul>
+</div>
+</div>
+<div class="flex flex-col gap-2 flex-1 justify-center">
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-2.5 space-y-1.5 shrink-0">
+<div class="flex justify-between items-center text-xs pb-1.5 border-b border-[#2A2A2A]">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#30867b] text-sm">inventory_2</span>
+<span class="text-[#9E9E9E]">Бөлшектер айналымы</span>
+</div>
+<span class="font-medium text-white">26 400 ₸</span>
+</div>
+<div class="flex justify-between items-center text-xs pt-0.5">
+<span class="text-[#9E9E9E]">Төлем қабылданды (Қызмет)</span>
+<span class="font-medium text-white">25 000 ₸</span>
+</div>
+<div class="flex justify-between items-center text-xs">
+<span class="text-[#9E9E9E]">Материал шығыны</span>
+<span class="font-medium text-red-400">- 4 000 ₸</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 shrink-0">
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-2 flex flex-col justify-between">
+<p class="text-[10px] text-[#9E9E9E]">Жалпы кіріс</p>
+<p class="text-sm font-bold text-white">25 000 ₸</p>
+</div>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-2 flex flex-col justify-between">
+<p class="text-[10px] text-[#9E9E9E]">Жалпы шығыс</p>
+<p class="text-sm font-bold text-red-400">4 000 ₸</p>
+</div>
+</div>
+<div class="bg-gradient-to-r from-[#1C1C1C] to-[#252525] rounded-xl border border-[#30867b]/50 p-3 relative overflow-hidden shrink-0">
+<div class="absolute right-0 top-0 bottom-0 w-1 bg-[#30867b]"></div>
+<div class="flex flex-col relative z-10">
+<p class="text-xs text-[#30867b] font-medium mb-0.5">Таза пайда</p>
+<p class="text-2xl font-bold text-white">21 000 ₸</p>
+</div>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#30867b]/20 text-5xl select-none pointer-events-none">account_balance_wallet</span>
+</div>
+</div>
+</div>
+<div class="mt-2 pt-1 shrink-0 pb-1">
+<button class="w-full bg-[#30867b] hover:bg-[#287066] text-white font-semibold py-3 rounded-xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+                Күнтізбеге оралу
+            </button>
+</div>
+</main>
+<nav class="bg-[#1C1C1C] border-t border-[#2A2A2A] px-2 pb-safe pt-2 z-30 shrink-0">
+<div class="flex justify-around items-end pb-2">
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-8 h-6 rounded-full flex items-center justify-center bg-[#30867b] bg-opacity-20 mb-1">
+<span class="material-symbols-outlined text-[#30867b] text-lg">calendar_month</span>
+</div>
+<span class="text-[9px] text-[#30867b] font-medium">Күнтізбе</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-8 h-6 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-lg">add_box</span>
+</div>
+<span class="text-[9px] text-[#9E9E9E] group-hover:text-white transition-colors">Жазба қосу</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-8 h-6 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-lg">inventory_2</span>
+</div>
+<span class="text-[9px] text-[#9E9E9E] group-hover:text-white transition-colors">Қойма</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-8 h-6 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-lg">notifications</span>
+</div>
+<span class="text-[9px] text-[#9E9E9E] group-hover:text-white transition-colors">Ескертпелер</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-8 h-6 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-lg">settings</span>
+</div>
+<span class="text-[9px] text-[#9E9E9E] group-hover:text-white transition-colors">Баптаулар</span>
+</button>
+</div>
+</nav>
+</body></html>

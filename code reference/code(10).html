@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>International Plate Input Step</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        'xl': '16px',
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+        .plate-input::placeholder {
+            color: #4B4B4B;
+            opacity: 1; 
+        }
+    </style>
+<style>
+        body {
+            min-height: max(600px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#0F0F0F] text-white overflow-hidden">
+<header class="px-4 py-3 flex items-center justify-between bg-[#0F0F0F] border-b border-[#2A2A2A] z-10 shrink-0">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#1C1C1C] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-white">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold text-white">Жазба қосу</h1>
+<div class="w-10"></div>
+</header>
+<div class="px-4 py-4 shrink-0">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm font-semibold text-[#30867b]">4/5 Нөмірді енгізу</span>
+<span class="text-xs text-[#9E9E9E]">Toyota Alphard</span>
+</div>
+<div class="h-1 w-full bg-[#1C1C1C] rounded-full overflow-hidden">
+<div class="h-full bg-[#30867b] w-4/5 rounded-full"></div>
+</div>
+</div>
+<main class="flex-1 overflow-y-auto px-4 pb-4 flex flex-col items-center">
+<div class="w-full max-w-md">
+<h2 class="text-xl font-bold mb-2 text-white text-center">Мемлекеттік нөмір</h2>
+<p class="text-sm text-[#9E9E9E] mb-8 text-center">Кез келген елдің нөмірін енгізуге болады</p>
+<div class="bg-[#1C1C1C] rounded-2xl p-6 w-full border border-[#2A2A2A] shadow-lg">
+<label class="block text-xs font-medium text-[#9E9E9E] mb-2 uppercase tracking-wide" for="plate-input">Көлік нөмірі</label>
+<div class="relative">
+<input class="plate-input w-full bg-[#0F0F0F] text-white text-3xl font-bold text-center border-2 border-[#2A2A2A] rounded-xl focus:border-[#30867b] focus:ring-0 outline-none py-4 px-2 uppercase transition-all placeholder:text-[#4B4B4B]" id="plate-input" oninput="this.value = this.value.toUpperCase(); checkInput(this);" placeholder="Мысалы: 777 ABC 02" type="text"/>
+</div>
+</div>
+<div class="mt-6 flex gap-3 p-4 bg-[#1C1C1C] rounded-xl border border-[#2A2A2A]/50 items-start">
+<span class="material-symbols-outlined text-[#30867b] shrink-0 mt-0.5">info</span>
+<p class="text-xs text-[#9E9E9E] leading-relaxed">
+                    Халықаралық форматты қолдайды. Әріптер, сандар және сызықшаларды (-) қолдануға болады.
+                </p>
+</div>
+</div>
+</main>
+<div class="shrink-0 bg-[#0F0F0F] border-t border-[#2A2A2A]">
+<div class="px-4 py-3">
+<button class="w-full bg-[#2A2A2A] text-[#9E9E9E] font-bold py-4 rounded-xl transition-all shadow-none flex items-center justify-center gap-2 text-lg disabled:cursor-not-allowed" disabled="" id="next-btn">
+                Келесі
+                <span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+</div>
+<nav class="pb-safe pt-2">
+<div class="flex justify-around items-end pb-4">
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">calendar_month</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Күнтізбе</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center bg-[#30867b] bg-opacity-20 mb-1">
+<span class="material-symbols-outlined text-[#30867b]">add_box</span>
+</div>
+<span class="text-[10px] text-[#30867b] font-medium">Жазба қосу</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">inventory_2</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Қойма</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">notifications</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Ескертпелер</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">settings</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Баптаулар</span>
+</button>
+</div>
+</nav>
+</div>
+<script>
+        function checkInput(input) {
+            const btn = document.getElementById('next-btn');
+            // Remove spaces and hyphens to check if there is actual content
+            const cleanVal = input.value.replace(/[\s-]/g, '');
+            if (cleanVal.length >= 2) { // Rudimentary check for minimal valid length
+                btn.disabled = false;
+                btn.classList.remove('bg-[#2A2A2A]', 'text-[#9E9E9E]', 'shadow-none');
+                btn.classList.add('bg-[#30867b]', 'hover:bg-[#286f66]', 'active:scale-[0.98]', 'text-white', 'shadow-lg');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('bg-[#2A2A2A]', 'text-[#9E9E9E]', 'shadow-none');
+                btn.classList.remove('bg-[#30867b]', 'hover:bg-[#286f66]', 'active:scale-[0.98]', 'text-white', 'shadow-lg');
+            }
+        }
+    </script>
+
+</body></html>

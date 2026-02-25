@@ -1,0 +1,1 @@
+ALTER TABLE service_catalog ADD COLUMN IF NOT EXISTS subgroup VARCHAR(100);

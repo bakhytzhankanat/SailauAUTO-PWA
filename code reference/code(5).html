@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Inventory Management Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                        "status-warning": "#F97316",
+                        "status-danger": "#EF4444",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        'xl': '16px',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .modal {
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .modal.hidden .modal-content {
+            transform: translateY(100%);
+        }
+        .modal:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal:not(.hidden) .modal-content {
+            transform: translateY(0);
+        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }@keyframes slideUpFade {
+            0% { transform: translate(-50%, 100%); opacity: 0; }
+            100% { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .toast-enter {
+            animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<script>
+        function handleRemoveClick(button, stockId, currentStock) {
+            // Check if it was a long press
+            if (button.dataset.longPress === "true") {
+                button.dataset.longPress = "false"; 
+                return;
+            }
+            // Simulate decrement
+            const stockElement = document.getElementById(stockId);
+            let currentVal = parseInt(stockElement.innerText.replace('Қалған саны: ', ''));
+            if(currentVal > 0) {
+                stockElement.innerText = `Қалған саны: ${currentVal - 1}`;
+                showToast();
+            }
+        }
+        function showToast() {
+            const toast = document.getElementById('toast-notification');
+            toast.classList.remove('hidden');
+            toast.classList.add('toast-enter', 'flex');
+            // Clear existing timeout if any to reset timer
+            if(window.toastTimeout) clearTimeout(window.toastTimeout);
+            window.toastTimeout = setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 3000);
+        }
+        function hideToast() {
+            const toast = document.getElementById('toast-notification');
+            toast.classList.add('hidden');
+            toast.classList.remove('flex');
+            // Logic to undo count would go here in real app
+        }
+        function initLongPress(btnId) {
+            const btn = document.getElementById(btnId);
+            let timer;
+            btn.addEventListener('touchstart', (e) => {
+                btn.dataset.longPress = "false";
+                timer = setTimeout(() => {
+                    btn.dataset.longPress = "true";
+                    // Open bulk remove modal
+                    document.getElementById('remove-stock-modal').classList.remove('hidden');
+                }, 600); // 600ms for long press
+            });
+            btn.addEventListener('touchend', () => {
+                clearTimeout(timer);
+            });
+            // Mouse events for desktop testing
+            btn.addEventListener('mousedown', (e) => {
+                btn.dataset.longPress = "false";
+                timer = setTimeout(() => {
+                    btn.dataset.longPress = "true";
+                    document.getElementById('remove-stock-modal').classList.remove('hidden');
+                }, 600);
+            });
+            btn.addEventListener('mouseup', () => {
+                clearTimeout(timer);
+            });
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-screen overflow-hidden bg-[#0F0F0F] text-white">
+<header class="px-4 pt-10 pb-4 flex flex-col gap-4 bg-[#0F0F0F] z-10 border-b border-[#2A2A2A] sticky top-0">
+<div class="flex justify-between items-center">
+<h1 class="text-2xl font-bold text-white tracking-tight">Қойма</h1>
+<div class="w-8 h-8 rounded-full bg-[#1C1C1C] border border-[#2A2A2A] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#9E9E9E] text-sm">filter_list</span>
+</div>
+</div>
+<div class="relative w-full">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[#9E9E9E]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2.5 border border-[#2A2A2A] rounded-lg leading-5 bg-[#1C1C1C] placeholder-[#9E9E9E] focus:outline-none focus:bg-[#252525] focus:border-[#30867b] focus:ring-1 focus:ring-[#30867b] sm:text-sm text-white transition-colors" placeholder="Іздеу (атауы бойынша)" type="text"/>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto hide-scroll p-4 pb-24 space-y-4">
+<div class="bg-[#1C1C1C] border border-[#EF4444] border-opacity-40 rounded-xl p-4 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 bg-[#EF4444] bg-opacity-10 text-[#EF4444] text-[10px] font-bold px-2 py-1 rounded-bl-lg border-b border-l border-[#EF4444] border-opacity-20 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">warning</span> Аз қалды
+            </div>
+<div class="cursor-pointer active:opacity-80 transition-opacity" onclick="document.getElementById('history-modal').classList.remove('hidden')">
+<div class="flex justify-between items-start mb-2 pr-16">
+<div>
+<h3 class="text-base font-semibold text-white mb-0.5 flex items-center gap-1">
+                            Трос комплект Sienna
+                            <span class="material-symbols-outlined text-[#9E9E9E] text-sm">chevron_right</span>
+</h3>
+<p class="text-[11px] text-[#9E9E9E] font-mono">Артикул: TN-5521</p>
+</div>
+</div>
+<div class="flex items-end justify-between mb-4">
+<div>
+<span class="block text-lg font-bold text-white">35 000 ₸</span>
+<span class="text-[10px] text-[#9E9E9E]">дана бағасы</span>
+</div>
+<div class="text-right">
+<div class="text-sm font-medium text-[#EF4444]" id="stock-1">Қалған саны: 2</div>
+<div class="text-[10px] text-[#9E9E9E]">Минималды қалдық: 5</div>
+</div>
+</div>
+</div>
+<div class="flex gap-3 pt-3 border-t border-[#2A2A2A]">
+<button class="flex-1 py-3 px-3 bg-[#EF4444] hover:bg-[#DC2626] active:bg-[#B91C1C] rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2 transition-colors shadow-sm shadow-red-900/20 select-none touch-manipulation" id="btn-remove-1" onclick="handleRemoveClick(this, 'stock-1', 2)">
+<span class="material-symbols-outlined text-sm font-bold">remove</span> Шығару
+                </button>
+<script>initLongPress('btn-remove-1');</script>
+<button class="flex-1 py-3 px-3 bg-[#30867b] hover:bg-[#287066] active:bg-[#1e5c54] rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2 transition-colors" onclick="document.getElementById('add-stock-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-sm font-bold">add</span> Қосу
+                </button>
+</div>
+</div>
+<div class="bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl p-4 shadow-sm">
+<div class="cursor-pointer active:opacity-80 transition-opacity" onclick="document.getElementById('history-modal').classList.remove('hidden')">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="text-base font-semibold text-white mb-0.5 flex items-center gap-1">
+                            Май сүзгісі Toyota (Original)
+                            <span class="material-symbols-outlined text-[#9E9E9E] text-sm">chevron_right</span>
+</h3>
+<p class="text-[11px] text-[#9E9E9E] font-mono">Артикул: 90915-YZZD2</p>
+</div>
+</div>
+<div class="flex items-end justify-between mb-4">
+<div>
+<span class="block text-lg font-bold text-white">4 500 ₸</span>
+<span class="text-[10px] text-[#9E9E9E]">дана бағасы</span>
+</div>
+<div class="text-right">
+<div class="text-sm font-medium text-[#30867b]" id="stock-2">Қалған саны: 18</div>
+<div class="text-[10px] text-[#9E9E9E]">Минималды қалдық: 5</div>
+</div>
+</div>
+</div>
+<div class="flex gap-3 pt-3 border-t border-[#2A2A2A]">
+<button class="flex-1 py-3 px-3 bg-[#EF4444] hover:bg-[#DC2626] active:bg-[#B91C1C] rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2 transition-colors shadow-sm shadow-red-900/20 select-none touch-manipulation" id="btn-remove-2" onclick="handleRemoveClick(this, 'stock-2', 18)">
+<span class="material-symbols-outlined text-sm font-bold">remove</span> Шығару
+                </button>
+<script>initLongPress('btn-remove-2');</script>
+<button class="flex-1 py-3 px-3 bg-[#30867b] hover:bg-[#287066] active:bg-[#1e5c54] rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2 transition-colors" onclick="document.getElementById('add-stock-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-sm font-bold">add</span> Қосу
+                </button>
+</div>
+</div>
+<div class="bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl p-4 shadow-sm">
+<div class="cursor-pointer active:opacity-80 transition-opacity" onclick="document.getElementById('history-modal').classList.remove('hidden')">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="text-base font-semibold text-white mb-0.5 flex items-center gap-1">
+                            Колодки алдыңғы Camry 70
+                            <span class="material-symbols-outlined text-[#9E9E9E] text-sm">chevron_right</span>
+</h3>
+<p class="text-[11px] text-[#9E9E9E] font-mono">Артикул: 04465-33471</p>
+</div>
+</div>
+<div class="flex items-end justify-between mb-4">
+<div>
+<span class="block text-lg font-bold text-white">22 000 ₸</span>
+<span class="text-[10px] text-[#9E9E9E]">дана бағасы</span>
+</div>
+<div class="text-right">
+<div class="text-sm font-medium text-[#30867b]" id="stock-3">Қалған саны: 8</div>
+<div class="text-[10px] text-[#9E9E9E]">Минималды қалдық: 4</div>
+</div>
+</div>
+</div>
+<div class="flex gap-3 pt-3 border-t border-[#2A2A2A]">
+<button class="flex-1 py-3 px-3 bg-[#EF4444] hover:bg-[#DC2626] active:bg-[#B91C1C] rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2 transition-colors shadow-sm shadow-red-900/20 select-none touch-manipulation" id="btn-remove-3" onclick="handleRemoveClick(this, 'stock-3', 8)">
+<span class="material-symbols-outlined text-sm font-bold">remove</span> Шығару
+                </button>
+<script>initLongPress('btn-remove-3');</script>
+<button class="flex-1 py-3 px-3 bg-[#30867b] hover:bg-[#287066] active:bg-[#1e5c54] rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2 transition-colors" onclick="document.getElementById('add-stock-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-sm font-bold">add</span> Қосу
+                </button>
+</div>
+</div>
+<div class="bg-[#1C1C1C] border border-[#F97316] border-opacity-40 rounded-xl p-4 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 bg-[#F97316] bg-opacity-10 text-[#F97316] text-[10px] font-bold px-2 py-1 rounded-bl-lg border-b border-l border-[#F97316] border-opacity-20 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">warning</span> Аз қалды
+            </div>
+<div class="cursor-pointer active:opacity-80 transition-opacity" onclick="document.getElementById('history-modal').classList.remove('hidden')">
+<div class="flex justify-between items-start mb-2 pr-16">
+<div>
+<h3 class="text-base font-semibold text-white mb-0.5 flex items-center gap-1">
+                            Свеча зажигания Denso
+                            <span class="material-symbols-outlined text-[#9E9E9E] text-sm">chevron_right</span>
+</h3>
+<p class="text-[11px] text-[#9E9E9E] font-mono">Артикул: K20HR-U11</p>
+</div>
+</div>
+<div class="flex items-end justify-between mb-4">
+<div>
+<span class="block text-lg font-bold text-white">3 200 ₸</span>
+<span class="text-[10px] text-[#9E9E9E]">дана бағасы</span>
+</div>
+<div class="text-right">
+<div class="text-sm font-medium text-[#F97316]" id="stock-4">Қалған саны: 4</div>
+<div class="text-[10px] text-[#9E9E9E]">Минималды қалдық: 10</div>
+</div>
+</div>
+</div>
+<div class="flex gap-3 pt-3 border-t border-[#2A2A2A]">
+<button class="flex-1 py-3 px-3 bg-[#EF4444] hover:bg-[#DC2626] active:bg-[#B91C1C] rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2 transition-colors shadow-sm shadow-red-900/20 select-none touch-manipulation" id="btn-remove-4" onclick="handleRemoveClick(this, 'stock-4', 4)">
+<span class="material-symbols-outlined text-sm font-bold">remove</span> Шығару
+                </button>
+<script>initLongPress('btn-remove-4');</script>
+<button class="flex-1 py-3 px-3 bg-[#30867b] hover:bg-[#287066] active:bg-[#1e5c54] rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2 transition-colors" onclick="document.getElementById('add-stock-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-sm font-bold">add</span> Қосу
+                </button>
+</div>
+</div>
+</main>
+<div class="hidden fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg shadow-2xl items-center gap-4 px-4 py-3 min-w-[320px] max-w-[90vw]" id="toast-notification">
+<div class="w-6 h-6 rounded-full bg-[#EF4444]/20 flex items-center justify-center text-[#EF4444] shrink-0">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</div>
+<div class="flex-1 text-sm text-white font-medium">1 дана есептен шығарылды</div>
+<button class="text-[#30867b] hover:text-[#287066] text-sm font-bold uppercase tracking-wide px-2 py-1 -mr-2" onclick="hideToast()">
+            Болдырмау
+        </button>
+</div>
+<button aria-label="Тауар қосу" class="fixed bottom-24 right-4 w-14 h-14 bg-[#30867b] rounded-full shadow-lg shadow-[#00000080] flex items-center justify-center z-20 hover:scale-105 active:scale-95 transition-transform" onclick="document.getElementById('add-stock-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-white text-3xl">add</span>
+</button>
+<nav class="bg-[#1C1C1C] border-t border-[#2A2A2A] px-2 pb-safe pt-2 fixed bottom-0 w-full z-10">
+<div class="flex justify-around items-end pb-4">
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">calendar_month</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Күнтізбе</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">add_box</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Жазба қосу</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center bg-[#30867b] bg-opacity-20 mb-1">
+<span class="material-symbols-outlined text-[#30867b]">inventory_2</span>
+</div>
+<span class="text-[10px] text-[#30867b] font-medium">Қойма</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">notifications</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Ескертпелер</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">settings</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Баптаулар</span>
+</button>
+</div>
+</nav>
+<div class="modal hidden fixed inset-0 z-50 flex items-end justify-center sm:items-center" id="add-stock-modal">
+<div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="document.getElementById('add-stock-modal').classList.add('hidden')"></div>
+<div class="modal-content bg-[#1C1C1C] w-full sm:w-[400px] rounded-t-2xl sm:rounded-2xl border-t sm:border border-[#2A2A2A] shadow-2xl relative z-10 p-6 pb-safe">
+<div class="w-12 h-1 bg-[#2A2A2A] rounded-full mx-auto mb-6"></div>
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-bold text-white">Қоймаға қосу</h2>
+<button class="p-2 text-[#9E9E9E] hover:text-white bg-[#2A2A2A] rounded-full" onclick="document.getElementById('add-stock-modal').classList.add('hidden')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="mb-8">
+<label class="block text-sm font-medium text-[#9E9E9E] mb-4 text-center">Саны</label>
+<div class="flex items-center justify-center gap-6">
+<button class="w-14 h-14 rounded-xl bg-[#2A2A2A] text-white hover:bg-[#333] active:bg-[#444] flex items-center justify-center border border-[#333]">
+<span class="material-symbols-outlined text-2xl">remove</span>
+</button>
+<input class="w-24 text-center bg-transparent border-b-2 border-[#30867b] text-3xl font-bold text-white focus:outline-none focus:border-[#287066] p-2" type="number" value="1"/>
+<button class="w-14 h-14 rounded-xl bg-[#2A2A2A] text-white hover:bg-[#333] active:bg-[#444] flex items-center justify-center border border-[#333]">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</div>
+</div>
+<button class="w-full py-4 bg-[#30867b] hover:bg-[#287066] active:bg-[#1e5c54] rounded-xl text-base font-bold text-white shadow-lg shadow-[#30867b]/20 transition-all" onclick="document.getElementById('add-stock-modal').classList.add('hidden')">
+                Қосу
+            </button>
+</div>
+</div>
+<div class="modal hidden fixed inset-0 z-50 flex items-end justify-center sm:items-center" id="remove-stock-modal">
+<div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="document.getElementById('remove-stock-modal').classList.add('hidden')"></div>
+<div class="modal-content bg-[#1C1C1C] w-full sm:w-[400px] rounded-t-2xl sm:rounded-2xl border-t sm:border border-[#2A2A2A] shadow-2xl relative z-10 p-6 pb-safe">
+<div class="w-12 h-1 bg-[#2A2A2A] rounded-full mx-auto mb-6"></div>
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-bold text-[#EF4444]">Бірнешеуін шығару</h2>
+<button class="p-2 text-[#9E9E9E] hover:text-white bg-[#2A2A2A] rounded-full" onclick="document.getElementById('remove-stock-modal').classList.add('hidden')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="mb-8">
+<label class="block text-sm font-medium text-[#9E9E9E] mb-4 text-center">Саны</label>
+<div class="flex items-center justify-center gap-6">
+<button class="w-14 h-14 rounded-xl bg-[#2A2A2A] text-white hover:bg-[#333] active:bg-[#444] flex items-center justify-center border border-[#333]">
+<span class="material-symbols-outlined text-2xl">remove</span>
+</button>
+<input class="w-24 text-center bg-transparent border-b-2 border-[#EF4444] text-3xl font-bold text-white focus:outline-none focus:border-[#EF4444] p-2" type="number" value="1"/>
+<button class="w-14 h-14 rounded-xl bg-[#2A2A2A] text-white hover:bg-[#333] active:bg-[#444] flex items-center justify-center border border-[#333]">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</div>
+</div>
+<button class="w-full py-4 bg-[#EF4444] hover:bg-[#DC2626] active:bg-[#B91C1C] rounded-xl text-base font-bold text-white shadow-lg shadow-[#EF4444]/20 transition-all" onclick="document.getElementById('remove-stock-modal').classList.add('hidden')">
+                Шығару
+            </button>
+</div>
+</div>
+<div class="modal hidden fixed inset-0 z-50 flex items-end justify-center sm:items-center" id="history-modal">
+<div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="document.getElementById('history-modal').classList.add('hidden')"></div>
+<div class="modal-content bg-[#1C1C1C] w-full h-[85vh] sm:h-[600px] sm:w-[400px] rounded-t-2xl sm:rounded-2xl border-t sm:border border-[#2A2A2A] shadow-2xl relative z-10 flex flex-col">
+<div class="p-6 pb-2 border-b border-[#2A2A2A] flex-shrink-0">
+<div class="w-12 h-1 bg-[#2A2A2A] rounded-full mx-auto mb-4"></div>
+<div class="flex justify-between items-center mb-2">
+<h2 class="text-xl font-bold text-white">Қозғалыс тарихы</h2>
+<button class="p-2 text-[#9E9E9E] hover:text-white bg-[#2A2A2A] rounded-full" onclick="document.getElementById('history-modal').classList.add('hidden')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<p class="text-xs text-[#9E9E9E] mb-2">Авто-шығару клиент тапсырысы аяқталғанда жүзеге асады.</p>
+</div>
+<div class="overflow-y-auto p-4 flex-1 space-y-3 pb-safe">
+<div class="bg-[#252525] rounded-lg p-3 border border-[#333] flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#30867b]/20 flex items-center justify-center text-[#30867b]">
+<span class="material-symbols-outlined text-sm">add</span>
+</div>
+<div>
+<div class="text-sm font-medium text-white">Қосу (закуп)</div>
+<div class="text-[10px] text-[#9E9E9E]">24 Қаз, 14:30</div>
+</div>
+</div>
+<div class="text-[#30867b] font-bold text-sm">+10 дана</div>
+</div>
+<div class="bg-[#252525] rounded-lg p-3 border border-[#333] flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#EF4444]/20 flex items-center justify-center text-[#EF4444]">
+<span class="material-symbols-outlined text-sm">remove</span>
+</div>
+<div>
+<div class="text-sm font-medium text-white">Шығару (сату)</div>
+<div class="text-[10px] text-[#9E9E9E]">23 Қаз, 11:15</div>
+</div>
+</div>
+<div class="text-[#EF4444] font-bold text-sm">-2 дана</div>
+</div>
+<div class="bg-[#252525] rounded-lg p-3 border border-[#333] flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#F97316]/20 flex items-center justify-center text-[#F97316]">
+<span class="material-symbols-outlined text-sm">build</span>
+</div>
+<div>
+<div class="text-sm font-medium text-white">Авто-шығару (қызметтен)</div>
+<div class="text-[10px] text-[#9E9E9E]">22 Қаз, 09:45</div>
+</div>
+</div>
+<div class="text-[#EF4444] font-bold text-sm">-1 дана</div>
+</div>
+<div class="bg-[#252525] rounded-lg p-3 border border-[#333] flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#EF4444]/20 flex items-center justify-center text-[#EF4444]">
+<span class="material-symbols-outlined text-sm">remove</span>
+</div>
+<div>
+<div class="text-sm font-medium text-white">Шығару (сату)</div>
+<div class="text-[10px] text-[#9E9E9E]">20 Қаз, 16:20</div>
+</div>
+</div>
+<div class="text-[#EF4444] font-bold text-sm">-1 дана</div>
+</div>
+<div class="bg-[#252525] rounded-lg p-3 border border-[#333] flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#30867b]/20 flex items-center justify-center text-[#30867b]">
+<span class="material-symbols-outlined text-sm">add</span>
+</div>
+<div>
+<div class="text-sm font-medium text-white">Қосу (закуп)</div>
+<div class="text-[10px] text-[#9E9E9E]">15 Қаз, 09:00</div>
+</div>
+</div>
+<div class="text-[#30867b] font-bold text-sm">+20 дана</div>
+</div>
+</div>
+</div>
+</div>
+
+</body></html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add Booking - Note Step</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        'xl': '16px',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(600px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-screen overflow-hidden bg-[#0F0F0F] text-white">
+<header class="px-4 pt-4 pb-2 flex items-center bg-[#0F0F0F] z-10 border-b border-[#2A2A2A]">
+<button class="w-10 h-10 rounded-full flex items-center justify-center -ml-2 hover:bg-[#1C1C1C] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-white text-2xl">arrow_back</span>
+</button>
+<div class="flex-1 text-center pr-8">
+<h1 class="text-lg font-bold text-white">Жазба қосу</h1>
+</div>
+</header>
+<main class="flex-1 flex flex-col p-4 overflow-y-auto">
+<div class="mb-6">
+<div class="flex justify-between items-center mb-2">
+<span class="text-sm text-[#30867b] font-medium">6/6-қадам</span>
+<span class="text-xs text-[#9E9E9E]">Ескерту (міндетті емес)</span>
+</div>
+<div class="h-1 w-full bg-[#1C1C1C] rounded-full overflow-hidden">
+<div class="h-full bg-[#30867b] w-full rounded-full"></div>
+</div>
+</div>
+<div class="flex-1 flex flex-col">
+<div class="mb-4">
+<label class="block text-sm text-[#9E9E9E] mb-2">Бұл қадамды өткізіп жіберуге болады</label>
+<div class="bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl p-4 shadow-sm focus-within:border-[#30867b] focus-within:ring-1 focus-within:ring-[#30867b] transition-all">
+<textarea class="w-full bg-transparent border-none text-white placeholder-[#555] focus:ring-0 text-base min-h-[160px] resize-none leading-relaxed" placeholder="Мысалы: Клиент өз майымен келеді"></textarea>
+</div>
+</div>
+</div>
+</main>
+<div class="p-4 bg-[#0F0F0F] border-t border-[#2A2A2A] sticky bottom-0 z-20">
+<button class="w-full bg-[#30867b] text-white font-semibold py-4 rounded-xl shadow-lg hover:bg-opacity-90 active:scale-[0.98] transition-all text-base flex items-center justify-center gap-2">
+        Келесі
+        <span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+</div>
+<nav class="bg-[#1C1C1C] border-t border-[#2A2A2A] px-2 pb-safe pt-2">
+<div class="flex justify-around items-end pb-4">
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">calendar_month</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Күнтізбе</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center bg-[#30867b] bg-opacity-20 mb-1">
+<span class="material-symbols-outlined text-[#30867b]">add_box</span>
+</div>
+<span class="text-[10px] text-[#30867b] font-medium">Жазба қосу</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">inventory_2</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Қойма</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">notifications</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Ескертпелер</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">settings</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Баптаулар</span>
+</button>
+</div>
+</nav>
+
+</body></html>

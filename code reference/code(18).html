@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Finish Work Payment Entry</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            min-height: 100vh;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-screen overflow-hidden bg-[#0F0F0F] text-white">
+<header class="px-4 py-4 flex items-center bg-[#0F0F0F] z-10 border-b border-[#2A2A2A] sticky top-0">
+<button class="w-10 h-10 -ml-2 rounded-full flex items-center justify-center hover:bg-[#1C1C1C] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-white text-2xl">arrow_back</span>
+</button>
+<span class="text-lg font-bold text-white ml-2">Төлем енгізу</span>
+</header>
+<main class="flex-1 overflow-y-auto px-4 py-6 pb-32 space-y-6">
+<div class="space-y-2">
+<label class="text-[#9E9E9E] text-xs uppercase font-semibold tracking-wider ml-1">Қызмет үшін төлем</label>
+<div class="relative">
+<input class="w-full bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl px-4 py-4 text-white text-lg placeholder-[#555] focus:ring-1 focus:ring-[#30867b] focus:border-[#30867b] outline-none transition-all font-medium" placeholder="Мысалы: 25000" type="number"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-[#9E9E9E] font-medium">₸</span>
+</div>
+</div>
+<div class="space-y-3">
+<label class="text-[#9E9E9E] text-xs uppercase font-semibold tracking-wider ml-1">Төлем түрі</label>
+<div class="grid grid-cols-2 gap-3">
+<label class="cursor-pointer group relative">
+<input checked="" class="peer sr-only" name="payment_type" type="radio"/>
+<div class="bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl p-4 flex flex-col items-center justify-center gap-2 peer-checked:border-[#30867b] peer-checked:bg-[#30867b] peer-checked:bg-opacity-10 transition-all hover:border-[#333]">
+<span class="material-symbols-outlined text-[#9E9E9E] peer-checked:text-[#30867b]">payments</span>
+<span class="text-sm font-medium text-white peer-checked:text-[#30867b]">Қолма-қол</span>
+</div>
+</label>
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="payment_type" type="radio"/>
+<div class="bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl p-4 flex flex-col items-center justify-center gap-2 peer-checked:border-[#30867b] peer-checked:bg-[#30867b] peer-checked:bg-opacity-10 transition-all hover:border-[#333]">
+<span class="material-symbols-outlined text-[#9E9E9E] peer-checked:text-[#30867b]">credit_card</span>
+<span class="text-sm font-medium text-white peer-checked:text-[#30867b]">Карта</span>
+</div>
+</label>
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="payment_type" type="radio"/>
+<div class="bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl p-4 flex flex-col items-center justify-center gap-2 peer-checked:border-[#D1383E] peer-checked:bg-[#D1383E] peer-checked:bg-opacity-10 transition-all hover:border-[#333]">
+<span class="material-symbols-outlined text-[#9E9E9E] peer-checked:text-[#D1383E]">qr_code_2</span>
+<span class="text-sm font-medium text-white peer-checked:text-[#D1383E]">Kaspi</span>
+</div>
+</label>
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="payment_type" type="radio"/>
+<div class="bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl p-4 flex flex-col items-center justify-center gap-2 peer-checked:border-[#30867b] peer-checked:bg-[#30867b] peer-checked:bg-opacity-10 transition-all hover:border-[#333]">
+<span class="material-symbols-outlined text-[#9E9E9E] peer-checked:text-[#30867b]">account_balance</span>
+<span class="text-sm font-medium text-white peer-checked:text-[#30867b]">Аударым</span>
+</div>
+</label>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-[#9E9E9E] text-xs uppercase font-semibold tracking-wider ml-1">Материал шығыны (қосымша)</label>
+<div class="relative">
+<input class="w-full bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl px-4 py-4 text-white text-lg placeholder-[#555] focus:ring-1 focus:ring-[#30867b] focus:border-[#30867b] outline-none transition-all font-medium" placeholder="0" type="number"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-[#9E9E9E] font-medium">₸</span>
+</div>
+<p class="text-[#555] text-xs ml-1">Жұмыс барысында қолданылған шығын материалдарының құны.</p>
+</div>
+<div class="space-y-3 pt-2">
+<div class="flex items-center justify-between">
+<label class="text-[#9E9E9E] text-xs uppercase font-semibold tracking-wider ml-1">Сатылған бөлшектер</label>
+<button class="text-[#30867b] text-sm font-semibold flex items-center gap-1 hover:text-[#287066] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-lg">add</span>
+                    Бөлшек қосу
+                </button>
+</div>
+<div class="space-y-3">
+<div class="bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl p-4 flex justify-between items-center shadow-sm">
+<div class="flex gap-3 items-center">
+<div class="w-10 h-10 rounded-lg bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[#9E9E9E]">settings_suggest</span>
+</div>
+<div>
+<div class="text-white font-medium text-sm">Май сүзгісі (Toyota)</div>
+<div class="text-[#9E9E9E] text-xs mt-0.5">3 500 ₸  x 1</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-white font-bold">3 500 ₸</div>
+<button class="text-[#ef4444] text-xs mt-1 font-medium hover:underline">Жою</button>
+</div>
+</div>
+<div class="bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl p-4 flex justify-between items-center shadow-sm">
+<div class="flex gap-3 items-center">
+<div class="w-10 h-10 rounded-lg bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[#9E9E9E]">water_drop</span>
+</div>
+<div>
+<div class="text-white font-medium text-sm">Мотор майы 5W-30</div>
+<div class="text-[#9E9E9E] text-xs mt-0.5">4 000 ₸  x 4.5 л</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-white font-bold">18 000 ₸</div>
+<button class="text-[#ef4444] text-xs mt-1 font-medium hover:underline">Жою</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-[88px] left-0 right-0 px-4 pb-2 z-20 pointer-events-none">
+<button class="w-full bg-[#30867b] hover:bg-[#287066] active:scale-[0.99] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#30867b]/20 flex items-center justify-center gap-2 transition-all pointer-events-auto">
+<span class="material-symbols-outlined">check_circle</span>
+            Сақтау және жабу
+        </button>
+</div>
+<nav class="bg-[#1C1C1C] border-t border-[#2A2A2A] px-2 pb-safe pt-2 z-30 fixed bottom-0 w-full">
+<div class="flex justify-around items-end pb-6">
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center bg-[#30867b] bg-opacity-20 mb-1">
+<span class="material-symbols-outlined text-[#30867b]">calendar_month</span>
+</div>
+<span class="text-[10px] text-[#30867b] font-medium">Күнтізбе</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">add_box</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Жазба қосу</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">inventory_2</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Қойма</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">notifications</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Ескертпелер</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">settings</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Баптаулар</span>
+</button>
+</div>
+</nav>
+
+</body></html>

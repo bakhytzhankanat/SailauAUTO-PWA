@@ -1,0 +1,122 @@
+import { pool } from '../db/pool.js';
+
+/**
+ * Search clients by phone (LIKE) or name (ILIKE). Owner/Manager only.
+ */
+export async function search(opts = {}) {
+  const q = (opts.q || '').trim();
+  let sql = `
+    SELECT c.id, c.name, c.phone, c.source, c.created_at,
+           (SELECT MAX(b.date) FROM booking b WHERE b.client_id = c.id AND b.status = 'completed') AS last_visit_date
+    FROM client c
+  `;
+  const params = [];
+  if (q) {
+    params.push(`%${q}%`);
+    sql += ` WHERE c.phone LIKE $1 OR c.name ILIKE $1`;
+  }
+  sql += ' ORDER BY c.name';
+  const { rows } = await pool.query(sql, params);
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    phone: r.phone,
+    source: r.source,
+    created_at: r.created_at,
+    last_visit_date: r.last_visit_date ? String(r.last_visit_date).slice(0, 10) : null,
+  }));
+}
+
+/**
+ * Get client by id with stats and optional vehicles. Owner/Manager only.
+ */
+export async function getById(id) {
+  const { rows: clients } = await pool.query(
+    'SELECT id, name, phone, source, created_at FROM client WHERE id = $1',
+    [id]
+  );
+  if (clients.length === 0) return null;
+  const client = clients[0];
+
+  const { rows: statsRows } = await pool.query(
+    `SELECT COUNT(*) AS total_visits, MAX(date) AS last_visit_date
+     FROM booking WHERE client_id = $1 AND status = 'completed'`,
+    [id]
+  );
+  const total_visits = parseInt(statsRows[0]?.total_visits || '0', 10);
+  const last_visit_date = statsRows[0]?.last_visit_date ? String(statsRows[0].last_visit_date).slice(0, 10) : null;
+
+  const { rows: vehicles } = await pool.query(
+    `SELECT DISTINCT ON (b.vehicle_catalog_id, COALESCE(b.plate_number, ''))
+      v.name AS vehicle_name, v.body_type, v.year, b.plate_number
+     FROM booking b
+     JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
+     WHERE b.client_id = $1
+     ORDER BY b.vehicle_catalog_id, COALESCE(b.plate_number, ''), b.date DESC`,
+    [id]
+  );
+
+  return {
+    client: {
+      id: client.id,
+      name: client.name,
+      phone: client.phone,
+      source: client.source,
+      created_at: client.created_at,
+    },
+    stats: { total_visits, last_visit_date },
+    vehicles: (vehicles || []).map((v) => ({
+      vehicle_name: v.vehicle_name,
+      body_type: v.body_type,
+      year: v.year,
+      plate_number: v.plate_number,
+    })),
+  };
+}
+
+/**
+ * List completed bookings (visits) for a client.
+ */
+export async function listVisits(clientId) {
+  const { rows: bookings } = await pool.query(
+    `SELECT b.id, b.date, b.start_time, b.end_time, b.service_payment_amount, b.payment_type, b.material_expense,
+            v.name AS vehicle_name, v.body_type, v.year, b.plate_number
+     FROM booking b
+     JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
+     WHERE b.client_id = $1 AND b.status = 'completed'
+     ORDER BY b.date DESC, b.start_time DESC`,
+    [clientId]
+  );
+
+  const result = [];
+  for (const b of bookings) {
+    const { rows: services } = await pool.query(
+      `SELECT bs.quantity, s.name AS service_name
+       FROM booking_service bs
+       JOIN service_catalog s ON s.id = bs.service_catalog_id
+       WHERE bs.booking_id = $1`,
+      [b.id]
+    );
+    const { rows: partRows } = await pool.query(
+      'SELECT COALESCE(SUM(quantity * unit_price), 0) AS total FROM part_sale WHERE booking_id = $1',
+      [b.id]
+    );
+    const part_sales_total_for_booking = Number(partRows[0]?.total || 0);
+    result.push({
+      id: b.id,
+      date: String(b.date).slice(0, 10),
+      start_time: b.start_time,
+      end_time: b.end_time,
+      vehicle_name: b.vehicle_name,
+      body_type: b.body_type,
+      vehicle_year: b.year,
+      plate_number: b.plate_number,
+      services: services.map((s) => ({ service_name: s.service_name, quantity: s.quantity })),
+      service_payment_amount: b.service_payment_amount != null ? Number(b.service_payment_amount) : null,
+      payment_type: b.payment_type,
+      material_expense: b.material_expense != null ? Number(b.material_expense) : null,
+      part_sales_total_for_booking,
+    });
+  }
+  return result;
+}

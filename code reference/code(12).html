@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add Booking Car Selection V2</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        'xl': '16px',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-screen overflow-hidden bg-[#0F0F0F] text-white">
+<header class="px-4 py-4 flex items-center gap-4 bg-[#0F0F0F] z-10 border-b border-[#2A2A2A]">
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#1C1C1C] transition-colors">
+<span class="material-symbols-outlined text-[#9E9E9E]">arrow_back</span>
+</button>
+<div class="flex-1">
+<h1 class="text-lg font-bold text-white">Көлікті таңдау</h1>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-xs text-[#30867b] font-medium">2-қадам</span>
+<span class="w-1 h-1 rounded-full bg-[#2A2A2A]"></span>
+<span class="text-xs text-[#9E9E9E]">Барлығы 5</span>
+</div>
+</div>
+<div class="w-10 h-10"></div> 
+</header>
+<div class="h-1 w-full bg-[#1C1C1C]">
+<div class="h-full bg-[#30867b] w-2/5 rounded-r-full"></div>
+</div>
+<main class="flex-1 overflow-y-auto hide-scroll p-4">
+<div class="mb-4">
+<h2 class="text-sm font-medium text-[#9E9E9E] uppercase tracking-wide mb-3">Танымал модельдер</h2>
+<div class="grid grid-cols-2 gap-3">
+<div class="relative bg-[#1C1C1C] rounded-xl border-2 border-[#30867b] p-4 flex flex-col items-center justify-center gap-3 active:scale-[0.98] transition-all cursor-pointer group">
+<div class="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#30867b] flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[14px] font-bold">check</span>
+</div>
+<div class="w-12 h-12 rounded-full bg-[#2A2A2A] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#30867b] text-2xl">directions_car</span>
+</div>
+<div class="text-center">
+<h3 class="font-semibold text-white text-sm">Toyota Alphard</h3>
+<p class="text-[10px] text-[#9E9E9E] mt-0.5">Минивэн</p>
+</div>
+</div>
+<div class="relative bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-4 flex flex-col items-center justify-center gap-3 hover:border-[#30867b] hover:bg-[#252525] active:scale-[0.98] transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-[#2A2A2A] flex items-center justify-center group-hover:bg-[#303030] transition-colors">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-2xl">directions_car</span>
+</div>
+<div class="text-center">
+<h3 class="font-medium text-[#E0E0E0] text-sm group-hover:text-white">Toyota Estima</h3>
+<p class="text-[10px] text-[#9E9E9E] mt-0.5">Минивэн</p>
+</div>
+</div>
+<div class="relative bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-4 flex flex-col items-center justify-center gap-3 hover:border-[#30867b] hover:bg-[#252525] active:scale-[0.98] transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-[#2A2A2A] flex items-center justify-center group-hover:bg-[#303030] transition-colors">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-2xl">directions_car</span>
+</div>
+<div class="text-center">
+<h3 class="font-medium text-[#E0E0E0] text-sm group-hover:text-white">Toyota Sienna</h3>
+<p class="text-[10px] text-[#9E9E9E] mt-0.5">Минивэн</p>
+</div>
+</div>
+<div class="relative bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-4 flex flex-col items-center justify-center gap-3 hover:border-[#30867b] hover:bg-[#252525] active:scale-[0.98] transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-[#2A2A2A] flex items-center justify-center group-hover:bg-[#303030] transition-colors">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-2xl">directions_car</span>
+</div>
+<div class="text-center">
+<h3 class="font-medium text-[#E0E0E0] text-sm group-hover:text-white">Toyota Voxy</h3>
+<p class="text-[10px] text-[#9E9E9E] mt-0.5">Минивэн</p>
+</div>
+</div>
+<div class="relative bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-4 flex flex-col items-center justify-center gap-3 hover:border-[#30867b] hover:bg-[#252525] active:scale-[0.98] transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-[#2A2A2A] flex items-center justify-center group-hover:bg-[#303030] transition-colors">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-2xl">directions_car</span>
+</div>
+<div class="text-center">
+<h3 class="font-medium text-[#E0E0E0] text-sm group-hover:text-white">Nissan Serena</h3>
+<p class="text-[10px] text-[#9E9E9E] mt-0.5">Минивэн</p>
+</div>
+</div>
+<div class="relative bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-4 flex flex-col items-center justify-center gap-3 hover:border-[#30867b] hover:bg-[#252525] active:scale-[0.98] transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-[#2A2A2A] flex items-center justify-center group-hover:bg-[#303030] transition-colors">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-2xl">directions_car</span>
+</div>
+<div class="text-center">
+<h3 class="font-medium text-[#E0E0E0] text-sm group-hover:text-white">Honda Elysion</h3>
+<p class="text-[10px] text-[#9E9E9E] mt-0.5">Минивэн</p>
+</div>
+</div>
+<div class="relative bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-4 flex flex-col items-center justify-center gap-3 hover:border-[#30867b] hover:bg-[#252525] active:scale-[0.98] transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-[#2A2A2A] flex items-center justify-center group-hover:bg-[#303030] transition-colors">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-2xl">directions_car</span>
+</div>
+<div class="text-center">
+<h3 class="font-medium text-[#E0E0E0] text-sm group-hover:text-white">Honda Odyssey</h3>
+<p class="text-[10px] text-[#9E9E9E] mt-0.5">Минивэн</p>
+</div>
+</div>
+<div class="relative bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-4 flex flex-col items-center justify-center gap-3 hover:border-[#30867b] hover:bg-[#252525] active:scale-[0.98] transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-[#2A2A2A] flex items-center justify-center group-hover:bg-[#303030] transition-colors">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors text-2xl">directions_car</span>
+</div>
+<div class="text-center">
+<h3 class="font-medium text-[#E0E0E0] text-sm group-hover:text-white">Nissan Elgrand</h3>
+<p class="text-[10px] text-[#9E9E9E] mt-0.5">Минивэн</p>
+</div>
+</div>
+<div class="relative border border-dashed border-[#30867b] border-opacity-40 rounded-xl p-4 flex flex-col items-center justify-center gap-3 hover:bg-[#30867b] hover:bg-opacity-5 active:scale-[0.98] transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-[#1C1C1C] border border-[#2A2A2A] flex items-center justify-center group-hover:border-[#30867b] transition-colors">
+<span class="material-symbols-outlined text-[#30867b] text-2xl">add</span>
+</div>
+<div class="text-center">
+<h3 class="font-medium text-[#30867b] text-sm">Басқа қосу</h3>
+<p class="text-[10px] text-[#9E9E9E] mt-0.5">Тізімде жоқ</p>
+</div>
+</div>
+</div>
+</div>
+<div class="h-20"></div>
+</main>
+<div class="absolute bottom-[80px] left-0 right-0 p-4 bg-gradient-to-t from-[#0F0F0F] via-[#0F0F0F] to-transparent pointer-events-none z-20">
+<button class="w-full bg-[#30867b] hover:bg-[#2a756b] text-white font-semibold py-3.5 rounded-xl shadow-lg active:scale-[0.99] transition-all pointer-events-auto flex items-center justify-center gap-2">
+            Келесі
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<nav class="bg-[#1C1C1C] border-t border-[#2A2A2A] px-2 pb-safe pt-2 z-30">
+<div class="flex justify-around items-end pb-4">
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">calendar_month</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Күнтізбе</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center bg-[#30867b] bg-opacity-20 mb-1">
+<span class="material-symbols-outlined text-[#30867b]">add_box</span>
+</div>
+<span class="text-[10px] text-[#30867b] font-medium">Жазба қосу</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">inventory_2</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Қойма</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">notifications</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Ескертпелер</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">settings</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Баптаулар</span>
+</button>
+</div>
+</nav>
+
+</body></html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Shift Close Report Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        'xl': '16px',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #30867b;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #30867b;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-screen overflow-hidden bg-[#0F0F0F] text-white">
+<header class="px-4 pt-12 pb-4 bg-[#0F0F0F] z-10 sticky top-0 border-b border-[#2A2A2A] flex justify-between items-center">
+<h1 class="text-2xl font-bold text-white tracking-tight">Ауысымды жабу</h1>
+<button class="w-10 h-10 rounded-full bg-[#1C1C1C] border border-[#2A2A2A] flex items-center justify-center hover:bg-[#252525]">
+<span class="material-symbols-outlined text-[#9E9E9E]">history</span>
+</button>
+</header>
+<main class="flex-1 overflow-y-auto hide-scroll p-4 pb-32 space-y-6">
+<section class="space-y-3">
+<h2 class="text-sm font-semibold text-[#9E9E9E] uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">account_balance_wallet</span>
+                КІРІСТЕР
+            </h2>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] overflow-hidden p-4 space-y-3">
+<div class="flex justify-between items-center pb-2 border-b border-[#2A2A2A]">
+<span class="text-[#9E9E9E] text-sm">Қызмет кассасы</span>
+<span class="font-bold text-lg">150 000 ₸</span>
+</div>
+<div class="flex justify-between items-center pb-2 border-b border-[#2A2A2A]">
+<span class="text-[#9E9E9E] text-sm">Бөлшек сатылымы</span>
+<span class="font-bold text-lg">25 000 ₸</span>
+</div>
+<div class="flex justify-between items-center pb-2 border-b border-[#2A2A2A]">
+<span class="text-[#9E9E9E] text-sm">Материал шығыны</span>
+<span class="font-bold text-lg text-red-400">- 15 000 ₸</span>
+</div>
+<div class="flex justify-between items-center pt-1">
+<span class="text-white font-medium">Таза қызмет кірісі</span>
+<span class="font-bold text-xl text-[#30867b]">160 000 ₸</span>
+</div>
+</div>
+</section>
+<section class="space-y-3">
+<h2 class="text-sm font-semibold text-[#9E9E9E] uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">payments</span>
+                ТӨЛЕМ ТҮРІ
+            </h2>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] overflow-hidden p-4 space-y-4">
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="text-xs text-[#9E9E9E] block mb-2">KaspiPay</label>
+<div class="flex items-center bg-[#0F0F0F] rounded-lg border border-[#2A2A2A] px-3 py-2.5">
+<input class="w-full bg-transparent p-0 border-none focus:ring-0 text-white font-medium text-right" placeholder="0" type="number" value="120000"/>
+<span class="text-[#9E9E9E] ml-2">₸</span>
+</div>
+</div>
+<div>
+<label class="text-xs text-[#9E9E9E] block mb-2">Қолма-қол</label>
+<div class="flex items-center bg-[#0F0F0F] rounded-lg border border-[#2A2A2A] px-3 py-2.5">
+<input class="w-full bg-transparent p-0 border-none focus:ring-0 text-white font-medium text-right" placeholder="0" type="number" value="55000"/>
+<span class="text-[#9E9E9E] ml-2">₸</span>
+</div>
+</div>
+</div>
+<div class="pt-2 flex justify-between items-center">
+<span class="text-xs text-[#9E9E9E]">KaspiPay салық (4%)</span>
+<span class="text-sm font-bold text-red-400">- 4 800 ₸</span>
+</div>
+</div>
+</section>
+<section class="space-y-3">
+<h2 class="text-sm font-semibold text-[#9E9E9E] uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">receipt_long</span>
+                ОПЕРАЦИЯЛЫҚ ШЫҒЫН
+            </h2>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] overflow-hidden p-4 space-y-3">
+<div class="flex items-center justify-between gap-4">
+<span class="text-sm text-white w-1/3">Түскі ас</span>
+<div class="flex-1 flex items-center bg-[#0F0F0F] rounded-lg border border-[#2A2A2A] px-3 py-2">
+<input class="w-full bg-transparent p-0 border-none focus:ring-0 text-white text-right font-medium" type="number" value="5000"/>
+<span class="text-[#9E9E9E] ml-2">₸</span>
+</div>
+</div>
+<div class="flex items-center justify-between gap-4">
+<span class="text-sm text-white w-1/3">Транспорт</span>
+<div class="flex-1 flex items-center bg-[#0F0F0F] rounded-lg border border-[#2A2A2A] px-3 py-2">
+<input class="w-full bg-transparent p-0 border-none focus:ring-0 text-white text-right font-medium" type="number" value="2000"/>
+<span class="text-[#9E9E9E] ml-2">₸</span>
+</div>
+</div>
+<div class="flex items-center justify-between gap-4">
+<span class="text-sm text-white w-1/3">Аренда</span>
+<div class="flex-1 flex items-center bg-[#0F0F0F] rounded-lg border border-[#2A2A2A] px-3 py-2">
+<input class="w-full bg-transparent p-0 border-none focus:ring-0 text-white text-right font-medium" type="number" value="10000"/>
+<span class="text-[#9E9E9E] ml-2">₸</span>
+</div>
+</div>
+</div>
+</section>
+<section class="space-y-3">
+<h2 class="text-sm font-semibold text-[#9E9E9E] uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">volunteer_activism</span>
+                ҚАЙЫРЫМДЫЛЫҚ (10%)
+            </h2>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] overflow-hidden p-4 flex justify-between items-center">
+<div>
+<span class="text-xs text-[#9E9E9E] block">Есептелді</span>
+<span class="text-sm text-white font-medium line-through decoration-red-400">13 820 ₸</span>
+</div>
+<div class="text-right">
+<span class="text-xs text-[#9E9E9E] block">Дөңгелектелді</span>
+<span class="text-xl font-bold text-[#30867b]">14 000 ₸</span>
+</div>
+</div>
+</section>
+<section class="bg-gradient-to-r from-[#30867b]/20 to-[#30867b]/5 rounded-xl border border-[#30867b]/30 p-4 flex justify-between items-center">
+<span class="text-sm font-bold text-[#30867b] uppercase tracking-wide">БӨЛІНЕТІН ТАБЫС</span>
+<span class="text-2xl font-bold text-white">124 200 ₸</span>
+</section>
+<section class="space-y-3">
+<h2 class="text-sm font-semibold text-[#9E9E9E] uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">pie_chart</span>
+                ЖАЛАҚЫ БӨЛУ
+            </h2>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] overflow-hidden">
+<table class="w-full text-left text-sm">
+<thead class="bg-[#2A2A2A] text-[#9E9E9E] font-medium">
+<tr>
+<th class="px-4 py-2">Рөл</th>
+<th class="px-4 py-2 text-right">Үлес</th>
+<th class="px-4 py-2 text-right">Сома</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#2A2A2A]">
+<tr>
+<td class="px-4 py-3 font-medium">Менеджер</td>
+<td class="px-4 py-3 text-right text-[#9E9E9E]">8%</td>
+<td class="px-4 py-3 text-right font-bold">9 936 ₸</td>
+</tr>
+<tr>
+<td class="px-4 py-3 font-medium">Әр шебер</td>
+<td class="px-4 py-3 text-right text-[#9E9E9E]">12%</td>
+<td class="px-4 py-3 text-right font-bold">14 904 ₸</td>
+</tr>
+<tr>
+<td class="px-4 py-3 font-medium text-[#30867b]">Иесі</td>
+<td class="px-4 py-3 text-right text-[#9E9E9E]">40%</td>
+<td class="px-4 py-3 text-right font-bold text-[#30867b]">49 680 ₸</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="space-y-3">
+<h2 class="text-sm font-semibold text-[#9E9E9E] uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">groups</span>
+                АУЫСЫМДА КІМ БОЛДЫ
+            </h2>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] overflow-hidden p-4 space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#2A2A2A] flex items-center justify-center text-xs font-bold text-[#9E9E9E]">AA</div>
+<span class="text-sm">Айбек А.</span>
+</div>
+<div class="relative inline-block w-10 h-6 align-middle select-none">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer top-1 left-1 transition-all duration-300" id="m1" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-[#30867b] cursor-pointer" for="m1"></label>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#2A2A2A] flex items-center justify-center text-xs font-bold text-[#9E9E9E]">EM</div>
+<span class="text-sm">Ержан М.</span>
+</div>
+<div class="relative inline-block w-10 h-6 align-middle select-none">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer top-1 left-1 transition-all duration-300" id="m2" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-[#30867b] cursor-pointer" for="m2"></label>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#2A2A2A] flex items-center justify-center text-xs font-bold text-[#9E9E9E]">KB</div>
+<span class="text-sm">Қайрат Б.</span>
+</div>
+<div class="relative inline-block w-10 h-6 align-middle select-none">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer top-1 left-1 transition-all duration-300" id="m3" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-[#30867b] cursor-pointer" for="m3"></label>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#2A2A2A] flex items-center justify-center text-xs font-bold text-[#9E9E9E]">DS</div>
+<span class="text-sm">Данияр С.</span>
+</div>
+<div class="relative inline-block w-10 h-6 align-middle select-none">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer top-1 left-1 transition-all duration-300" id="m4" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-[#30867b] cursor-pointer" for="m4"></label>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#2A2A2A] flex items-center justify-center text-xs font-bold text-[#9E9E9E]">NK</div>
+<span class="text-sm">Нұрлан К.</span>
+</div>
+<div class="relative inline-block w-10 h-6 align-middle select-none">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer top-1 left-1 transition-all duration-300" id="m5" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-[#30867b] cursor-pointer" for="m5"></label>
+</div>
+</div>
+</div>
+</section>
+<section class="space-y-3">
+<h2 class="text-sm font-semibold text-[#9E9E9E] uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">summarize</span>
+                ҚОРЫТЫНДЫ
+            </h2>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-4 space-y-2 text-sm">
+<div class="flex justify-between">
+<span class="text-[#9E9E9E]">Барлық кіріс</span>
+<span class="font-medium text-white">175 000 ₸</span>
+</div>
+<div class="flex justify-between">
+<span class="text-[#9E9E9E]">Барлық шығын</span>
+<span class="font-medium text-red-400">- 36 800 ₸</span>
+</div>
+<div class="flex justify-between">
+<span class="text-[#9E9E9E]">Қайырымдылық</span>
+<span class="font-medium text-white">14 000 ₸</span>
+</div>
+<div class="border-t border-[#2A2A2A] my-2 pt-2 flex justify-between text-base">
+<span class="font-bold text-white">Таза табыс</span>
+<span class="font-bold text-[#30867b]">124 200 ₸</span>
+</div>
+</div>
+</section>
+<div class="pt-2">
+<button class="w-full bg-[#30867b] hover:bg-[#287066] text-white font-bold py-4 rounded-xl text-lg shadow-lg shadow-[#30867b]/20 transition-all active:scale-[0.98]">
+                Ауысымды жабу
+            </button>
+</div>
+</main>
+<nav class="bg-[#1C1C1C] border-t border-[#2A2A2A] px-2 pb-safe pt-2 fixed bottom-0 w-full z-30">
+<div class="flex justify-around items-end pb-4">
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">calendar_month</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Күнтізбе</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">add_box</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Жазба қосу</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">inventory_2</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Қойма</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">notifications</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Ескертпелер</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center bg-[#30867b] bg-opacity-20 mb-1">
+<span class="material-symbols-outlined text-[#30867b]">settings</span>
+</div>
+<span class="text-[10px] text-[#30867b] font-medium">Баптаулар</span>
+</button>
+</div>
+</nav>
+
+</body></html>

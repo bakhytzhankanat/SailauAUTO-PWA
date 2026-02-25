@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add Booking Service &amp; Schedule V1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scroll-snap-x {
+            scroll-snap-type: x mandatory;
+        }
+        .scroll-snap-center {
+            scroll-snap-align: center;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-screen overflow-hidden bg-[#0F0F0F] text-white">
+<header class="px-4 py-3 flex items-center justify-between bg-[#0F0F0F] border-b border-[#2A2A2A] z-10">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-white active:bg-[#1C1C1C] transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex flex-col items-center">
+<h1 class="text-lg font-bold">Жазба қосу</h1>
+<span class="text-xs text-[#9E9E9E]">5/5 Қызмет және уақыт</span>
+</div>
+<div class="w-10 h-10"></div> 
+</header>
+<main class="flex-1 overflow-y-auto pb-24 hide-scroll">
+<div class="p-4 space-y-6">
+<section>
+<h2 class="text-sm font-semibold text-[#9E9E9E] mb-3 uppercase tracking-wider">Қызметті таңдау</h2>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] overflow-hidden mb-3">
+<button class="w-full flex items-center justify-between p-4 bg-[#252525] border-b border-[#2A2A2A]">
+<span class="font-medium text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-[#30867b]">door_front</span>
+                            Есік қызметтері
+                        </span>
+<span class="material-symbols-outlined text-[#9E9E9E]">expand_less</span>
+</button>
+<div class="p-0">
+<div class="flex flex-col border-b border-[#2A2A2A] bg-[#30867b] bg-opacity-10">
+<div class="p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 rounded border border-[#30867b] bg-[#30867b] flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm">check</span>
+</div>
+<span class="text-sm font-medium">Актуаторды ауыстыру</span>
+</div>
+<span class="text-sm font-bold text-[#30867b]">15 000 ₸</span>
+</div>
+<div class="px-4 pb-4 pt-0 pl-12 flex items-center justify-between">
+<span class="text-xs text-[#9E9E9E]">Есік саны:</span>
+<div class="flex items-center bg-[#0F0F0F] rounded-lg border border-[#2A2A2A]">
+<button class="w-8 h-8 flex items-center justify-center text-[#9E9E9E] active:text-white">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="w-8 text-center text-sm font-bold">2</span>
+<button class="w-8 h-8 flex items-center justify-center text-white active:scale-95">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-4 flex items-center justify-between hover:bg-[#252525] transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 rounded border border-[#666] flex items-center justify-center"></div>
+<span class="text-sm text-[#CCCCCC]">Есік тұтқасын жөндеу</span>
+</div>
+<span class="text-sm text-[#9E9E9E]">8 000 ₸</span>
+</div>
+</div>
+</div>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] overflow-hidden mb-3">
+<button class="w-full flex items-center justify-between p-4 active:bg-[#252525]">
+<span class="font-medium text-[#CCCCCC] flex items-center gap-2">
+<span class="material-symbols-outlined text-[#9E9E9E]">build</span>
+                            Қосымша қызметтер
+                        </span>
+<span class="material-symbols-outlined text-[#9E9E9E]">expand_more</span>
+</button>
+</div>
+<div class="bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] overflow-hidden">
+<button class="w-full flex items-center justify-between p-4 active:bg-[#252525]">
+<span class="font-medium text-[#CCCCCC] flex items-center gap-2">
+<span class="material-symbols-outlined text-[#9E9E9E]">hvac</span>
+                            Пеш қызметтері
+                        </span>
+<span class="material-symbols-outlined text-[#9E9E9E]">expand_more</span>
+</button>
+</div>
+</section>
+<section>
+<h2 class="text-sm font-semibold text-[#9E9E9E] mb-3 uppercase tracking-wider">Боксты таңдау</h2>
+<div class="grid grid-cols-2 gap-3">
+<label class="relative cursor-pointer group">
+<input checked="" class="peer sr-only" name="box" type="radio"/>
+<div class="bg-[#1C1C1C] border-2 border-[#2A2A2A] peer-checked:border-[#30867b] peer-checked:bg-[#30867b] peer-checked:bg-opacity-10 rounded-xl p-4 flex flex-col items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[#9E9E9E] peer-checked:text-[#30867b] text-3xl">garage_home</span>
+<span class="font-semibold text-sm peer-checked:text-[#30867b]">Бокс 1</span>
+</div>
+<div class="absolute top-2 right-2 w-4 h-4 bg-[#30867b] rounded-full text-white flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[10px]">check</span>
+</div>
+</label>
+<label class="relative cursor-pointer group">
+<input class="peer sr-only" name="box" type="radio"/>
+<div class="bg-[#1C1C1C] border-2 border-[#2A2A2A] peer-checked:border-[#30867b] peer-checked:bg-[#30867b] peer-checked:bg-opacity-10 rounded-xl p-4 flex flex-col items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[#9E9E9E] peer-checked:text-[#30867b] text-3xl">garage_home</span>
+<span class="font-semibold text-sm peer-checked:text-[#30867b]">Бокс 2</span>
+</div>
+<div class="absolute top-2 right-2 w-4 h-4 bg-[#30867b] rounded-full text-white flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[10px]">check</span>
+</div>
+</label>
+</div>
+</section>
+<section>
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-sm font-semibold text-[#9E9E9E] uppercase tracking-wider">Уақыт пен ұзақтық</h2>
+<span class="text-xs text-[#30867b] font-medium">25 Ақпан, 2026</span>
+</div>
+<div class="space-y-4">
+<div>
+<label class="text-xs text-[#9E9E9E] mb-2 block ml-1">Басталу уақыты</label>
+<div class="flex gap-2 overflow-x-auto hide-scroll pb-2 scroll-snap-x">
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input class="peer sr-only" name="time" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[70px]">
+<div class="text-sm font-bold">10:00</div>
+</div>
+</label>
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input class="peer sr-only" name="time" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[70px]">
+<div class="text-sm font-bold">11:00</div>
+</div>
+</label>
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input checked="" class="peer sr-only" name="time" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[70px]">
+<div class="text-sm font-bold">13:00</div>
+</div>
+</label>
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input class="peer sr-only" name="time" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[70px]">
+<div class="text-sm font-bold">14:00</div>
+</div>
+</label>
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input class="peer sr-only" name="time" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[70px]">
+<div class="text-sm font-bold">15:00</div>
+</div>
+</label>
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input class="peer sr-only" name="time" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[70px]">
+<div class="text-sm font-bold">16:00</div>
+</div>
+</label>
+</div>
+</div>
+<div>
+<label class="text-xs text-[#9E9E9E] mb-2 block ml-1">Ұзақтығы</label>
+<div class="flex gap-2 overflow-x-auto hide-scroll pb-2 scroll-snap-x">
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input class="peer sr-only" name="duration" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[80px]">
+<div class="text-sm font-medium">1 сағ</div>
+</div>
+</label>
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input checked="" class="peer sr-only" name="duration" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[80px]">
+<div class="text-sm font-medium">2 сағ</div>
+</div>
+</label>
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input class="peer sr-only" name="duration" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[80px]">
+<div class="text-sm font-medium">3 сағ</div>
+</div>
+</label>
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input class="peer sr-only" name="duration" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[80px]">
+<div class="text-sm font-medium">4 сағ</div>
+</div>
+</label>
+<label class="flex-shrink-0 cursor-pointer scroll-snap-center">
+<input class="peer sr-only" name="duration" type="radio"/>
+<div class="px-4 py-2 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg peer-checked:bg-[#30867b] peer-checked:border-[#30867b] peer-checked:text-white text-[#CCCCCC] transition-all text-center min-w-[80px]">
+<div class="text-sm font-medium">5 сағ</div>
+</div>
+</label>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<div class="fixed bottom-[84px] left-0 right-0 p-4 bg-gradient-to-t from-[#0F0F0F] via-[#0F0F0F] to-transparent z-20 pointer-events-none">
+<div class="pointer-events-auto">
+<button class="w-full bg-[#30867b] text-white font-bold py-4 rounded-xl shadow-lg hover:bg-opacity-90 active:scale-[0.99] transition-all text-lg">
+                Қосу
+            </button>
+</div>
+</div>
+<nav class="bg-[#1C1C1C] border-t border-[#2A2A2A] px-2 pb-safe pt-2 fixed bottom-0 w-full z-30">
+<div class="flex justify-around items-end pb-4">
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">calendar_month</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Күнтізбе</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center bg-[#30867b] bg-opacity-20 mb-1">
+<span class="material-symbols-outlined text-[#30867b]">add_box</span>
+</div>
+<span class="text-[10px] text-[#30867b] font-medium">Жазба қосу</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">inventory_2</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Қойма</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">notifications</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Ескертпелер</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">settings</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Баптаулар</span>
+</button>
+</div>
+</nav>
+
+</body></html>

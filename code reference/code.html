@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sailau Auto Login Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        'xl': '16px',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px #1C1C1C inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col justify-center items-center px-4">
+<div class="w-full max-w-sm mx-auto flex flex-col items-center">
+<div class="mb-10 flex flex-col items-center text-center">
+<div class="w-48 h-24 relative mb-4 flex items-center justify-center">
+<img alt="Sailau Auto Logo" class="object-contain w-full h-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDI7C8gp1OhX-eQ-M44SqRtapji6hiRoV5H2KjnC6eneVQhQc4UTKRN0Aa7IH-afnQxOpwfH1qqe8iSNgioHOq4PAJz0xRbRD08xPbJFLWPJ3NUA_6XWPzRG4D6IqlrHOiP5nKb5XjEun5vH1SPJz9PhLVsJvDoEtIoumQq2e6NO3F71A7OXoeRN-WSQVuG4zoMJ0oa7q-9y4rpAGO8aZtE5eXlsuNaM7luO4AQR9SsDNTCxv2WWSdnxHgLIeZvSn35cRbqmczf5xE"/>
+</div>
+<h1 class="text-3xl font-bold text-white mb-2 tracking-tight">Sailau Auto</h1>
+<p class="text-[#9E9E9E] text-sm font-medium">
+                Автосервис басқару жүйесі
+            </p>
+</div>
+<div class="w-full bg-[#1C1C1C] rounded-xl border border-[#2A2A2A] p-6 sm:p-8 shadow-2xl">
+<form action="#" class="space-y-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-white ml-1" for="phone">Phone Number</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[#9E9E9E] group-focus-within:text-primary transition-colors">smartphone</span>
+</div>
+<input class="block w-full pl-12 pr-4 py-4 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg text-white placeholder-[#9E9E9E] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200 text-base" id="phone" name="phone" placeholder="+7 (700) 000-00-00" type="tel"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-white ml-1" for="password">Password</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[#9E9E9E] group-focus-within:text-primary transition-colors">lock</span>
+</div>
+<input class="block w-full pl-12 pr-4 py-4 bg-[#1C1C1C] border border-[#2A2A2A] rounded-lg text-white placeholder-[#9E9E9E] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200 text-base" id="password" name="password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<button class="w-full flex justify-center py-4 px-4 border border-transparent rounded-lg shadow-sm text-lg font-bold text-white bg-[#30867b] hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#30867b] focus:ring-offset-[#1C1C1C] transition-all duration-200 mt-2" type="submit">
+                    Кіру
+                </button>
+<div class="text-center pt-2">
+<a class="text-sm font-medium text-[#9E9E9E] hover:text-white transition-colors duration-200" href="#">
+                        Құпия сөзді ұмыттыңыз ба?
+                    </a>
+</div>
+</form>
+</div>
+<div class="mt-8 text-center">
+<p class="text-xs text-[#9E9E9E] opacity-75">
+                Sailau Auto жүйесіне қош келдіңіз
+            </p>
+</div>
+</div>
+
+</body></html>

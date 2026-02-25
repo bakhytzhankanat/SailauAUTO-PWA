@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add Booking Body Selection V1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#30867b",
+                        "bg-main": "#0F0F0F",
+                        "card-bg": "#1C1C1C",
+                        "border-color": "#2A2A2A",
+                        "text-muted": "#9E9E9E",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        'xl': '16px',
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#0F0F0F] text-white overflow-hidden">
+<header class="px-4 py-3 flex items-center justify-between bg-[#0F0F0F] border-b border-[#2A2A2A] z-10 shrink-0">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#1C1C1C] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-white">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold text-white">Жазба қосу</h1>
+<div class="w-10"></div> 
+</header>
+<div class="px-4 py-4 shrink-0">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm font-semibold text-[#30867b]">3/5 Кузов таңдау</span>
+<span class="text-xs text-[#9E9E9E]">Toyota Alphard</span>
+</div>
+<div class="h-1 w-full bg-[#1C1C1C] rounded-full overflow-hidden">
+<div class="h-full bg-[#30867b] w-3/5 rounded-full"></div>
+</div>
+</div>
+<main class="flex-1 overflow-y-auto px-4 pb-4">
+<h2 class="text-xl font-bold mb-4 text-white">Кузов түрін таңдаңыз</h2>
+<div class="grid grid-cols-2 gap-4">
+<label class="cursor-pointer group relative">
+<input checked="" class="peer sr-only" name="body_type" type="radio" value="10"/>
+<div class="h-40 bg-[#1C1C1C] rounded-xl border-2 border-[#30867b] p-4 flex flex-col items-center justify-center transition-all peer-checked:bg-[#30867b] peer-checked:bg-opacity-10 relative overflow-hidden">
+<div class="absolute top-2 right-2 w-6 h-6 bg-[#30867b] rounded-full flex items-center justify-center opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-sm">check</span>
+</div>
+<span class="material-symbols-outlined text-5xl mb-3 text-white">directions_car</span>
+<span class="text-lg font-bold text-white text-center">10 кузов</span>
+<span class="text-xs text-[#9E9E9E] mt-1 text-center">2002 - 2008</span>
+</div>
+</label>
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="body_type" type="radio" value="20"/>
+<div class="h-40 bg-[#1C1C1C] rounded-xl border-2 border-transparent hover:border-[#2A2A2A] p-4 flex flex-col items-center justify-center transition-all peer-checked:border-[#30867b] peer-checked:bg-[#30867b] peer-checked:bg-opacity-10 relative overflow-hidden">
+<div class="absolute top-2 right-2 w-6 h-6 bg-[#30867b] rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-sm">check</span>
+</div>
+<span class="material-symbols-outlined text-5xl mb-3 text-[#9E9E9E] group-hover:text-white transition-colors">directions_car</span>
+<span class="text-lg font-bold text-[#9E9E9E] group-hover:text-white transition-colors text-center">20 кузов</span>
+<span class="text-xs text-[#555] mt-1 text-center group-hover:text-[#9E9E9E]">2008 - 2015</span>
+</div>
+</label>
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="body_type" type="radio" value="30"/>
+<div class="h-40 bg-[#1C1C1C] rounded-xl border-2 border-transparent hover:border-[#2A2A2A] p-4 flex flex-col items-center justify-center transition-all peer-checked:border-[#30867b] peer-checked:bg-[#30867b] peer-checked:bg-opacity-10 relative overflow-hidden">
+<div class="absolute top-2 right-2 w-6 h-6 bg-[#30867b] rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-sm">check</span>
+</div>
+<span class="material-symbols-outlined text-5xl mb-3 text-[#9E9E9E] group-hover:text-white transition-colors">directions_car</span>
+<span class="text-lg font-bold text-[#9E9E9E] group-hover:text-white transition-colors text-center">30 кузов</span>
+<span class="text-xs text-[#555] mt-1 text-center group-hover:text-[#9E9E9E]">2015 - 2023</span>
+</div>
+</label>
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="body_type" type="radio" value="40"/>
+<div class="h-40 bg-[#1C1C1C] rounded-xl border-2 border-transparent hover:border-[#2A2A2A] p-4 flex flex-col items-center justify-center transition-all peer-checked:border-[#30867b] peer-checked:bg-[#30867b] peer-checked:bg-opacity-10 relative overflow-hidden">
+<div class="absolute top-2 right-2 w-6 h-6 bg-[#30867b] rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-sm">check</span>
+</div>
+<span class="material-symbols-outlined text-5xl mb-3 text-[#9E9E9E] group-hover:text-white transition-colors">directions_car</span>
+<span class="text-lg font-bold text-[#9E9E9E] group-hover:text-white transition-colors text-center">40 кузов</span>
+<span class="text-xs text-[#555] mt-1 text-center group-hover:text-[#9E9E9E]">2023 - Қазір</span>
+</div>
+</label>
+</div>
+</main>
+<div class="shrink-0 bg-[#0F0F0F] border-t border-[#2A2A2A]">
+<div class="px-4 py-3">
+<button class="w-full bg-[#30867b] hover:bg-[#286f66] active:scale-[0.98] text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-lg">
+                Келесі
+                <span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+</div>
+<nav class="pb-safe pt-2">
+<div class="flex justify-around items-end pb-4">
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">calendar_month</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Күнтізбе</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center bg-[#30867b] bg-opacity-20 mb-1">
+<span class="material-symbols-outlined text-[#30867b]">add_box</span>
+</div>
+<span class="text-[10px] text-[#30867b] font-medium">Жазба қосу</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">inventory_2</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Қойма</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">notifications</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Ескертпелер</span>
+</button>
+<button class="flex flex-col items-center group w-1/5">
+<div class="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#9E9E9E] group-hover:text-white transition-colors">settings</span>
+</div>
+<span class="text-[10px] text-[#9E9E9E] group-hover:text-white transition-colors">Баптаулар</span>
+</button>
+</div>
+</nav>
+</div>
+
+</body></html>
