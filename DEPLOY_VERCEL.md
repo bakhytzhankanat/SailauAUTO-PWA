@@ -20,6 +20,7 @@
 2. **Root Directory:** укажи **`frontend`**.
 3. **Environment Variables:**
    - `VITE_API_URL` — URL бэкенда **без** слэша в конце, например: `https://sailau-avto-api-xxx.vercel.app`.
+   - ⚠️ Если на телефоне при входе «Load failed» — проверь, что `VITE_API_URL` задан в проекте фронта и сделай **Redeploy** (переменные подставляются при сборке).
 4. **Build Command:** `npm run build` (обычно подставляется автоматически).
 5. **Output Directory:** `dist`.
 6. Нажми **Deploy**.

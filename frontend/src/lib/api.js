@@ -1,4 +1,6 @@
-const API_BASE = (import.meta.env.VITE_API_URL || '') + '/api';
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '') + '/api';
+
+const NETWORK_ERROR_MSG = 'Серверге қосылу мүмкін емес. Интернетті тексеріңіз немесе кейін қайталаңыз.';
 
 function getToken() {
   return localStorage.getItem('sailau_token');
@@ -28,7 +30,12 @@ export async function api(path, options = {}) {
     ...options.headers,
   };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(API_BASE + path, { ...options, headers });
+  let res;
+  try {
+    res = await fetch(API_BASE + path, { ...options, headers });
+  } catch (err) {
+    throw new Error(err.message === 'Failed to fetch' ? NETWORK_ERROR_MSG : (err.message || NETWORK_ERROR_MSG));
+  }
   const data = res.ok ? await res.json().catch(() => ({})) : await res.json().catch(() => ({ error: res.statusText }));
   if (!res.ok) throw new Error(data.error || res.statusText);
   return data;
