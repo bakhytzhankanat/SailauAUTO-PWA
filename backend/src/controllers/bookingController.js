@@ -2,16 +2,20 @@ import * as bookingService from '../services/bookingService.js';
 import * as executionService from '../services/executionService.js';
 
 export async function list(req, res) {
+  const serviceId = req.user?.service_id;
+  if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   const { date, box_id } = req.query;
   if (!date) {
     return res.status(400).json({ error: 'date қажет' });
   }
-  const list = await bookingService.listByDate(date, box_id ? parseInt(box_id, 10) : null);
+  const list = await bookingService.listByDate(date, box_id ? parseInt(box_id, 10) : null, serviceId);
   return res.json(list);
 }
 
 export async function getById(req, res) {
-  const booking = await bookingService.getById(req.params.id);
+  const serviceId = req.user?.service_id;
+  if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
+  const booking = await bookingService.getById(req.params.id, serviceId);
   if (!booking) {
     return res.status(404).json({ error: 'Жазба табылмады' });
   }
@@ -19,8 +23,10 @@ export async function getById(req, res) {
 }
 
 export async function create(req, res) {
+  const serviceId = req.user?.service_id;
+  if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   try {
-    const booking = await bookingService.create(req.body);
+    const booking = await bookingService.create(serviceId, req.body);
     return res.status(201).json(booking);
   } catch (err) {
     return res.status(400).json({ error: err.message });
@@ -28,8 +34,10 @@ export async function create(req, res) {
 }
 
 export async function update(req, res) {
+  const serviceId = req.user?.service_id;
+  if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   try {
-    const booking = await bookingService.updateStructure(req.params.id, req.body);
+    const booking = await bookingService.updateStructure(req.params.id, serviceId, req.body);
     if (!booking) {
       return res.status(404).json({ error: 'Жазба табылмады' });
     }
@@ -40,8 +48,10 @@ export async function update(req, res) {
 }
 
 export async function start(req, res) {
+  const serviceId = req.user?.service_id;
+  if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   try {
-    const booking = await executionService.startBooking(req.params.id, req.user?.id);
+    const booking = await executionService.startBooking(req.params.id, serviceId, req.user?.id);
     if (!booking) {
       return res.status(404).json({ error: 'Жазба табылмады' });
     }
@@ -52,6 +62,8 @@ export async function start(req, res) {
 }
 
 export async function complete(req, res) {
+  const serviceId = req.user?.service_id;
+  if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   try {
     const payload = req.body || {};
     const allowed = [
@@ -66,7 +78,7 @@ export async function complete(req, res) {
     for (const key of allowed) {
       if (payload[key] !== undefined) filtered[key] = payload[key];
     }
-    const booking = await executionService.completeBooking(req.params.id, filtered);
+    const booking = await executionService.completeBooking(req.params.id, serviceId, filtered);
     if (!booking) {
       return res.status(404).json({ error: 'Жазба табылмады' });
     }

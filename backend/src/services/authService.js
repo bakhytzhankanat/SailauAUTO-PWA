@@ -23,7 +23,7 @@ export async function login(phone, password) {
     return { error: 'Телефон және құпия сөз толтырылуы керек' };
   }
   const { rows } = await pool.query(
-    'SELECT id, phone, display_name, role, is_senior_worker, password_hash, is_active FROM "user" WHERE phone = $1',
+    'SELECT id, phone, display_name, role, is_senior_worker, service_id, password_hash, is_active FROM "user" WHERE phone = $1',
     [normalized]
   );
   if (rows.length === 0) {
@@ -51,6 +51,7 @@ export async function login(phone, password) {
       display_name: safe.display_name,
       role: safe.role,
       is_senior_worker: safe.is_senior_worker,
+      service_id: safe.service_id ?? null,
     },
   };
 }
@@ -60,9 +61,10 @@ export async function login(phone, password) {
  */
 export async function getMe(userId) {
   const { rows } = await pool.query(
-    'SELECT id, phone, display_name, role, is_senior_worker FROM "user" WHERE id = $1',
+    'SELECT id, phone, display_name, role, is_senior_worker, service_id FROM "user" WHERE id = $1',
     [userId]
   );
   if (rows.length === 0) return null;
-  return rows[0];
+  const u = rows[0];
+  return { ...u, service_id: u.service_id ?? null };
 }

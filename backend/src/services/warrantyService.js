@@ -3,7 +3,11 @@ import { pool } from '../db/pool.js';
 /**
  * List warranties for a client with service name, completed_at, expires_at, status (active/expired).
  */
-export async function listByClient(clientId) {
+export async function listByClient(clientId, serviceId) {
+  if (serviceId) {
+    const { rows: check } = await pool.query('SELECT id FROM client WHERE id = $1 AND service_id = $2', [clientId, serviceId]);
+    if (check.length === 0) return [];
+  }
   const { rows } = await pool.query(
     `SELECT w.id, w.completed_at, w.expires_at, s.name AS service_name
      FROM warranty w
@@ -28,9 +32,10 @@ export async function listByClient(clientId) {
 }
 
 /**
- * List warranties expiring within the next N days. Owner/Manager only.
+ * List warranties expiring within the next N days. Owner/Manager only. Scoped by service.
  */
-export async function listExpiring(opts = {}) {
+export async function listExpiring(serviceId, opts = {}) {
+  if (!serviceId) throw new Error('service_id қажет');
   const days = Math.max(0, parseInt(opts.days, 10) || 7);
   const from = new Date().toISOString().slice(0, 10);
   const toDate = new Date();
@@ -41,10 +46,10 @@ export async function listExpiring(opts = {}) {
     `SELECT w.id, w.client_id, w.expires_at, s.name AS service_name, c.name AS client_name, c.phone
      FROM warranty w
      JOIN service_catalog s ON s.id = w.service_catalog_id
-     JOIN client c ON c.id = w.client_id
-     WHERE w.expires_at >= $1 AND w.expires_at <= $2
+     JOIN client c ON c.id = w.client_id AND c.service_id = $1
+     WHERE w.expires_at >= $2 AND w.expires_at <= $3
      ORDER BY w.expires_at ASC`,
-    [from, to]
+    [serviceId, from, to]
   );
   return rows.map((r) => ({
     id: r.id,

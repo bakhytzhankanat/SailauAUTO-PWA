@@ -14,6 +14,7 @@ import remindersRoutes from './routes/reminders.js';
 import webhooksRoutes from './routes/webhooks.js';
 import whatsappInboundRoutes from './routes/whatsappInbound.js';
 import usersRoutes from './routes/users.js';
+import adminRoutes from './routes/admin.js';
 import analyticsRoutes from './routes/analytics.js';
 
 const app = express();
@@ -47,6 +48,7 @@ app.use('/api/reminders', remindersRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/whatsapp-inbound', whatsappInboundRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
 app.get('/api/health', (req, res) => {

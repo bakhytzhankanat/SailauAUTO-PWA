@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
@@ -7,13 +7,16 @@ const navItems = [
   { to: '/inventory', icon: 'inventory_2', label: 'Қойма', roles: ['owner', 'manager', 'worker'] },
   { to: '/analytics', icon: 'analytics', label: 'Есеп', roles: ['owner'] },
   { to: '/reminders', icon: 'notifications', label: 'Ескертпелер', roles: ['owner', 'manager', 'worker'] },
-  { to: '/admin', icon: 'admin_panel_settings', label: 'Админка', roles: ['owner'] },
+  { to: '/admin', icon: 'admin_panel_settings', label: 'Админка', roles: ['owner', 'super_admin'] },
   { to: '/settings', icon: 'settings', label: 'Баптаулар', roles: ['owner'] },
 ];
 
 export default function AppShell({ children }) {
   const { user } = useAuth();
   const location = useLocation();
+  if (user?.role === 'super_admin' && location.pathname !== '/admin') {
+    return <Navigate to="/admin" replace />;
+  }
   const role = user?.role || '';
   const visibleItems = navItems.filter((item) =>
     item.roles.includes(role) || (item.seniorWorker && role === 'worker' && user?.is_senior_worker)

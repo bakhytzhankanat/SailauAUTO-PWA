@@ -5,18 +5,18 @@ import { getById } from './bookingService.js';
  * Start job: status planned|arrived → in_progress, started_at = now().
  * Allowed: worker, owner.
  */
-export async function startBooking(id, assignedMasterId = null) {
-  const booking = await getById(id);
+export async function startBooking(id, serviceId, assignedMasterId = null) {
+  const booking = await getById(id, serviceId);
   if (!booking) return null;
   if (booking.status !== 'planned' && booking.status !== 'arrived') {
     throw new Error('Жазбаны тек жоспарланған немесе келді күйінде бастауға болады');
   }
   await pool.query(
     `UPDATE booking SET status = 'in_progress', started_at = now(), updated_at = now(),
-     assigned_master_id = COALESCE($2, assigned_master_id) WHERE id = $1`,
-    [id, assignedMasterId]
+     assigned_master_id = COALESCE($2, assigned_master_id) WHERE id = $1 AND service_id = $3`,
+    [id, assignedMasterId, serviceId]
   );
-  return getById(id);
+  return getById(id, serviceId);
 }
 
 /**
@@ -26,12 +26,13 @@ export async function startBooking(id, assignedMasterId = null) {
  * unit_price required; must be in [sale_price_min, sale_price_max].
  * Creates client if booking.client_id is null; creates warranty rows; creates part_sale + decrements inventory + movement.
  */
-export async function completeBooking(id, payload) {
-  const booking = await getById(id);
+export async function completeBooking(id, serviceId, payload) {
+  const booking = await getById(id, serviceId);
   if (!booking) return null;
   if (booking.status !== 'in_progress') {
     throw new Error('Тек жұмыс үстіндегі жазбаны аяқтауға болады');
   }
+  const sid = booking.service_id || serviceId;
 
   const {
     service_payment_amount,
@@ -57,8 +58,8 @@ export async function completeBooking(id, payload) {
     let clientId = booking.client_id;
     if (!clientId && booking.client_name && booking.phone) {
       const { rows: existing } = await client.query(
-        'SELECT id FROM client WHERE phone = $1',
-        [booking.phone.trim()]
+        'SELECT id FROM client WHERE service_id = $1 AND phone = $2',
+        [sid, booking.phone.trim()]
       );
       if (existing.length > 0) {
         clientId = existing[0].id;
@@ -68,8 +69,8 @@ export async function completeBooking(id, payload) {
         );
       } else {
         const { rows: [newClient] } = await client.query(
-          `INSERT INTO client (name, phone, source) VALUES ($1, $2, $3) RETURNING id`,
-          [booking.client_name.trim(), booking.phone.trim(), booking.source]
+          `INSERT INTO client (service_id, name, phone, source) VALUES ($1, $2, $3, $4) RETURNING id`,
+          [sid, booking.client_name.trim(), booking.phone.trim(), booking.source]
         );
         clientId = newClient.id;
       }
@@ -88,7 +89,7 @@ export async function completeBooking(id, payload) {
       `UPDATE booking SET
         status = 'completed', completed_at = $2, updated_at = now(),
         service_payment_amount = $3, payment_type = $4, material_expense = $5, kaspi_tax_amount = $6
-       WHERE id = $1`,
+       WHERE id = $1 AND service_id = $7`,
       [
         id,
         completedAt,
@@ -96,6 +97,7 @@ export async function completeBooking(id, payload) {
         payment_type || null,
         material_expense != null ? Number(material_expense) : null,
         kaspi_tax_amount != null ? Number(kaspi_tax_amount) : null,
+        sid,
       ]
     );
 
@@ -121,8 +123,8 @@ export async function completeBooking(id, payload) {
         throw new Error('Сату бағасы жарамды сан болуы керек');
       }
       const { rows: items } = await client.query(
-        'SELECT id, sale_price_min, sale_price_max, quantity FROM inventory_item WHERE id = $1 FOR UPDATE',
-        [inventory_item_id]
+        'SELECT id, sale_price_min, sale_price_max, quantity FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
+        [inventory_item_id, sid]
       );
       if (items.length === 0) throw new Error(`Бөлшек табылмады: ${inventory_item_id}`);
       const item = items[0];
@@ -148,7 +150,7 @@ export async function completeBooking(id, payload) {
     }
 
     await client.query('COMMIT');
-    return getById(id);
+    return getById(id, serviceId);
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;

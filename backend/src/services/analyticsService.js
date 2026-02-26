@@ -38,30 +38,30 @@ function getMonthDates(isoDate) {
   return dates;
 }
 
-async function getServiceIncomeTotal(date) {
+async function getServiceIncomeTotal(serviceId, date) {
   const { rows } = await pool.query(
     `SELECT COALESCE(SUM(service_payment_amount), 0) AS total
-     FROM booking WHERE date = $1 AND status = 'completed'`,
-    [date]
+     FROM booking WHERE service_id = $1 AND date = $2 AND status = 'completed'`,
+    [serviceId, date]
   );
   return num(rows[0]?.total);
 }
 
-async function getMaterialExpenseTotal(date) {
+async function getMaterialExpenseTotal(serviceId, date) {
   const { rows } = await pool.query(
     `SELECT COALESCE(SUM(material_expense), 0) AS total
-     FROM booking WHERE date = $1 AND status = 'completed'`,
-    [date]
+     FROM booking WHERE service_id = $1 AND date = $2 AND status = 'completed'`,
+    [serviceId, date]
   );
   return num(rows[0]?.total);
 }
 
-async function getPartSalesTotal(date) {
+async function getPartSalesTotal(serviceId, date) {
   const { rows } = await pool.query(
     `SELECT COALESCE(SUM(ps.quantity * ps.unit_price), 0) AS total
      FROM part_sale ps
-     JOIN booking b ON b.id = ps.booking_id AND b.date = $1 AND b.status = 'completed'`,
-    [date]
+     JOIN booking b ON b.id = ps.booking_id AND b.service_id = $1 AND b.date = $2 AND b.status = 'completed'`,
+    [serviceId, date]
   );
   return num(rows[0]?.total);
 }
@@ -70,7 +70,8 @@ async function getPartSalesTotal(date) {
  * GET /api/analytics/summary?period=day|week|month&date=YYYY-MM-DD
  * Owner only. Returns period boundaries, aggregated metrics, daily rows, wages breakdown, day_close list.
  */
-export async function getSummary(period, date) {
+export async function getSummary(serviceId, period, date) {
+  if (!serviceId) throw new Error('service_id қажет');
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new Error('Жарамды күн форматы: YYYY-MM-DD');
   }
@@ -103,7 +104,7 @@ export async function getSummary(period, date) {
   const dayCloseList = [];
 
   for (const d of dates) {
-    const { rows: dcRows } = await pool.query('SELECT * FROM day_close WHERE date = $1', [d]);
+    const { rows: dcRows } = await pool.query('SELECT * FROM day_close WHERE service_id = $1 AND date = $2', [serviceId, d]);
     if (dcRows.length > 0) {
       const dc = dcRows[0];
       const svc = num(dc.service_income_total);
@@ -149,9 +150,9 @@ export async function getSummary(period, date) {
         day_closed: true,
       });
     } else {
-      const svc = await getServiceIncomeTotal(d);
-      const mat = await getMaterialExpenseTotal(d);
-      const parts = await getPartSalesTotal(d);
+      const svc = await getServiceIncomeTotal(serviceId, d);
+      const mat = await getMaterialExpenseTotal(serviceId, d);
+      const parts = await getPartSalesTotal(serviceId, d);
       const net = svc - mat;
       service_income_total += svc;
       part_sales_total += parts;
@@ -169,14 +170,14 @@ export async function getSummary(period, date) {
   }
 
   const { rows: carsRows } = await pool.query(
-    `SELECT COUNT(*) AS cnt FROM booking WHERE date >= $1 AND date <= $2 AND status = 'completed'`,
-    [start_date, end_date]
+    `SELECT COUNT(*) AS cnt FROM booking WHERE service_id = $1 AND date >= $2 AND date <= $3 AND status = 'completed'`,
+    [serviceId, start_date, end_date]
   );
   const cars_count = Number(carsRows[0]?.cnt || 0);
 
   const { rows: clientsRows } = await pool.query(
-    `SELECT COUNT(DISTINCT client_id) AS cnt FROM booking WHERE date >= $1 AND date <= $2 AND status = 'completed' AND client_id IS NOT NULL`,
-    [start_date, end_date]
+    `SELECT COUNT(DISTINCT client_id) AS cnt FROM booking WHERE service_id = $1 AND date >= $2 AND date <= $3 AND status = 'completed' AND client_id IS NOT NULL`,
+    [serviceId, start_date, end_date]
   );
   const unique_clients_count = Number(clientsRows[0]?.cnt || 0);
 
@@ -197,8 +198,8 @@ export async function getSummary(period, date) {
   const opex_totals = { lunch: 0, transport: 0, rent: 0 };
   const { rows: opexRows } = await pool.query(
     `SELECT COALESCE(SUM(opex_lunch), 0) AS lunch, COALESCE(SUM(opex_transport), 0) AS transport, COALESCE(SUM(opex_rent), 0) AS rent
-     FROM day_close WHERE date >= $1 AND date <= $2`,
-    [start_date, end_date]
+     FROM day_close WHERE service_id = $1 AND date >= $2 AND date <= $3`,
+    [serviceId, start_date, end_date]
   );
   if (opexRows[0]) {
     opex_totals.lunch = num(opexRows[0].lunch);

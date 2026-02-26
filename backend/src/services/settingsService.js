@@ -37,10 +37,11 @@ export function validateMastersOwnerSum(mastersPercent, ownerPercent) {
 }
 
 /**
- * Get all settings as key-value object.
+ * Get all settings as key-value object for a service.
  */
-export async function getAll() {
-  const { rows } = await pool.query('SELECT key, value FROM settings');
+export async function getAll(serviceId) {
+  if (!serviceId) throw new Error('service_id қажет');
+  const { rows } = await pool.query('SELECT key, value FROM settings WHERE service_id = $1', [serviceId]);
   const obj = {};
   for (const r of rows) {
     obj[r.key] = r.value;
@@ -51,7 +52,8 @@ export async function getAll() {
 /**
  * Update settings from keyValues. Owner only. Whitelist + validation.
  */
-export async function updateKeyValues(keyValues) {
+export async function updateKeyValues(serviceId, keyValues) {
+  if (!serviceId) throw new Error('service_id қажет');
   if (!keyValues || typeof keyValues !== 'object') {
     throw new Error('keyValues объектісі қажет');
   }
@@ -63,7 +65,7 @@ export async function updateKeyValues(keyValues) {
     updates[k] = val;
   }
 
-  if (Object.keys(updates).length === 0) return getAll();
+  if (Object.keys(updates).length === 0) return getAll(serviceId);
 
   const start = updates.working_hours_start != null ? updates.working_hours_start : null;
   const end = updates.working_hours_end != null ? updates.working_hours_end : null;
@@ -91,9 +93,8 @@ export async function updateKeyValues(keyValues) {
     if (!Number.isFinite(n) || n < 0 || n > 100) throw new Error(`${k} 0–100 аралығында болуы керек`);
   }
 
-  // Шеберлер + Иесі = 100 (менеджер бөлек: қайырымдылықтан кейін алдымен ұсталады, қалғаны шеберлер/иесі арасында)
   if (updates.masters_percent != null || updates.owner_percent != null) {
-    const current = await getAll();
+    const current = await getAll(serviceId);
     const s = parseFloat(updates.masters_percent ?? current.masters_percent ?? 0);
     const o = parseFloat(updates.owner_percent ?? current.owner_percent ?? 0);
     validateMastersOwnerSum(s, o);
@@ -109,9 +110,9 @@ export async function updateKeyValues(keyValues) {
 
   for (const [key, value] of Object.entries(updates)) {
     await pool.query(
-      'INSERT INTO settings (key, value, updated_at) VALUES ($1, $2, now()) ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = now()',
-      [key, value]
+      'INSERT INTO settings (service_id, key, value, updated_at) VALUES ($1, $2, $3, now()) ON CONFLICT (service_id, key) DO UPDATE SET value = $3, updated_at = now()',
+      [serviceId, key, value]
     );
   }
-  return getAll();
+  return getAll(serviceId);
 }

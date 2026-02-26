@@ -1,15 +1,16 @@
 import { pool } from '../db/pool.js';
 
 /**
- * List inventory items for management. Any role. Adds low_stock when quantity <= min_quantity (min_quantity set).
+ * List inventory items for management. Any role. Scoped by service.
  */
-export async function list(nameFilter = null) {
+export async function list(serviceId, nameFilter = null) {
+  if (!serviceId) throw new Error('service_id қажет');
   let query = `
     SELECT id, name, sale_price_min, sale_price_max, quantity, min_quantity, unit
     FROM inventory_item
-    WHERE 1=1
+    WHERE service_id = $1
   `;
-  const params = [];
+  const params = [serviceId];
   if (nameFilter && nameFilter.trim()) {
     params.push(`%${nameFilter.trim()}%`);
     query += ` AND name ILIKE $${params.length}`;
@@ -23,10 +24,10 @@ export async function list(nameFilter = null) {
 }
 
 /**
- * Create inventory item. Owner/Manager only.
- * Accepts sale_price_min, sale_price_max (sale_price_min > 0, sale_price_max >= sale_price_min).
+ * Create inventory item. Owner/Manager only. Scoped by service.
  */
-export async function createItem(data) {
+export async function createItem(serviceId, data) {
+  if (!serviceId) throw new Error('service_id қажет');
   const { name, sale_price_min, sale_price_max, quantity, min_quantity, unit } = data;
   if (!name || name.trim() === '') throw new Error('Атауы болуы керек');
   const qty = quantity != null ? Number(quantity) : 0;
@@ -38,10 +39,10 @@ export async function createItem(data) {
   const minQty = min_quantity != null && min_quantity !== '' ? Number(min_quantity) : null;
   if (minQty != null && minQty < 0) throw new Error('Минималды қалдық теріс болмауы керек');
   const { rows } = await pool.query(
-    `INSERT INTO inventory_item (name, sale_price_min, sale_price_max, quantity, min_quantity, unit)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO inventory_item (service_id, name, sale_price_min, sale_price_max, quantity, min_quantity, unit)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id, name, sale_price_min, sale_price_max, quantity, min_quantity, unit`,
-    [name.trim(), minP, maxP, qty, minQty, unit && unit.trim() ? unit.trim() : null]
+    [serviceId, name.trim(), minP, maxP, qty, minQty, unit && unit.trim() ? unit.trim() : null]
   );
   const r = rows[0];
   return {
@@ -51,9 +52,10 @@ export async function createItem(data) {
 }
 
 /**
- * Manual movement: in or out. Owner/Manager only. Worker gets 403 at route level.
+ * Manual movement: in or out. Owner/Manager only. Scoped by service.
  */
-export async function createMovement(data) {
+export async function createMovement(serviceId, data) {
+  if (!serviceId) throw new Error('service_id қажет');
   const { inventory_item_id, type, quantity: qtyParam, note } = data;
   if (!inventory_item_id) throw new Error('Тауар таңдалуы керек');
   if (type !== 'in' && type !== 'out') throw new Error('Түрі: in немесе out');
@@ -64,8 +66,8 @@ export async function createMovement(data) {
   try {
     await client.query('BEGIN');
     const { rows: items } = await client.query(
-      'SELECT id, quantity FROM inventory_item WHERE id = $1 FOR UPDATE',
-      [inventory_item_id]
+      'SELECT id, quantity FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
+      [inventory_item_id, serviceId]
     );
     if (items.length === 0) {
       await client.query('ROLLBACK');

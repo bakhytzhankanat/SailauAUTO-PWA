@@ -15,8 +15,9 @@ function parseBool(val) {
 /**
  * Load settings as key-value, return decimals for percents/amounts.
  */
-async function getSettings() {
-  const { rows } = await pool.query('SELECT key, value FROM settings');
+async function getSettings(serviceId) {
+  if (!serviceId) throw new Error('service_id қажет');
+  const { rows } = await pool.query('SELECT key, value FROM settings WHERE service_id = $1', [serviceId]);
   const o = {};
   for (const r of rows) o[r.key] = r.value;
   return {
@@ -32,11 +33,11 @@ async function getSettings() {
 /**
  * 1) service_income_total for date, status=completed
  */
-async function getServiceIncomeTotal(date) {
+async function getServiceIncomeTotal(serviceId, date) {
   const { rows } = await pool.query(
     `SELECT COALESCE(SUM(service_payment_amount), 0) AS total
-     FROM booking WHERE date = $1 AND status = 'completed'`,
-    [date]
+     FROM booking WHERE service_id = $1 AND date = $2 AND status = 'completed'`,
+    [serviceId, date]
   );
   return num(rows[0]?.total);
 }
@@ -44,11 +45,11 @@ async function getServiceIncomeTotal(date) {
 /**
  * 2) material_expense_total for completed bookings on date
  */
-async function getMaterialExpenseTotal(date) {
+async function getMaterialExpenseTotal(serviceId, date) {
   const { rows } = await pool.query(
     `SELECT COALESCE(SUM(material_expense), 0) AS total
-     FROM booking WHERE date = $1 AND status = 'completed'`,
-    [date]
+     FROM booking WHERE service_id = $1 AND date = $2 AND status = 'completed'`,
+    [serviceId, date]
   );
   return num(rows[0]?.total);
 }
@@ -56,12 +57,12 @@ async function getMaterialExpenseTotal(date) {
 /**
  * 3) part_sales_total: SUM(quantity * unit_price) for part_sales linked to completed bookings on date
  */
-async function getPartSalesTotal(date) {
+async function getPartSalesTotal(serviceId, date) {
   const { rows } = await pool.query(
     `SELECT COALESCE(SUM(ps.quantity * ps.unit_price), 0) AS total
      FROM part_sale ps
-     JOIN booking b ON b.id = ps.booking_id AND b.date = $1 AND b.status = 'completed'`,
-    [date]
+     JOIN booking b ON b.id = ps.booking_id AND b.service_id = $1 AND b.date = $2 AND b.status = 'completed'`,
+    [serviceId, date]
   );
   return num(rows[0]?.total);
 }
@@ -69,16 +70,17 @@ async function getPartSalesTotal(date) {
 /**
  * Create day close snapshot. Throws if date already closed.
  */
-export async function createSnapshot(payload, user) {
+export async function createSnapshot(serviceId, payload, user) {
+  if (!serviceId) throw new Error('service_id қажет');
   const date = payload.date;
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new Error('Жарамды күн форматы: YYYY-MM-DD');
   }
 
-  const settings = await getSettings();
-  const service_income_total = await getServiceIncomeTotal(date);
-  const material_expense_total = await getMaterialExpenseTotal(date);
-  const part_sales_total = await getPartSalesTotal(date);
+  const settings = await getSettings(serviceId);
+  const service_income_total = await getServiceIncomeTotal(serviceId, date);
+  const material_expense_total = await getMaterialExpenseTotal(serviceId, date);
+  const part_sales_total = await getPartSalesTotal(serviceId, date);
 
   let kaspi_amount = num(payload.kaspi_amount);
   let cash_amount = payload.cash_amount != null && payload.cash_amount !== '' ? num(payload.cash_amount) : null;
@@ -122,14 +124,14 @@ export async function createSnapshot(payload, user) {
 
   const client = await pool.connect();
   try {
-    const { rows: existing } = await client.query('SELECT id FROM day_close WHERE date = $1', [date]);
+    const { rows: existing } = await client.query('SELECT id FROM day_close WHERE service_id = $1 AND date = $2', [serviceId, date]);
     if (existing.length > 0) {
       throw Object.assign(new Error('Бұл күн үшін ауысым жабылған'), { statusCode: 409 });
     }
 
     const { rows: [dc] } = await client.query(
       `INSERT INTO day_close (
-        date, closed_by_id,
+        service_id, date, closed_by_id,
         service_income_total, part_sales_total, kaspi_amount, cash_amount,
         material_expense_total, opex_lunch, opex_transport, opex_rent,
         kaspi_tax_percent, kaspi_tax_amount,
@@ -138,17 +140,17 @@ export async function createSnapshot(payload, user) {
         manager_percent, manager_amount, remainder_after_manager,
         masters_percent, owner_percent, masters_pool_amount, owner_service_dividend, owner_parts_dividend
       ) VALUES (
-        $1, $2,
-        $3, $4, $5, $6,
-        $7, $8, $9, $10,
-        $11, $12,
-        $13, $14, $15, $16,
-        $17, $18,
-        $19, $20, $21,
-        $22, $23, $24, $25, $26
+        $1, $2, $3,
+        $4, $5, $6, $7,
+        $8, $9, $10, $11,
+        $12, $13,
+        $14, $15, $16, $17,
+        $18, $19,
+        $20, $21, $22,
+        $23, $24, $25, $26, $27
       ) RETURNING *`,
       [
-        date, user.id,
+        serviceId, date, user.id,
         service_income_total, part_sales_total, kaspi_amount, cash_amount,
         material_expense_total, opex_lunch, opex_transport, opex_rent,
         settings.kaspi_tax_percent, kaspi_tax_amount,
@@ -158,7 +160,6 @@ export async function createSnapshot(payload, user) {
         settings.masters_percent, settings.owner_percent, masters_pool_amount, owner_service_dividend, owner_parts_dividend,
       ]
     );
-
     for (const masterUserId of present_master_user_ids) {
       await client.query(
         `INSERT INTO day_close_master (day_close_id, master_user_id, amount) VALUES ($1, $2, $3)`,
@@ -220,15 +221,16 @@ function mapRow(r) {
   };
 }
 
-export async function getByDate(date) {
+export async function getByDate(serviceId, date) {
+  if (!serviceId) throw new Error('service_id қажет');
   if (!date) {
     return { day_close: null, masters: [], derived: { service_income_total: 0, material_expense_total: 0, part_sales_total: 0 } };
   }
-  const { rows } = await pool.query('SELECT * FROM day_close WHERE date = $1', [date]);
+  const { rows } = await pool.query('SELECT * FROM day_close WHERE service_id = $1 AND date = $2', [serviceId, date]);
   const derived = {
-    service_income_total: await getServiceIncomeTotal(date),
-    material_expense_total: await getMaterialExpenseTotal(date),
-    part_sales_total: await getPartSalesTotal(date),
+    service_income_total: await getServiceIncomeTotal(serviceId, date),
+    material_expense_total: await getMaterialExpenseTotal(serviceId, date),
+    part_sales_total: await getPartSalesTotal(serviceId, date),
   };
   if (rows.length === 0) {
     return { day_close: null, masters: [], derived };
@@ -251,19 +253,20 @@ export async function getByDate(date) {
  * PATCH: owner only. Editable: opex_lunch, opex_transport, opex_rent, kaspi_amount, cash_amount, present_master_user_ids, edit_reason.
  * Recompute snapshot and update.
  */
-export async function updateSnapshot(id, payload, user) {
+export async function updateSnapshot(id, serviceId, payload, user) {
+  if (!serviceId) throw new Error('service_id қажет');
   const edit_reason = payload.edit_reason != null ? String(payload.edit_reason).trim() : null;
   if (!edit_reason) throw new Error('Түзету себебін кіргізу қажет');
 
-  const { rows: existing } = await pool.query('SELECT * FROM day_close WHERE id = $1', [id]);
+  const { rows: existing } = await pool.query('SELECT * FROM day_close WHERE id = $1 AND service_id = $2', [id, serviceId]);
   if (existing.length === 0) throw new Error('Ауысым жабу жазбасы табылмады');
   const row = existing[0];
   const date = row.date;
 
-  const settings = await getSettings();
-  const service_income_total = await getServiceIncomeTotal(date);
-  const material_expense_total = await getMaterialExpenseTotal(date);
-  const part_sales_total = await getPartSalesTotal(date);
+  const settings = await getSettings(serviceId);
+  const service_income_total = await getServiceIncomeTotal(serviceId, date);
+  const material_expense_total = await getMaterialExpenseTotal(serviceId, date);
+  const part_sales_total = await getPartSalesTotal(serviceId, date);
 
   let kaspi_amount = payload.kaspi_amount != null && payload.kaspi_amount !== '' ? num(payload.kaspi_amount) : Number(row.kaspi_amount);
   let cash_amount = payload.cash_amount != null && payload.cash_amount !== '' ? num(payload.cash_amount) : null;
@@ -325,5 +328,5 @@ export async function updateSnapshot(id, payload, user) {
     client.release();
   }
 
-  return getByDate(date);
+  return getByDate(serviceId, date);
 }

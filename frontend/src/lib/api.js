@@ -76,6 +76,14 @@ export async function updateUser(id, body) {
   return api(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
 }
 
+export async function getAdminOwners() {
+  return api('/admin/owners');
+}
+
+export async function createOwner(body) {
+  return api('/admin/owners', { method: 'POST', body: JSON.stringify(body) });
+}
+
 export async function getVehicleCatalog() {
   return api('/vehicle-catalog');
 }

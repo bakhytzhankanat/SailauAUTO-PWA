@@ -2,14 +2,16 @@ import bcrypt from 'bcryptjs';
 import { pool } from '../db/pool.js';
 
 /**
- * List staff: managers + workers (exclude owner). Owner only. Includes inactive.
+ * List staff: managers + workers (exclude owner) for one service. Owner only. Includes inactive.
  */
-export async function listStaff() {
+export async function listStaff(serviceId) {
+  if (!serviceId) throw new Error('service_id қажет');
   const { rows } = await pool.query(
     `SELECT id, phone, display_name, role, is_senior_worker, is_active, created_at
      FROM "user"
-     WHERE role IN ('manager', 'worker')
-     ORDER BY role, display_name`
+     WHERE service_id = $1 AND role IN ('manager', 'worker')
+     ORDER BY role, display_name`,
+    [serviceId]
   );
   return rows.map((r) => ({
     id: r.id,
@@ -23,14 +25,16 @@ export async function listStaff() {
 }
 
 /**
- * List workers (role=worker, active only). Owner only. For day close etc.
+ * List workers (role=worker, active only) for one service. Owner only. For day close etc.
  */
-export async function listWorkers() {
+export async function listWorkers(serviceId) {
+  if (!serviceId) throw new Error('service_id қажет');
   const { rows } = await pool.query(
     `SELECT id, phone, display_name, is_senior_worker, created_at
      FROM "user"
-     WHERE role = 'worker' AND (is_active IS NULL OR is_active = true)
-     ORDER BY display_name`
+     WHERE service_id = $1 AND role = 'worker' AND (is_active IS NULL OR is_active = true)
+     ORDER BY display_name`,
+    [serviceId]
   );
   return rows.map((r) => ({
     id: r.id,
@@ -42,9 +46,10 @@ export async function listWorkers() {
 }
 
 /**
- * Create user: manager or worker. Owner only. phone, display_name, password, role.
+ * Create user: manager or worker. Owner only. phone, display_name, password, role. service_id from owner.
  */
-export async function createUser(data) {
+export async function createUser(serviceId, data) {
+  if (!serviceId) throw new Error('service_id қажет');
   const { phone, display_name, password, role } = data;
   if (!role || !['manager', 'worker'].includes(role)) throw new Error('role: manager немесе worker');
   const name = (display_name || '').trim();
@@ -59,9 +64,9 @@ export async function createUser(data) {
 
   const password_hash = await bcrypt.hash(pwd, 10);
   const { rows } = await pool.query(
-    `INSERT INTO "user" (phone, password_hash, role, display_name) VALUES ($1, $2, $3, $4)
+    `INSERT INTO "user" (phone, password_hash, role, display_name, service_id) VALUES ($1, $2, $3, $4, $5)
      RETURNING id, phone, display_name, role, is_senior_worker, is_active, created_at`,
-    [normalized, password_hash, role, name]
+    [normalized, password_hash, role, name, serviceId]
   );
   const r = rows[0];
   return {
@@ -76,9 +81,12 @@ export async function createUser(data) {
 }
 
 /**
- * Update user: display_name (1..60), is_senior_worker, is_active, new_password. Owner only.
+ * Update user: display_name (1..60), is_senior_worker, is_active, new_password. Owner only. User must belong to same service.
  */
-export async function updateUser(id, data) {
+export async function updateUser(id, serviceId, data) {
+  if (!serviceId) throw new Error('service_id қажет');
+  const { rows: check } = await pool.query('SELECT id FROM "user" WHERE id = $1 AND service_id = $2', [id, serviceId]);
+  if (check.length === 0) throw new Error('Пайдаланушы табылмады');
   const updates = [];
   const params = [];
   let idx = 1;
@@ -106,8 +114,8 @@ export async function updateUser(id, data) {
   }
   if (updates.length === 0) {
     const { rows } = await pool.query(
-      'SELECT id, phone, display_name, role, is_senior_worker, is_active, created_at FROM "user" WHERE id = $1',
-      [id]
+      'SELECT id, phone, display_name, role, is_senior_worker, is_active, created_at FROM "user" WHERE id = $1 AND service_id = $2',
+      [id, serviceId]
     );
     if (rows.length === 0) throw new Error('Пайдаланушы табылмады');
     const r = rows[0];

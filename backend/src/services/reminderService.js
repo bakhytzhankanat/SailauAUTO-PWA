@@ -3,21 +3,22 @@ import { pool } from '../db/pool.js';
 const ROLE_LABEL = { owner: 'Иесі', manager: 'Менеджер', worker: 'Мастер' };
 
 /**
- * List reminders. status filter: 'active' | 'done' | 'all' (default all).
- * Returns with creator display_name and role for badge.
+ * List reminders. status filter: 'active' | 'done' | 'all' (default all). Scoped by service.
  */
-export async function list(opts = {}) {
+export async function list(serviceId, opts = {}) {
+  if (!serviceId) throw new Error('service_id қажет');
   const status = opts.status === 'active' || opts.status === 'done' ? opts.status : null;
   let sql = `
     SELECT r.id, r.title, r.priority, r.status, r.created_by_id, r.created_at, r.updated_at, r.link_type, r.link_id,
            u.display_name AS created_by_name, u.role AS created_by_role
     FROM reminder r
     LEFT JOIN "user" u ON u.id = r.created_by_id
+    WHERE r.service_id = $1
   `;
-  const params = [];
+  const params = [serviceId];
   if (status) {
     params.push(status);
-    sql += ` WHERE r.status = $1`;
+    sql += ` AND r.status = $2`;
   }
   sql += ' ORDER BY r.created_at DESC';
   const { rows } = await pool.query(sql, params);
@@ -38,9 +39,10 @@ export async function list(opts = {}) {
 }
 
 /**
- * Create reminder. Any authenticated user.
+ * Create reminder. Any authenticated user. Scoped by service.
  */
-export async function create(data, user) {
+export async function create(serviceId, data, user) {
+  if (!serviceId) throw new Error('service_id қажет');
   const title = (data.title || '').trim();
   if (title.length < 3 || title.length > 140) {
     throw new Error('Тақырып 3–140 таңбадан тұруы керек');
@@ -54,17 +56,17 @@ export async function create(data, user) {
   if (link_type) {
     if (link_type !== 'inventory') throw new Error('link_type тек inventory болуы мүмкін');
     if (!link_id) throw new Error('Қойма сілтемесі үшін тауар таңдаңыз');
-    const { rows } = await pool.query('SELECT id FROM inventory_item WHERE id = $1', [link_id]);
+    const { rows } = await pool.query('SELECT id FROM inventory_item WHERE id = $1 AND service_id = $2', [link_id, serviceId]);
     if (rows.length === 0) throw new Error('Тауар табылмады');
   } else {
     link_id = null;
   }
 
   const { rows } = await pool.query(
-    `INSERT INTO reminder (title, priority, status, created_by_id, link_type, link_id)
-     VALUES ($1, $2, 'active', $3, $4, $5)
+    `INSERT INTO reminder (service_id, title, priority, status, created_by_id, link_type, link_id)
+     VALUES ($1, $2, $3, 'active', $4, $5, $6)
      RETURNING id, title, priority, status, created_by_id, created_at, link_type, link_id`,
-    [title, priority, user.id, link_type, link_id]
+    [serviceId, title, priority, user.id, link_type, link_id]
   );
   const r = rows[0];
   const createdBy = user.id ? { display_name: user.display_name, role: user.role } : null;
@@ -86,11 +88,12 @@ export async function create(data, user) {
 /**
  * Update status only. Any authenticated user.
  */
-export async function updateStatus(id, status, user) {
+export async function updateStatus(id, serviceId, status, user) {
+  if (!serviceId) throw new Error('service_id қажет');
   if (status !== 'active' && status !== 'done') throw new Error('status: active немесе done');
   const { rows } = await pool.query(
-    'UPDATE reminder SET status = $2, updated_at = now() WHERE id = $1 RETURNING *',
-    [id, status]
+    'UPDATE reminder SET status = $2, updated_at = now() WHERE id = $1 AND service_id = $3 RETURNING *',
+    [id, status, serviceId]
   );
   if (rows.length === 0) throw new Error('Ескертпе табылмады');
   const r = rows[0];
@@ -114,8 +117,9 @@ export async function updateStatus(id, status, user) {
 /**
  * Delete. Owner/manager: any; worker: only own (created_by_id === user.id).
  */
-export async function deleteReminder(id, user) {
-  const { rows } = await pool.query('SELECT id, created_by_id FROM reminder WHERE id = $1', [id]);
+export async function deleteReminder(id, serviceId, user) {
+  if (!serviceId) throw new Error('service_id қажет');
+  const { rows } = await pool.query('SELECT id, created_by_id FROM reminder WHERE id = $1 AND service_id = $2', [id, serviceId]);
   if (rows.length === 0) throw new Error('Ескертпе табылмады');
   const reminder = rows[0];
   const isOwnerOrManager = user.role === 'owner' || user.role === 'manager';
@@ -124,19 +128,20 @@ export async function deleteReminder(id, user) {
     err.statusCode = 403;
     throw err;
   }
-  await pool.query('DELETE FROM reminder WHERE id = $1', [id]);
+  await pool.query('DELETE FROM reminder WHERE id = $1 AND service_id = $2', [id, serviceId]);
   return { ok: true };
 }
 
 /**
  * Delete all done. Owner/manager only.
  */
-export async function clearDone(user) {
+export async function clearDone(serviceId, user) {
+  if (!serviceId) throw new Error('service_id қажет');
   if (user.role !== 'owner' && user.role !== 'manager') {
     const err = new Error('Рұқсат жоқ');
     err.statusCode = 403;
     throw err;
   }
-  const { rowCount } = await pool.query("DELETE FROM reminder WHERE status = 'done'");
+  const { rowCount } = await pool.query("DELETE FROM reminder WHERE service_id = $1 AND status = 'done'", [serviceId]);
   return { deleted: rowCount };
 }

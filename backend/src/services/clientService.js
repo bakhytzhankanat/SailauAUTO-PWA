@@ -3,17 +3,19 @@ import { pool } from '../db/pool.js';
 /**
  * Search clients by phone (LIKE) or name (ILIKE). Owner/Manager only.
  */
-export async function search(opts = {}) {
+export async function search(serviceId, opts = {}) {
+  if (!serviceId) throw new Error('service_id қажет');
   const q = (opts.q || '').trim();
   let sql = `
     SELECT c.id, c.name, c.phone, c.source, c.created_at,
            (SELECT MAX(b.date) FROM booking b WHERE b.client_id = c.id AND b.status = 'completed') AS last_visit_date
     FROM client c
+    WHERE c.service_id = $1
   `;
-  const params = [];
+  const params = [serviceId];
   if (q) {
     params.push(`%${q}%`);
-    sql += ` WHERE c.phone LIKE $1 OR c.name ILIKE $1`;
+    sql += ` AND (c.phone LIKE $2 OR c.name ILIKE $2)`;
   }
   sql += ' ORDER BY c.name';
   const { rows } = await pool.query(sql, params);
@@ -30,10 +32,11 @@ export async function search(opts = {}) {
 /**
  * Get client by id with stats and optional vehicles. Owner/Manager only.
  */
-export async function getById(id) {
+export async function getById(id, serviceId) {
+  if (!serviceId) throw new Error('service_id қажет');
   const { rows: clients } = await pool.query(
-    'SELECT id, name, phone, source, created_at FROM client WHERE id = $1',
-    [id]
+    'SELECT id, name, phone, source, created_at FROM client WHERE id = $1 AND service_id = $2',
+    [id, serviceId]
   );
   if (clients.length === 0) return null;
   const client = clients[0];
@@ -77,15 +80,16 @@ export async function getById(id) {
 /**
  * List completed bookings (visits) for a client.
  */
-export async function listVisits(clientId) {
+export async function listVisits(clientId, serviceId) {
+  if (!serviceId) throw new Error('service_id қажет');
   const { rows: bookings } = await pool.query(
     `SELECT b.id, b.date, b.start_time, b.end_time, b.service_payment_amount, b.payment_type, b.material_expense,
             v.name AS vehicle_name, v.body_type, v.year, b.plate_number
      FROM booking b
      JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
-     WHERE b.client_id = $1 AND b.status = 'completed'
+     WHERE b.client_id = $1 AND b.service_id = $2 AND b.status = 'completed'
      ORDER BY b.date DESC, b.start_time DESC`,
-    [clientId]
+    [clientId, serviceId]
   );
 
   const result = [];

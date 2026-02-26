@@ -16,7 +16,7 @@ function timeToMinutes(t) {
 /**
  * Validate booking time window: 10:00-18:00 and no overlap for same box/date.
  */
-export async function validateTimeSlot(date, boxId, startTime, endTime, excludeBookingId = null) {
+export async function validateTimeSlot(date, boxId, startTime, endTime, excludeBookingId = null, serviceId = null) {
   const start = timeToMinutes(startTime);
   const end = timeToMinutes(endTime);
   const workStart = timeToMinutes(WORK_START);
@@ -24,10 +24,11 @@ export async function validateTimeSlot(date, boxId, startTime, endTime, excludeB
   if (start < workStart || end > workEnd || start >= end) {
     return { valid: false, error: 'Уақыт 10:00–18:00 аралығында болуы керек' };
   }
+  if (!serviceId) throw new Error('service_id қажет');
   const { rows } = await pool.query(
     `SELECT id, start_time, end_time FROM booking
-     WHERE date = $1 AND box_id = $2 AND id != COALESCE($3, '00000000-0000-0000-0000-000000000000'::uuid)`,
-    [date, boxId, excludeBookingId]
+     WHERE service_id = $1 AND date = $2 AND box_id = $3 AND id != COALESCE($4, '00000000-0000-0000-0000-000000000000'::uuid)`,
+    [serviceId, date, boxId, excludeBookingId]
   );
   for (const b of rows) {
     const bStart = timeToMinutes(b.start_time);
@@ -39,7 +40,8 @@ export async function validateTimeSlot(date, boxId, startTime, endTime, excludeB
   return { valid: true };
 }
 
-export async function listByDate(date, boxId = null) {
+export async function listByDate(date, boxId = null, serviceId = null) {
+  if (!serviceId) throw new Error('service_id қажет');
   let query = `
     SELECT b.*,
            v.name AS vehicle_name, v.body_type AS vehicle_body_type,
@@ -47,11 +49,11 @@ export async function listByDate(date, boxId = null) {
     FROM booking b
     JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
     LEFT JOIN "user" u ON u.id = b.assigned_master_id
-    WHERE b.date = $1
+    WHERE b.service_id = $1 AND b.date = $2
   `;
-  const params = [date];
+  const params = [serviceId, date];
   if (boxId != null) {
-    query += ' AND b.box_id = $2';
+    query += ' AND b.box_id = $3';
     params.push(boxId);
   }
   query += ' ORDER BY b.box_id, b.start_time';
@@ -78,7 +80,8 @@ export async function listByDate(date, boxId = null) {
   }));
 }
 
-export async function getById(id) {
+export async function getById(id, serviceId = null) {
+  if (!serviceId) throw new Error('service_id қажет');
   const { rows } = await pool.query(
     `SELECT b.*,
             v.name AS vehicle_name, v.body_type AS vehicle_body_type, v.year AS vehicle_year,
@@ -86,8 +89,8 @@ export async function getById(id) {
      FROM booking b
      JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
      LEFT JOIN "user" u ON u.id = b.assigned_master_id
-     WHERE b.id = $1`,
-    [id]
+     WHERE b.id = $1 AND b.service_id = $2`,
+    [id, serviceId]
   );
   if (rows.length === 0) return null;
   const b = rows[0];
@@ -104,7 +107,8 @@ export async function getById(id) {
 /**
  * Create booking (structure only). Owner/Manager only.
  */
-export async function create(data) {
+export async function create(serviceId, data) {
+  if (!serviceId) throw new Error('service_id қажет');
   const {
     client_id,
     client_name,
@@ -120,18 +124,19 @@ export async function create(data) {
     note,
     services,
   } = data;
-  const valid = await validateTimeSlot(date, box_id, start_time, end_time, null);
+  const valid = await validateTimeSlot(date, box_id, start_time, end_time, null, serviceId);
   if (!valid.valid) throw new Error(valid.error);
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const { rows: [booking] } = await client.query(
       `INSERT INTO booking (
-        client_id, client_name, phone, source, vehicle_catalog_id, body_type, plate_number,
+        service_id, client_id, client_name, phone, source, vehicle_catalog_id, body_type, plate_number,
         box_id, date, start_time, end_time, note, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'planned')
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'planned')
       RETURNING *`,
       [
+        serviceId,
         client_id || null,
         client_name,
         phone,
@@ -155,7 +160,7 @@ export async function create(data) {
       }
     }
     await client.query('COMMIT');
-    return getById(booking.id);
+    return getById(booking.id, serviceId);
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;
@@ -167,8 +172,9 @@ export async function create(data) {
 /**
  * Update booking structure only. Owner/Manager only. Do not update execution fields.
  */
-export async function updateStructure(id, data) {
-  const existing = await getById(id);
+export async function updateStructure(id, serviceId, data) {
+  if (!serviceId) throw new Error('service_id қажет');
+  const existing = await getById(id, serviceId);
   if (!existing) return null;
   const {
     client_id,
@@ -185,7 +191,7 @@ export async function updateStructure(id, data) {
     note,
     services,
   } = data;
-  const valid = await validateTimeSlot(date, box_id, start_time, end_time, id);
+  const valid = await validateTimeSlot(date, box_id, start_time, end_time, id, serviceId);
   if (!valid.valid) throw new Error(valid.error);
   const client = await pool.connect();
   try {
@@ -205,7 +211,7 @@ export async function updateStructure(id, data) {
         end_time = COALESCE($11, end_time),
         note = COALESCE($12, note),
         updated_at = now()
-      WHERE id = $13`,
+      WHERE id = $13 AND service_id = $14`,
       [
         client_id !== undefined ? client_id : existing.client_id,
         client_name ?? existing.client_name,
@@ -220,6 +226,7 @@ export async function updateStructure(id, data) {
         end_time ?? existing.end_time,
         note !== undefined ? note : existing.note,
         id,
+        serviceId,
       ]
     );
     if (services !== undefined) {
@@ -232,7 +239,7 @@ export async function updateStructure(id, data) {
       }
     }
     await client.query('COMMIT');
-    return getById(id);
+    return getById(id, serviceId);
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;

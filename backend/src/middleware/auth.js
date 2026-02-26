@@ -17,14 +17,14 @@ export async function optionalAuth(req, res, next) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const { rows } = await pool.query(
-      'SELECT id, phone, display_name, role, is_senior_worker FROM "user" WHERE id = $1',
+      'SELECT id, phone, display_name, role, is_senior_worker, service_id FROM "user" WHERE id = $1',
       [decoded.userId]
     );
     if (rows.length === 0) {
       req.user = null;
       return next();
     }
-    req.user = rows[0];
+    req.user = { ...rows[0], service_id: rows[0].service_id ?? null };
     next();
   } catch {
     req.user = null;
@@ -98,5 +98,20 @@ export function requireSeniorWorkerOrOwner(req, res, next) {
  * Require worker or owner (for booking execution: start, complete). Use after requireAuth.
  */
 export const requireWorkerOrOwner = requireRole(['worker', 'owner']);
+
+/**
+ * Require super_admin only (platform admin; manages owners). Use after requireAuth.
+ */
+export const requireSuperAdmin = requireRole(['super_admin']);
+
+/**
+ * Require user to belong to a service (owner/manager/worker). 403 if service_id is null (e.g. super_admin).
+ * Use after requireAuth on tenant-scoped routes.
+ */
+export function requireService(req, res, next) {
+  if (!req.user) return res.status(401).json({ error: 'Кіру қажет' });
+  if (!req.user.service_id) return res.status(403).json({ error: 'Рұқсат жоқ' });
+  next();
+}
 
 export { JWT_SECRET };
