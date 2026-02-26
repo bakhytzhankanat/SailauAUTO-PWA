@@ -18,6 +18,16 @@ import analyticsRoutes from './routes/analytics.js';
 
 const app = express();
 
+// Vercel serverless may pass path without /api prefix; ensure Express sees /api/...
+app.use((req, res, next) => {
+  const path = (req.url || req.path || '/').split('?')[0];
+  if (path && !path.startsWith('/api')) {
+    const qs = (req.url || '').includes('?') ? '?' + (req.url || '').split('?').slice(1).join('?') : '';
+    req.url = '/api' + (path.startsWith('/') ? path : '/' + path) + qs;
+  }
+  next();
+});
+
 // CORS: fixed origin for production (Vercel), handle preflight with 200 + body
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'https://sailau-auto-pwa-frontend.vercel.app';
 app.use((req, res, next) => {
