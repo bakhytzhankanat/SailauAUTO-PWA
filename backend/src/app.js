@@ -18,18 +18,20 @@ import analyticsRoutes from './routes/analytics.js';
 
 const app = express();
 
-// CORS: allow frontend origin, handle preflight (must run before routes)
-const allowOrigin = process.env.CORS_ORIGIN || true;
+// CORS: fixed origin for production (Vercel), handle preflight with 200 + body
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'https://sailau-auto-pwa-frontend.vercel.app';
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) res.setHeader('Access-Control-Allow-Origin', allowOrigin === true ? origin : allowOrigin);
+  res.setHeader('Access-Control-Allow-Origin', CORS_ORIGIN);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.status(204).end();
+  res.setHeader('Access-Control-Max-Age', '86400');
+  if ((req.method || '').toUpperCase() === 'OPTIONS') {
+    return res.status(200).json({ ok: true });
+  }
   next();
 });
-app.use(cors({ origin: allowOrigin, credentials: true }));
+app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
