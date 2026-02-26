@@ -1,4 +1,4 @@
-import { NavLink, useLocation, Navigate } from 'react-router-dom';
+import { NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
@@ -12,8 +12,10 @@ const navItems = [
 ];
 
 export default function AppShell({ children }) {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
   if (user?.role === 'super_admin' && location.pathname !== '/admin') {
     return <Navigate to="/admin" replace />;
   }
@@ -21,6 +23,11 @@ export default function AppShell({ children }) {
   const visibleItems = navItems.filter((item) =>
     item.roles.includes(role) || (item.seniorWorker && role === 'worker' && user?.is_senior_worker)
   );
+
+  const handleLogout = () => {
+    signOut();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-bg-main">
@@ -33,7 +40,7 @@ export default function AppShell({ children }) {
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={`flex flex-col items-center group w-1/5 py-1 ${
+                className={`flex flex-col items-center group py-1 flex-1 min-w-0 ${
                   isActive ? 'text-primary' : 'text-text-muted group-hover:text-white'
                 }`}
               >
@@ -48,6 +55,17 @@ export default function AppShell({ children }) {
               </NavLink>
             );
           })}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex flex-col items-center py-1 flex-1 min-w-0 text-text-muted hover:text-white transition-colors"
+            title="Шығу"
+          >
+            <div className="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+              <span className="material-symbols-outlined text-xl">logout</span>
+            </div>
+            <span className="text-[10px] font-medium">Шығу</span>
+          </button>
         </div>
       </nav>
     </div>
