@@ -51,7 +51,8 @@ export async function start(req, res) {
   const serviceId = req.user?.service_id;
   if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   try {
-    const booking = await executionService.startBooking(req.params.id, serviceId, req.user?.id);
+    const assignedMasterId = req.body?.assigned_master_id || req.user?.id;
+    const booking = await executionService.startBooking(req.params.id, serviceId, assignedMasterId);
     if (!booking) {
       return res.status(404).json({ error: 'Жазба табылмады' });
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getBooking, startBooking } from '../lib/api';
+import { getBooking, startBooking, getWorkers } from '../lib/api';
 
 function formatTime(t) {
   if (!t) return '';
@@ -28,9 +28,15 @@ export default function BookingDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [booking, setBooking] = useState(null);
+  const [workers, setWorkers] = useState([]);
+  const [selectedMasterId, setSelectedMasterId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(false);
+
+  useEffect(() => {
+    getWorkers().then(setWorkers).catch(() => setWorkers([]));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +86,7 @@ export default function BookingDetail() {
     if (!canStart || starting) return;
     setStarting(true);
     try {
-      await startBooking(id);
+      await startBooking(id, selectedMasterId ? { assigned_master_id: selectedMasterId } : {});
       navigate(`/booking/${id}/in-progress`, { replace: true });
     } catch (err) {
       setError(err.message || 'Жұмысты бастау сәтсіз');
@@ -183,15 +189,30 @@ export default function BookingDetail() {
           </div>
         )}
         {canStart && (
-          <button
-            type="button"
-            onClick={handleStart}
-            disabled={starting}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined">play_arrow</span>
-            {starting ? '...' : 'Жұмысты бастау'}
-          </button>
+          <>
+            <div className="bg-card-bg rounded-xl border border-border-color p-4 mt-4">
+              <h2 className="text-text-muted text-xs uppercase font-semibold tracking-wider mb-2">Шеберді таңдау</h2>
+              <select
+                value={selectedMasterId}
+                onChange={(e) => setSelectedMasterId(e.target.value)}
+                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2.5 text-white"
+              >
+                <option value="">Жұмысты бастайтын шебер</option>
+                {workers.map((w) => (
+                  <option key={w.id} value={w.id}>{w.display_name || w.name || w.phone || w.id}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={handleStart}
+              disabled={starting}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined">play_arrow</span>
+              {starting ? '...' : 'Жұмысты бастау'}
+            </button>
+          </>
         )}
         {canFinish && (
           <button

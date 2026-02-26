@@ -8,7 +8,6 @@ import {
   getServiceCategoriesWithServices,
   getBookings,
   createBooking,
-  getWorkers,
 } from '../lib/api';
 
 const STEP_KEYS_BASE = ['client', 'vehicle', 'plate', 'services', 'note', 'summary'];
@@ -62,7 +61,6 @@ export default function AddBooking() {
   const [clients, setClients] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [categoriesWithServices, setCategoriesWithServices] = useState([]);
-  const [workers, setWorkers] = useState([]);
   const [sourceLockedFromPrefill, setSourceLockedFromPrefill] = useState(false);
   const [form, setForm] = useState({
     client_id: null,
@@ -79,7 +77,6 @@ export default function AddBooking() {
     end_time: '',
     note: '',
     services: [],
-    master_user_ids: [],
   });
   const [conflictError, setConflictError] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -109,7 +106,6 @@ export default function AddBooking() {
     getClients('').then(setClients).catch(() => setClients([]));
     getVehicleCatalog().then(setVehicles).catch(() => setVehicles([]));
     getServiceCategoriesWithServices().then(setCategoriesWithServices).catch(() => setCategoriesWithServices([]));
-    getWorkers().then(setWorkers).catch(() => setWorkers([]));
   }, []);
 
   useEffect(() => {
@@ -246,7 +242,6 @@ export default function AddBooking() {
           quantity: s.quantity,
           warranty_mode: !!s.warranty_mode,
         })),
-        master_user_ids: Array.isArray(form.master_user_ids) ? form.master_user_ids.filter(Boolean) : undefined,
       });
       navigate('/', { replace: true });
     } catch (err) {
@@ -335,7 +330,7 @@ export default function AddBooking() {
           <StepNote form={form} updateForm={updateForm} />
         )}
         {currentStep === 'summary' && (
-          <StepSummary form={form} updateForm={updateForm} selectedVehicle={selectedVehicle} categoriesWithServices={categoriesWithServices} workers={workers} />
+          <StepSummary form={form} selectedVehicle={selectedVehicle} categoriesWithServices={categoriesWithServices} />
         )}
       </main>
 
@@ -623,7 +618,7 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
     } else {
       const cat = categoriesWithServices.find((c) => c.services?.some((s) => s.id === serviceId));
       const service = cat?.services?.find((s) => s.id === serviceId);
-      next.push({ service_catalog_id: serviceId, quantity, service_name: service?.name, warranty_mode: false });
+      next.push({ service_catalog_id: serviceId, quantity, service_name: service?.name, warranty_mode: !!service?.warranty_mode });
     }
     updateForm({ services: next });
   };
@@ -631,13 +626,6 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
   const setQuantity = (serviceId, quantity) => {
     const next = (form.services || []).map((s) =>
       s.service_catalog_id === serviceId ? { ...s, quantity: Math.min(2, Math.max(1, quantity)) } : s
-    );
-    updateForm({ services: next });
-  };
-
-  const toggleWarranty = (serviceId) => {
-    const next = (form.services || []).map((s) =>
-      s.service_catalog_id === serviceId ? { ...s, warranty_mode: !s.warranty_mode } : s
     );
     updateForm({ services: next });
   };
@@ -655,21 +643,12 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
       >
         <div className="flex-1 min-w-0">
           <span className="font-medium text-white">{serviceDisplayName(s)}</span>
-          {selected && (s.warranty_mode || selected.warranty_mode) && (
-            <span className="ml-2 text-xs text-status-completed">(по гарантии — 0 ₸)</span>
+          {selected && selected.warranty_mode && (
+            <span className="ml-2 text-xs text-status-completed">(Гарантия — 0 ₸)</span>
           )}
         </div>
         {selected ? (
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="flex items-center gap-1 cursor-pointer text-xs text-text-muted">
-              <input
-                type="checkbox"
-                checked={!!selected.warranty_mode}
-                onChange={() => toggleWarranty(s.id)}
-                className="rounded border-border-color text-primary"
-              />
-              По гарантии
-            </label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -803,17 +782,8 @@ function StepNote({ form, updateForm }) {
   );
 }
 
-function StepSummary({ form, updateForm, selectedVehicle, categoriesWithServices, workers }) {
+function StepSummary({ form, selectedVehicle, categoriesWithServices }) {
   const allServices = categoriesWithServices?.flatMap((c) => c.services || []) || [];
-  const masterIds = Array.isArray(form.master_user_ids) ? form.master_user_ids : [];
-
-  const toggleMaster = (userId) => {
-    const ids = Array.isArray(form.master_user_ids) ? [...form.master_user_ids] : [];
-    const i = ids.indexOf(userId);
-    if (i >= 0) ids.splice(i, 1);
-    else ids.push(userId);
-    updateForm({ master_user_ids: ids });
-  };
 
   return (
     <div className="space-y-4">
@@ -849,31 +819,6 @@ function StepSummary({ form, updateForm, selectedVehicle, categoriesWithServices
                 );
               })}
             </ul>
-          )}
-        </div>
-        <div className="p-4">
-          <div className="text-text-muted text-xs uppercase font-semibold mb-2">Шеберлер</div>
-          {workers?.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {workers.map((w) => (
-                <label key={w.id} className="flex items-center gap-2 cursor-pointer text-sm">
-                  <input
-                    type="checkbox"
-                    checked={masterIds.includes(w.id)}
-                    onChange={() => toggleMaster(w.id)}
-                    className="rounded border-border-color text-primary"
-                  />
-                  <span className="text-white">{w.name || w.full_name || w.email || w.id}</span>
-                </label>
-              ))}
-            </div>
-          ) : (
-            <div className="text-text-muted text-sm">Шеберлер тізімі бос</div>
-          )}
-          {masterIds.length > 0 && (
-            <div className="mt-2 text-primary text-xs">
-              Таңдалған: {masterIds.length}
-            </div>
           )}
         </div>
         <div className="p-4">

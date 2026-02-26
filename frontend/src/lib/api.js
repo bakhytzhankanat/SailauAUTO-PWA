@@ -139,8 +139,10 @@ export async function updateBooking(id, body) {
   return api(`/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
 }
 
-export async function startBooking(id) {
-  return api(`/bookings/${id}/start`, { method: 'PATCH' });
+export async function startBooking(id, body = {}) {
+  const opts = { method: 'PATCH' };
+  if (body && Object.keys(body).length > 0) opts.body = JSON.stringify(body);
+  return api(`/bookings/${id}/start`, opts);
 }
 
 export async function completeBooking(id, body) {
