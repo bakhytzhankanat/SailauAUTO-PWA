@@ -2,6 +2,8 @@
 
 ## 1. Бэкенд (API)
 
+Точка входа: **backend/index.js** (один Express-сервер, все запросы включая OPTIONS идут в него). CORS и preflight настроены в приложении.
+
 1. Зайди на [vercel.com](https://vercel.com), войди в аккаунт.
 2. **Add New** → **Project** → импортируй репозиторий (или загрузи папку).
 3. **Root Directory:** укажи **`backend`** (важно).
