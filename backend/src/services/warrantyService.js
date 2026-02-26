@@ -8,15 +8,29 @@ export async function listByClient(clientId, serviceId) {
     const { rows: check } = await pool.query('SELECT id FROM client WHERE id = $1 AND service_id = $2', [clientId, serviceId]);
     if (check.length === 0) return [];
   }
-  const { rows } = await pool.query(
-    `SELECT w.id, w.completed_at, w.expires_at, w.master_user_id, s.name AS service_name, u.display_name AS master_name
-     FROM warranty w
-     JOIN service_catalog s ON s.id = w.service_catalog_id
-     LEFT JOIN "user" u ON u.id = w.master_user_id
-     WHERE w.client_id = $1
-     ORDER BY w.expires_at DESC`,
-    [clientId]
-  );
+  let rows = [];
+  try {
+    const res = await pool.query(
+      `SELECT w.id, w.completed_at, w.expires_at, w.master_user_id, s.name AS service_name, u.display_name AS master_name
+       FROM warranty w
+       JOIN service_catalog s ON s.id = w.service_catalog_id
+       LEFT JOIN "user" u ON u.id = w.master_user_id
+       WHERE w.client_id = $1
+       ORDER BY w.expires_at DESC`,
+      [clientId]
+    );
+    rows = res.rows || [];
+  } catch (_) {
+    const res = await pool.query(
+      `SELECT w.id, w.completed_at, w.expires_at, s.name AS service_name
+       FROM warranty w
+       JOIN service_catalog s ON s.id = w.service_catalog_id
+       WHERE w.client_id = $1
+       ORDER BY w.expires_at DESC`,
+      [clientId]
+    );
+    rows = (res.rows || []).map((r) => ({ ...r, master_user_id: null, master_name: null }));
+  }
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   return rows.map((r) => {

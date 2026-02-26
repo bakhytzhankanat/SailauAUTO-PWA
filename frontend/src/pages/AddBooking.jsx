@@ -120,15 +120,6 @@ export default function AddBooking() {
     }
   }, [form.vehicle_catalog_id, form.body_type]);
 
-  useEffect(() => {
-    const step = stepKeys[stepIndex];
-    if (step === 'services') {
-      getServiceCategoriesWithServices(form.vehicle_catalog_id || null, form.body_type || null)
-        .then((data) => setCategoriesWithServices(Array.isArray(data) ? data : []))
-        .catch(() => {});
-    }
-  }, [stepIndex, stepKeys, form.vehicle_catalog_id, form.body_type]);
-
   const loadClients = useCallback((q) => {
     getClients(q ?? '').then(setClients).catch(() => setClients([]));
   }, []);
@@ -137,6 +128,14 @@ export default function AddBooking() {
   const stepKeys = useMemo(() => getStepKeys(selectedVehicle), [selectedVehicle, vehicles]);
   const totalSteps = stepKeys.length;
   const currentStep = stepKeys[stepIndex] ?? stepKeys[0];
+
+  useEffect(() => {
+    if (currentStep === 'services') {
+      getServiceCategoriesWithServices(form.vehicle_catalog_id || null, form.body_type || null)
+        .then((data) => setCategoriesWithServices(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    }
+  }, [currentStep, form.vehicle_catalog_id, form.body_type]);
 
   useEffect(() => {
     if (stepIndex >= totalSteps && totalSteps > 0) setStepIndex(totalSteps - 1);

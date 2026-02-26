@@ -39,13 +39,21 @@ export default function ClientProfile() {
     if (isWorker || !id) return;
     setLoading(true);
     setError('');
-    Promise.all([getClient(id), getClientVisits(id), getClientWarranties(id)])
-      .then(([profile, v, w]) => {
-        setData(profile);
-        setVisits(Array.isArray(v) ? v : []);
-        setWarranties(Array.isArray(w) ? w : []);
+    Promise.allSettled([getClient(id), getClientVisits(id), getClientWarranties(id)])
+      .then(([profileRes, visitsRes, warrantiesRes]) => {
+        const profile = profileRes.status === 'fulfilled' ? profileRes.value : null;
+        const v = visitsRes.status === 'fulfilled' ? visitsRes.value : [];
+        const w = warrantiesRes.status === 'fulfilled' ? warrantiesRes.value : [];
+        if (profile) {
+          setData(profile);
+          setVisits(Array.isArray(v) ? v : []);
+          setWarranties(Array.isArray(w) ? w : []);
+          setError('');
+        } else {
+          setError(profileRes.reason?.message || visitsRes.reason?.message || 'Жүктеу сәтсіз');
+        }
       })
-      .catch((e) => setError(e.message || 'Жүктеу сәтсіз'))
+      .catch((e) => setError(e?.message || 'Жүктеу сәтсіз'))
       .finally(() => setLoading(false));
   }, [id, isWorker]);
 
