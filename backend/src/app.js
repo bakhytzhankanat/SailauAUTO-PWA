@@ -18,7 +18,18 @@ import analyticsRoutes from './routes/analytics.js';
 
 const app = express();
 
-app.use(cors({ origin: true, credentials: true }));
+// CORS: allow frontend origin, handle preflight (must run before routes)
+const allowOrigin = process.env.CORS_ORIGIN || true;
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) res.setHeader('Access-Control-Allow-Origin', allowOrigin === true ? origin : allowOrigin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  next();
+});
+app.use(cors({ origin: allowOrigin, credentials: true }));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
@@ -38,6 +49,10 @@ app.use('/api/analytics', analyticsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });
+});
+
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'Not Found' });
 });
 
 app.use((err, req, res, next) => {
