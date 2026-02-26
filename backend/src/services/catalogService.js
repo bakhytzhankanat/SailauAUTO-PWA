@@ -18,17 +18,31 @@ export async function getServiceCategories() {
 }
 
 export async function getServiceCatalog() {
-  const { rows } = await pool.query(
-    `SELECT id, category_id, name, subgroup,
-            applicable_to_vehicle_models, applicable_to_body_types, warranty_mode
-     FROM service_catalog ORDER BY category_id, subgroup NULLS LAST, name`
-  );
-  return rows.map((r) => ({
-    ...r,
-    applicable_to_vehicle_models: r.applicable_to_vehicle_models ?? null,
-    applicable_to_body_types: r.applicable_to_body_types ?? null,
-    warranty_mode: Boolean(r.warranty_mode),
-  }));
+  let rows = [];
+  try {
+    const res = await pool.query(
+      `SELECT id, category_id, name, subgroup,
+              applicable_to_vehicle_models, applicable_to_body_types, warranty_mode
+       FROM service_catalog ORDER BY category_id, subgroup NULLS LAST, name`
+    );
+    rows = (res.rows || []).map((r) => ({
+      ...r,
+      applicable_to_vehicle_models: r.applicable_to_vehicle_models ?? null,
+      applicable_to_body_types: r.applicable_to_body_types ?? null,
+      warranty_mode: Boolean(r.warranty_mode),
+    }));
+  } catch (_) {
+    const res = await pool.query(
+      `SELECT id, category_id, name, subgroup FROM service_catalog ORDER BY category_id, subgroup NULLS LAST, name`
+    );
+    rows = (res.rows || []).map((r) => ({
+      ...r,
+      applicable_to_vehicle_models: null,
+      applicable_to_body_types: null,
+      warranty_mode: false,
+    }));
+  }
+  return rows;
 }
 
 /**
