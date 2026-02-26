@@ -17,12 +17,25 @@ export default function handler(req, res) {
   if ((req.method || '').toUpperCase() === 'OPTIONS') {
     return res.status(200).json({ ok: true });
   }
-  // Ensure path has /api prefix for Express routes (Vercel may pass path without it)
-  let path = (req.url || '/').split('?')[0];
-  if (!path.startsWith('/api')) {
-    path = '/api' + (path.startsWith('/') ? path : '/' + path);
-    const qs = (req.url || '').includes('?') ? '?' + (req.url || '').split('?')[1] : '';
-    req.url = path + qs;
+  // Build path: Vercel catch-all [[...path]] may put segments in req.query.path or pass full req.url
+  const rawUrl = req.url || '';
+  let path = rawUrl.split('?')[0].replace(/^\/+/, '') || '';
+  const pathSegments = req.query && req.query.path;
+  const segments = Array.isArray(pathSegments)
+    ? pathSegments
+    : pathSegments != null && pathSegments !== ''
+      ? [String(pathSegments)]
+      : null;
+  if (segments && segments.length > 0) {
+    path = '/api/' + segments.join('/');
+  } else if (!path || path === '/') {
+    path = '/api';
+  } else if (!path.startsWith('api')) {
+    path = '/api/' + path;
+  } else {
+    path = '/' + path;
   }
+  const qs = rawUrl.includes('?') ? '?' + rawUrl.split('?').slice(1).join('?') : '';
+  req.url = path.replace(/\/+/g, '/') + qs;
   return app(req, res);
 }
