@@ -116,7 +116,7 @@ export default function AddBooking() {
     if (form.vehicle_catalog_id || form.body_type) {
       getServiceCategoriesWithServices(form.vehicle_catalog_id || null, form.body_type || null)
         .then(setCategoriesWithServices)
-        .catch(() => setCategoriesWithServices([]));
+        .catch(() => { /* keep existing list on refetch error */ });
     }
   }, [form.vehicle_catalog_id, form.body_type]);
 
