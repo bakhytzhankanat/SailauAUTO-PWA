@@ -13,6 +13,3 @@ build/
 # Logs and OS
 *.log
 .DS_Store
-
-# Vercel
-.vercel

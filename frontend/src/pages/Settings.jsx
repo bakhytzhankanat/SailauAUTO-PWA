@@ -222,7 +222,12 @@ export default function Settings() {
         </section>
 
         <section className="bg-card-bg rounded-xl border border-border-color p-4">
-          <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Қызметкерлер</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Қызметкерлер</h2>
+            <button type="button" onClick={() => navigate('/admin')} className="text-xs text-primary hover:underline">
+              Админкада толық басқару →
+            </button>
+          </div>
           <div className="flex gap-2 mb-4">
             <button
               type="button"

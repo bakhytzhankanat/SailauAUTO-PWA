@@ -76,7 +76,7 @@ export async function createUser(data) {
 }
 
 /**
- * Update user: display_name (1..60), is_senior_worker, is_active. Owner only.
+ * Update user: display_name (1..60), is_senior_worker, is_active, new_password. Owner only.
  */
 export async function updateUser(id, data) {
   const updates = [];
@@ -96,6 +96,13 @@ export async function updateUser(id, data) {
   if (data.is_active !== undefined) {
     updates.push(`is_active = $${idx++}`);
     params.push(Boolean(data.is_active));
+  }
+  if (data.new_password !== undefined && data.new_password !== '') {
+    const pwd = String(data.new_password).trim();
+    if (pwd.length < 6) throw new Error('Құпия сөз кем дегенде 6 таңба');
+    const password_hash = await bcrypt.hash(pwd, 10);
+    updates.push(`password_hash = $${idx++}`);
+    params.push(password_hash);
   }
   if (updates.length === 0) {
     const { rows } = await pool.query(

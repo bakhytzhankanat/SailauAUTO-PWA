@@ -16,6 +16,7 @@ import JobCompletedSuccess from './pages/JobCompletedSuccess';
 import ClientsList from './pages/ClientsList';
 import ClientProfile from './pages/ClientProfile';
 import Settings from './pages/Settings';
+import Admin from './pages/Admin';
 import Reminders from './pages/Reminders';
 import WhatsAppInbox from './pages/WhatsAppInbox';
 import Analytics from './pages/Analytics';
@@ -55,6 +56,7 @@ function AppRoutes() {
                 <Route path="/reminders" element={<Reminders />} />
                 <Route path="/whatsapp" element={<WhatsAppInbox />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/admin" element={<Admin />} />
               </Routes>
               </AppShell>
             </SettingsProvider>

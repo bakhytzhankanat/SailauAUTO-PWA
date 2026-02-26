@@ -7,6 +7,7 @@ const navItems = [
   { to: '/inventory', icon: 'inventory_2', label: 'Қойма', roles: ['owner', 'manager', 'worker'] },
   { to: '/analytics', icon: 'analytics', label: 'Есеп', roles: ['owner'] },
   { to: '/reminders', icon: 'notifications', label: 'Ескертпелер', roles: ['owner', 'manager', 'worker'] },
+  { to: '/admin', icon: 'admin_panel_settings', label: 'Админка', roles: ['owner'] },
   { to: '/settings', icon: 'settings', label: 'Баптаулар', roles: ['owner'] },
 ];
 
