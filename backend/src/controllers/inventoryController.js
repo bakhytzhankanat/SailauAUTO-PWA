@@ -21,3 +21,14 @@ export async function createMovement(req, res) {
   const result = await inventoryService.createMovement(serviceId, req.body);
   return res.status(201).json(result);
 }
+
+export async function remove(req, res) {
+  const serviceId = req.user?.service_id;
+  if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
+  try {
+    await inventoryService.deleteItem(serviceId, req.params.id);
+    return res.status(204).send();
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+}

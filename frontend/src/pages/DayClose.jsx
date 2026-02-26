@@ -81,6 +81,9 @@ export default function DayClose() {
   const [snapshot, setSnapshot] = useState(null);
   const [masters, setMasters] = useState([]);
   const [derived, setDerived] = useState(null);
+  const [dayClosesForDate, setDayClosesForDate] = useState([]);
+  const [selectedShiftIndex, setSelectedShiftIndex] = useState(0);
+  const [showNewShiftForm, setShowNewShiftForm] = useState(false);
   const [workers, setWorkers] = useState([]);
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -94,6 +97,8 @@ export default function DayClose() {
   const [opexTransport, setOpexTransport] = useState('');
   const [opexRent, setOpexRent] = useState('');
   const [presentMasterIds, setPresentMasterIds] = useState([]);
+  const [manualMasterDistribution, setManualMasterDistribution] = useState(false);
+  const [masterPercents, setMasterPercents] = useState({});
 
   const [editMode, setEditMode] = useState(false);
   const [editReason, setEditReason] = useState('');
@@ -102,11 +107,13 @@ export default function DayClose() {
     setLoading(true);
     setError('');
     try {
+      const shiftToFetch = showNewShiftForm ? -1 : selectedShiftIndex;
       const [dcRes, workersRes, settingsRes] = await Promise.all([
-        getDayClose(date),
+        getDayClose(date, shiftToFetch),
         getDayCloseWorkers(),
         getSettings(),
       ]);
+      setDayClosesForDate(dcRes.day_closes_for_date || []);
       setSnapshot(dcRes.day_close);
       setMasters(dcRes.masters || []);
       setDerived(dcRes.derived || { service_income_total: 0, material_expense_total: 0, part_sales_total: 0 });
@@ -119,6 +126,10 @@ export default function DayClose() {
         setOpexTransport(String(dcRes.day_close.opex_transport));
         setOpexRent(String(dcRes.day_close.opex_rent));
         setPresentMasterIds((dcRes.masters || []).map((m) => m.master_user_id));
+        const percents = {};
+        (dcRes.masters || []).forEach((m) => { if (m.percent != null) percents[m.master_user_id] = m.percent; });
+        setMasterPercents(percents);
+        setManualMasterDistribution((dcRes.masters || []).some((m) => m.percent != null));
       } else {
         setKaspiAmount('');
         setCashAmount('');
@@ -126,13 +137,14 @@ export default function DayClose() {
         setOpexTransport('');
         setOpexRent('');
         setPresentMasterIds([]);
+        setMasterPercents({});
       }
     } catch (e) {
       setError(e.message || 'Жүктеу сәтсіз');
     } finally {
       setLoading(false);
     }
-  }, [date]);
+  }, [date, selectedShiftIndex, showNewShiftForm]);
 
   useEffect(() => {
     load();
@@ -142,47 +154,62 @@ export default function DayClose() {
     setPresentMasterIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+    if (!presentMasterIds.includes(id)) setMasterPercents((p) => ({ ...p, [id]: 0 }));
   };
+
+  const setMasterPercent = (id, value) => {
+    const v = value === '' ? '' : Math.max(0, Math.min(100, Number(value)));
+    setMasterPercents((prev) => ({ ...prev, [id]: v }));
+  };
+
+  const masterPercentsSum = presentMasterIds.reduce((acc, id) => acc + (Number(masterPercents[id]) || 0), 0);
 
   const canCreate = user?.role === 'owner' || user?.is_senior_worker === true;
   const isOwner = user?.role === 'owner';
   const canEdit = isOwner && snapshot;
-  const showForm = !snapshot || editMode;
+  const showForm = showNewShiftForm || !snapshot || editMode;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
     const kaspi = kaspiAmount === '' ? 0 : Number(kaspiAmount);
-    if (derived && kaspi > (derived.service_income_total || 0)) {
-      setError('KaspiPay сомасы қызмет кірісінен аспауы керек');
+    const incomeTotal = (derived?.service_income_total ?? 0) + (derived?.part_sales_total ?? 0);
+    if (derived && kaspi > incomeTotal) {
+      setError('KaspiPay сомасы қызмет пен бөлшек кірісінен аспауы керек');
       setSubmitting(false);
       return;
     }
     try {
+      const body = {
+        kaspi_amount: kaspi,
+        cash_amount: cashAmount === '' ? undefined : Number(cashAmount),
+        opex_lunch: Number(opexLunch),
+        opex_transport: Number(opexTransport),
+        opex_rent: Number(opexRent),
+        present_master_user_ids: presentMasterIds,
+        manual_master_distribution: manualMasterDistribution,
+      };
+      if (manualMasterDistribution && presentMasterIds.length > 0) {
+        if (Math.abs(masterPercentsSum - 100) > 0.01) {
+          setError('Мастерлер үлесінің қосындысы 100% болуы керек');
+          setSubmitting(false);
+          return;
+        }
+        body.master_percents = presentMasterIds.map((id) => ({
+          master_user_id: id,
+          percent: Number(masterPercents[id]) || 0,
+        }));
+      }
       if (editMode && snapshot) {
-        await updateDayClose(snapshot.id, {
-          kaspi_amount: kaspi,
-          cash_amount: cashAmount === '' ? undefined : Number(cashAmount),
-          opex_lunch: Number(opexLunch),
-          opex_transport: Number(opexTransport),
-          opex_rent: Number(opexRent),
-          present_master_user_ids: presentMasterIds,
-          edit_reason: editReason,
-        });
+        await updateDayClose(snapshot.id, { ...body, edit_reason: editReason });
       } else {
-        await createDayClose({
-          date,
-          kaspi_amount: kaspi,
-          cash_amount: cashAmount === '' ? undefined : Number(cashAmount),
-          opex_lunch: Number(opexLunch),
-          opex_transport: Number(opexTransport),
-          opex_rent: Number(opexRent),
-          present_master_user_ids: presentMasterIds,
-        });
+        await createDayClose(body);
       }
       setSuccess(true);
       setEditMode(false);
+      setShowNewShiftForm(false);
+      setSelectedShiftIndex(dayClosesForDate.length);
       load();
     } catch (e) {
       setError(e.message || 'Сақтау сәтсіз');
@@ -244,6 +271,39 @@ export default function DayClose() {
       <main className="flex-1 overflow-y-auto p-4 pb-32 space-y-6">
         {error && (
           <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>
+        )}
+
+        {dayClosesForDate.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Сменалар</h2>
+            <div className="flex flex-wrap gap-2">
+              {dayClosesForDate.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => { setShowNewShiftForm(false); setSelectedShiftIndex(s.shift_index); load(); }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    !showNewShiftForm && snapshot?.shift_index === s.shift_index
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-card-bg border-border-color text-white hover:border-primary'
+                  }`}
+                >
+                  Смена {s.shift_index + 1}
+                </button>
+              ))}
+              {canCreate && (
+                <button
+                  type="button"
+                  onClick={() => { setShowNewShiftForm(true); setSnapshot(null); setSelectedShiftIndex(dayClosesForDate.length); load(); }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border border-dashed border-border-color text-text-muted hover:border-primary hover:text-primary ${
+                    showNewShiftForm ? 'border-primary text-primary' : ''
+                  }`}
+                >
+                  + Жаңа смена
+                </button>
+              )}
+            </div>
+          </section>
         )}
 
         <section className="space-y-3">
@@ -308,9 +368,9 @@ export default function DayClose() {
                   </div>
                 </div>
                 <div className="pt-2 flex justify-between items-center">
-                  <span className="text-xs text-text-muted">KaspiPay салық ({kaspiTaxPercent}%)</span>
+                  <span className="text-xs text-text-muted">Салық ({kaspiTaxPercent}% кіріс бойынша)</span>
                   <span className="text-sm font-bold text-red-400">
-                    - {fmt(Number(kaspiAmount || 0) * (kaspiTaxPercent / 100))}
+                    - {fmt((serviceTotal + partSalesTotal) * (kaspiTaxPercent / 100))}
                   </span>
                 </div>
               </div>
@@ -347,31 +407,68 @@ export default function DayClose() {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">groups</span>
-                Ауысымда кім болды
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg">groups</span>
+                  Ауысымда кім болды
+                </h2>
+                {isOwner && (
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={manualMasterDistribution}
+                      onChange={(e) => setManualMasterDistribution(e.target.checked)}
+                      className="rounded border-border-color text-primary"
+                    />
+                    <span className="text-xs text-text-muted">Қолмен %</span>
+                  </label>
+                )}
+              </div>
               <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-3">
                 {workers.map((w) => (
-                  <div key={w.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-border-color flex items-center justify-center text-xs font-bold text-text-muted">
+                  <div key={w.id} className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-border-color flex items-center justify-center text-xs font-bold text-text-muted shrink-0">
                         {(w.display_name || '?').slice(0, 2).toUpperCase()}
                       </div>
-                      <span className="text-sm text-white">{w.display_name}</span>
+                      <span className="text-sm text-white truncate">{w.display_name}</span>
                     </div>
-                    <label className="relative inline-block w-12 h-7 rounded-full cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={presentMasterIds.includes(w.id)}
-                        onChange={() => toggleMaster(w.id)}
-                        className="sr-only peer"
-                      />
-                      <span className={`block w-12 h-7 rounded-full transition-colors peer-checked:bg-primary bg-border-color`} />
-                      <span className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform pointer-events-none block peer-checked:translate-x-5" />
-                    </label>
+                    <div className="flex items-center gap-2">
+                      {manualMasterDistribution && presentMasterIds.includes(w.id) && (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.5"
+                            value={masterPercents[w.id] ?? ''}
+                            onChange={(e) => setMasterPercent(w.id, e.target.value)}
+                            className="w-16 bg-bg-main border border-border-color rounded-lg px-2 py-1.5 text-white text-sm text-right"
+                          />
+                          <span className="text-text-muted text-xs">%</span>
+                        </div>
+                      )}
+                      <label className="relative inline-block w-12 h-7 rounded-full cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={presentMasterIds.includes(w.id)}
+                          onChange={() => toggleMaster(w.id)}
+                          className="sr-only peer"
+                        />
+                        <span className={`block w-12 h-7 rounded-full transition-colors peer-checked:bg-primary bg-border-color`} />
+                        <span className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform pointer-events-none block peer-checked:translate-x-5" />
+                      </label>
+                    </div>
                   </div>
                 ))}
+                {manualMasterDistribution && presentMasterIds.length > 0 && (
+                  <div className="pt-2 border-t border-border-color flex justify-between text-sm">
+                    <span className="text-text-muted">Қосынды</span>
+                    <span className={Math.abs(masterPercentsSum - 100) < 0.01 ? 'text-status-completed font-medium' : 'text-red-400 font-medium'}>
+                      {masterPercentsSum.toFixed(1)}% {Math.abs(masterPercentsSum - 100) < 0.01 ? '' : '(100% болуы керек)'}
+                    </span>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -391,7 +488,11 @@ export default function DayClose() {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={submitting || (editMode && !editReason.trim())}
+              disabled={
+                submitting ||
+                (editMode && !editReason.trim()) ||
+                (manualMasterDistribution && presentMasterIds.length > 0 && Math.abs(masterPercentsSum - 100) > 0.01)
+              }
               className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl disabled:opacity-50"
             >
               {submitting ? 'Сақталуда...' : editMode ? 'Өзгерістерді сақтау' : 'Ауысымды жабу'}

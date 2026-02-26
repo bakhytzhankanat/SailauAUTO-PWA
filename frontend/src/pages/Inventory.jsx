@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getInventory, createInventoryItem, createInventoryMovement } from '../lib/api';
+import { getInventory, createInventoryItem, createInventoryMovement, deleteInventoryItem } from '../lib/api';
 
 const canEdit = (role) => role === 'owner' || role === 'manager';
 
@@ -52,6 +52,18 @@ export default function Inventory() {
 
   const editable = canEdit(user?.role);
 
+  const handleDeleteItem = async (item) => {
+    if (!editable) return;
+    if (!window.confirm(`«${item.name}» тауарын жоюды қалайсыз ба? Сатулар болса жою мүмкін емес.`)) return;
+    setError('');
+    try {
+      await deleteInventoryItem(item.id);
+      load();
+    } catch (e) {
+      setError(e.message || 'Жою сәтсіз');
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-full">
       <header className="px-4 pt-4 pb-4 flex flex-col gap-4 bg-bg-main border-b border-border-color sticky top-0 z-10">
@@ -87,6 +99,7 @@ export default function Inventory() {
               canEdit={editable}
               onAdd={() => openMovement(item, 'in')}
               onOut={() => openMovement(item, 'out')}
+              onDelete={() => handleDeleteItem(item)}
             />
           ))
         )}
@@ -125,7 +138,7 @@ export default function Inventory() {
   );
 }
 
-function ItemCard({ item, canEdit, onAdd, onOut }) {
+function ItemCard({ item, canEdit, onAdd, onOut, onDelete }) {
   const lowStock = item.low_stock === true;
   const borderClass = lowStock
     ? 'border-status-danger/40'
@@ -162,11 +175,11 @@ function ItemCard({ item, canEdit, onAdd, onOut }) {
         </div>
       </div>
       {canEdit && (
-        <div className="flex gap-3 pt-3 border-t border-border-color">
+        <div className="flex flex-wrap gap-2 pt-3 border-t border-border-color">
           <button
             type="button"
             onClick={onOut}
-            className="flex-1 py-3 px-3 bg-status-danger hover:bg-red-600 rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2"
+            className="flex-1 min-w-[80px] py-3 px-3 bg-status-danger hover:bg-red-600 rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">remove</span>
             Шығару
@@ -174,11 +187,22 @@ function ItemCard({ item, canEdit, onAdd, onOut }) {
           <button
             type="button"
             onClick={onAdd}
-            className="flex-1 py-3 px-3 bg-primary hover:bg-primary/90 rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2"
+            className="flex-1 min-w-[80px] py-3 px-3 bg-primary hover:bg-primary/90 rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">add</span>
             Қосу
           </button>
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="py-3 px-3 rounded-lg text-xs font-bold text-text-muted border border-border-color hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 flex items-center justify-center gap-1"
+              title="Тауарды жою"
+            >
+              <span className="material-symbols-outlined text-sm">delete</span>
+              Жою
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -102,3 +102,31 @@ export async function createMovement(serviceId, data) {
     client.release();
   }
 }
+
+/**
+ * Delete inventory item. Owner/Manager only. Forbidden if item has part_sales (history).
+ */
+export async function deleteItem(serviceId, itemId) {
+  if (!serviceId) throw new Error('service_id қажет');
+  const { rows: items } = await pool.query(
+    'SELECT id FROM inventory_item WHERE id = $1 AND service_id = $2',
+    [itemId, serviceId]
+  );
+  if (items.length === 0) throw new Error('Тауар табылмады');
+  const { rows: sales } = await pool.query(
+    'SELECT 1 FROM part_sale WHERE inventory_item_id = $1 LIMIT 1',
+    [itemId]
+  );
+  if (sales.length > 0) {
+    throw new Error('Бұл тауар бойынша сатулар бар, жоюға болмайды');
+  }
+  await pool.query(
+    'DELETE FROM inventory_movement WHERE item_id = $1',
+    [itemId]
+  );
+  await pool.query(
+    'DELETE FROM inventory_item WHERE id = $1 AND service_id = $2',
+    [itemId, serviceId]
+  );
+  return { ok: true };
+}

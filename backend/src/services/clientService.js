@@ -7,7 +7,7 @@ export async function search(serviceId, opts = {}) {
   if (!serviceId) throw new Error('service_id қажет');
   const q = (opts.q || '').trim();
   let sql = `
-    SELECT c.id, c.name, c.phone, c.source, c.created_at,
+    SELECT c.id, c.name, c.phone, c.source, c.created_at, c.last_vehicle_name, c.last_plate_number,
            (SELECT MAX(b.date) FROM booking b WHERE b.client_id = c.id AND b.status = 'completed') AS last_visit_date
     FROM client c
     WHERE c.service_id = $1
@@ -25,6 +25,8 @@ export async function search(serviceId, opts = {}) {
     phone: r.phone,
     source: r.source,
     created_at: r.created_at,
+    last_vehicle_name: r.last_vehicle_name ?? null,
+    last_plate_number: r.last_plate_number ?? null,
     last_visit_date: r.last_visit_date ? String(r.last_visit_date).slice(0, 10) : null,
   }));
 }
@@ -35,7 +37,7 @@ export async function search(serviceId, opts = {}) {
 export async function getById(id, serviceId) {
   if (!serviceId) throw new Error('service_id қажет');
   const { rows: clients } = await pool.query(
-    'SELECT id, name, phone, source, created_at FROM client WHERE id = $1 AND service_id = $2',
+    'SELECT id, name, phone, source, created_at, last_vehicle_name, last_plate_number FROM client WHERE id = $1 AND service_id = $2',
     [id, serviceId]
   );
   if (clients.length === 0) return null;
@@ -66,6 +68,8 @@ export async function getById(id, serviceId) {
       phone: client.phone,
       source: client.source,
       created_at: client.created_at,
+      last_vehicle_name: client.last_vehicle_name ?? null,
+      last_plate_number: client.last_plate_number ?? null,
     },
     stats: { total_visits, last_visit_date },
     vehicles: (vehicles || []).map((v) => ({

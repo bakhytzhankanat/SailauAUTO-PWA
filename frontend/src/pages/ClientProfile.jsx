@@ -164,6 +164,9 @@ export default function ClientProfile() {
                   <div className="text-text-muted text-xs mt-2">
                     Аяқталды: {formatDate(w.completed_at)} • Бітуі: {formatDate(w.expires_at)}
                   </div>
+                  {w.master_name && (
+                    <div className="text-text-muted text-xs mt-1">Шебер: {w.master_name}</div>
+                  )}
                 </div>
               ))
             )}

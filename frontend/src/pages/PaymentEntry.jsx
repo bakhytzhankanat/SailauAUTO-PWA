@@ -96,14 +96,14 @@ export default function PaymentEntry() {
     try {
       const amount = servicePaymentAmount ? Number(servicePaymentAmount) : 0;
       const material = materialExpense ? Number(materialExpense) : 0;
-      await completeBooking(id, {
+      const updated = await completeBooking(id, {
         service_payment_amount: amount,
         payment_type: paymentType,
         material_expense: material,
         part_sales: partSales.map((p) => ({ inventory_item_id: p.inventory_item_id, quantity: p.quantity, unit_price: p.unit_price })),
         warranty_service_ids: warrantyServiceIds,
       });
-      navigate(`/booking/${id}/done`, { replace: true });
+      navigate(`/booking/${id}/done`, { replace: true, state: { booking: updated } });
     } catch (err) {
       setError(err.message || 'Сақтау сәтсіз');
     } finally {
@@ -139,6 +139,14 @@ export default function PaymentEntry() {
         {error && (
           <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>
         )}
+        <div className="bg-card-bg border border-border-color rounded-xl p-4 space-y-1">
+          <div className="text-text-muted text-xs uppercase font-semibold tracking-wider">Уақыт</div>
+          <div className="text-white text-sm">
+            Басталды: {booking.started_at
+              ? new Date(booking.started_at).toLocaleTimeString('kk-KZ', { hour: '2-digit', minute: '2-digit' })
+              : '—'}
+          </div>
+        </div>
         <div className="space-y-2">
           <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Қызмет үшін төлем</label>
           <div className="relative">

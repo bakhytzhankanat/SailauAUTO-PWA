@@ -32,6 +32,9 @@ export async function completeBooking(id, serviceId, payload) {
   if (booking.status !== 'in_progress') {
     throw new Error('Тек жұмыс үстіндегі жазбаны аяқтауға болады');
   }
+  if (!booking.started_at) {
+    throw new Error('Жазбаны басталмаған күйде аяқтауға болмайды. Алдымен жұмысты бастаңыз.');
+  }
   const sid = booking.service_id || serviceId;
 
   const {
@@ -79,20 +82,29 @@ export async function completeBooking(id, serviceId, payload) {
         [id, clientId]
       );
     }
+    if (clientId && (booking.vehicle_name != null || booking.plate_number != null)) {
+      await client.query(
+        'UPDATE client SET last_vehicle_name = COALESCE($2, last_vehicle_name), last_plate_number = COALESCE($3, last_plate_number), updated_at = now() WHERE id = $1',
+        [clientId, booking.vehicle_name || null, booking.plate_number || null]
+      );
+    }
 
     const completedAt = new Date();
+    const startedAt = new Date(booking.started_at);
+    const durationMinutes = Math.max(0, Math.floor((completedAt - startedAt) / 60000));
     const expiresAt = new Date(completedAt);
     expiresAt.setMonth(expiresAt.getMonth() + 3);
     const expiresAtDate = expiresAt.toISOString().slice(0, 10);
 
     await client.query(
       `UPDATE booking SET
-        status = 'completed', completed_at = $2, updated_at = now(),
-        service_payment_amount = $3, payment_type = $4, material_expense = $5, kaspi_tax_amount = $6
-       WHERE id = $1 AND service_id = $7`,
+        status = 'completed', completed_at = $2, duration_minutes = $3, updated_at = now(),
+        service_payment_amount = $4, payment_type = $5, material_expense = $6, kaspi_tax_amount = $7
+       WHERE id = $1 AND service_id = $8`,
       [
         id,
         completedAt,
+        durationMinutes,
         service_payment_amount != null ? Number(service_payment_amount) : null,
         payment_type || null,
         material_expense != null ? Number(material_expense) : null,
@@ -101,13 +113,14 @@ export async function completeBooking(id, serviceId, payload) {
       ]
     );
 
+    const warrantyMasterId = booking.assigned_master_id || (booking.masters && booking.masters[0] && booking.masters[0].master_user_id) || null;
     if (clientId && warranty_service_ids.length > 0) {
       for (const serviceCatalogId of warranty_service_ids) {
         await client.query(
-          `INSERT INTO warranty (client_id, booking_id, service_catalog_id, completed_at, expires_at)
-           VALUES ($1, $2, $3, $4, $5)
-           ON CONFLICT (booking_id, service_catalog_id) DO NOTHING`,
-          [clientId, id, serviceCatalogId, completedAt, expiresAtDate]
+          `INSERT INTO warranty (client_id, booking_id, service_catalog_id, completed_at, expires_at, master_user_id)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (booking_id, service_catalog_id) DO UPDATE SET master_user_id = EXCLUDED.master_user_id`,
+          [clientId, id, serviceCatalogId, completedAt, expiresAtDate, warrantyMasterId]
         );
       }
     }

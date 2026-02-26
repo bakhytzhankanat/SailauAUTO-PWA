@@ -16,7 +16,8 @@ export async function getByDate(req, res) {
   const serviceId = req.user?.service_id;
   if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   const date = req.query.date || null;
-  const result = await dayCloseService.getByDate(serviceId, date);
+  const shift_index = req.query.shift_index != null ? parseInt(req.query.shift_index, 10) : null;
+  const result = await dayCloseService.getByDate(serviceId, date, Number.isFinite(shift_index) ? shift_index : null);
   return res.json(result);
 }
 

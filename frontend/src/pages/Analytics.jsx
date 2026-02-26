@@ -109,6 +109,7 @@ export default function Analytics() {
   const [tab, setTab] = useState('analytics');
   const [period, setPeriod] = useState('day');
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [drillMasterId, setDrillMasterId] = useState(null);
   const [data, setData] = useState(null);
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -129,7 +130,7 @@ export default function Analytics() {
     setError('');
     try {
       const [res, workersRes] = await Promise.all([
-        getAnalyticsSummary(period, date),
+        getAnalyticsSummary(period, date, drillMasterId),
         getDayCloseWorkers().catch(() => []),
       ]);
       setData(res);
@@ -140,7 +141,7 @@ export default function Analytics() {
     } finally {
       setLoading(false);
     }
-  }, [isOwner, period, date]);
+  }, [isOwner, period, date, drillMasterId]);
 
   useEffect(() => {
     load();
@@ -151,6 +152,8 @@ export default function Analytics() {
   const m = data?.metrics || {};
   const dailyRows = data?.daily_rows || [];
   const dayCloseList = data?.day_close_list || [];
+  const productivity = Array.isArray(m.productivity) ? m.productivity : [];
+  const productivityDrill = Array.isArray(data?.productivity_drill) ? data.productivity_drill : [];
   const wages = m.wages_breakdown || {};
   const opex = m.opex_totals || { lunch: 0, transport: 0, rent: 0 };
 
@@ -293,6 +296,79 @@ export default function Analytics() {
               <p className="text-text-muted text-xs">Орташа күндық кіріс</p>
               <p className="text-white font-semibold">{fmt(m.avg_daily_income)}</p>
             </div>
+            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+              <p className="text-text-muted text-xs">Кепілдік жұмыстары</p>
+              <p className="text-white font-semibold">{m.warranty_jobs_count ?? '—'}</p>
+            </div>
+          </div>
+
+          <h2 className="text-xs font-bold text-primary uppercase tracking-wider ml-1">Өнімділік (Шеберлер)</h2>
+          <div className="bg-card-bg border border-border-color rounded-xl overflow-hidden">
+            {drillMasterId ? (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setDrillMasterId(null)}
+                  className="w-full px-3 py-2 text-left text-primary text-xs font-medium hover:bg-[#2A2A2A] flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-sm">arrow_back</span>
+                  Артқа
+                </button>
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-border-color text-text-muted uppercase font-medium">
+                      <th className="px-3 py-2">Күн</th>
+                      <th className="px-3 py-2">Уақыт</th>
+                      <th className="px-3 py-2 text-right">Ұзақтық (мин)</th>
+                      <th className="px-3 py-2 text-right">Сома</th>
+                      <th className="px-3 py-2">Көлік</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productivityDrill.map((row) => (
+                      <tr key={row.id} className="border-b border-border-color last:border-0 hover:bg-[#2A2A2A]/50">
+                        <td className="px-3 py-2.5 text-white">{row.date}</td>
+                        <td className="px-3 py-2.5 text-text-muted">{row.start_time} – {row.end_time}</td>
+                        <td className="px-3 py-2.5 text-right text-white">{row.duration_minutes ?? '—'}</td>
+                        <td className="px-3 py-2.5 text-right text-white">{row.service_payment_amount != null ? fmt(row.service_payment_amount) : '—'}</td>
+                        <td className="px-3 py-2.5 text-text-muted">{row.vehicle_name || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {productivityDrill.length === 0 && (
+                  <p className="px-3 py-4 text-text-muted text-xs">Жазбалар жоқ</p>
+                )}
+              </div>
+            ) : (
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="border-b border-border-color text-text-muted uppercase font-medium">
+                    <th className="px-3 py-2">Шебер</th>
+                    <th className="px-3 py-2 text-right">Жұмыс саны</th>
+                    <th className="px-3 py-2 text-right">Ұзақтық (мин)</th>
+                    <th className="px-3 py-2 text-right">Орташа (мин)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {productivity.map((row) => (
+                    <tr
+                      key={row.master_user_id}
+                      className="border-b border-border-color last:border-0 hover:bg-[#2A2A2A]/50 cursor-pointer"
+                      onClick={() => setDrillMasterId(row.master_user_id)}
+                    >
+                      <td className="px-3 py-2.5 text-white font-medium">{row.master_name || '—'}</td>
+                      <td className="px-3 py-2.5 text-right text-white">{row.jobs_count ?? '—'}</td>
+                      <td className="px-3 py-2.5 text-right text-white">{row.sum_duration_minutes ?? '—'}</td>
+                      <td className="px-3 py-2.5 text-right text-white">{row.avg_duration_minutes != null ? Math.round(row.avg_duration_minutes) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {!drillMasterId && productivity.length === 0 && (
+              <p className="px-3 py-4 text-text-muted text-xs">Деректер жоқ</p>
+            )}
           </div>
 
           <h2 className="text-xs font-bold text-primary uppercase tracking-wider ml-1">Күндер бойынша</h2>

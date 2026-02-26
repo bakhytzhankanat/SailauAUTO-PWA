@@ -16,6 +16,8 @@ export async function getServiceCategories(req, res) {
 }
 
 export async function getCategoriesWithServices(req, res) {
-  const list = await catalogService.getCategoriesWithServices();
+  const vehicleCatalogId = req.query.vehicle_catalog_id || null;
+  const bodyType = req.query.body_type || null;
+  const list = await catalogService.getCategoriesWithServices(vehicleCatalogId, bodyType);
   return res.json(list);
 }

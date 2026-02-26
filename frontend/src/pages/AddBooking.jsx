@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
@@ -8,6 +8,7 @@ import {
   getServiceCategoriesWithServices,
   getBookings,
   createBooking,
+  getWorkers,
 } from '../lib/api';
 
 const STEP_KEYS_BASE = ['client', 'vehicle', 'plate', 'services', 'note', 'summary'];
@@ -61,6 +62,7 @@ export default function AddBooking() {
   const [clients, setClients] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [categoriesWithServices, setCategoriesWithServices] = useState([]);
+  const [workers, setWorkers] = useState([]);
   const [sourceLockedFromPrefill, setSourceLockedFromPrefill] = useState(false);
   const [form, setForm] = useState({
     client_id: null,
@@ -77,6 +79,7 @@ export default function AddBooking() {
     end_time: '',
     note: '',
     services: [],
+    master_user_ids: [],
   });
   const [conflictError, setConflictError] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -103,9 +106,22 @@ export default function AddBooking() {
   }, [searchParams]);
 
   useEffect(() => {
-    getClients().then(setClients).catch(() => setClients([]));
+    getClients('').then(setClients).catch(() => setClients([]));
     getVehicleCatalog().then(setVehicles).catch(() => setVehicles([]));
     getServiceCategoriesWithServices().then(setCategoriesWithServices).catch(() => setCategoriesWithServices([]));
+    getWorkers().then(setWorkers).catch(() => setWorkers([]));
+  }, []);
+
+  useEffect(() => {
+    if (form.vehicle_catalog_id || form.body_type) {
+      getServiceCategoriesWithServices(form.vehicle_catalog_id || null, form.body_type || null)
+        .then(setCategoriesWithServices)
+        .catch(() => setCategoriesWithServices([]));
+    }
+  }, [form.vehicle_catalog_id, form.body_type]);
+
+  const loadClients = useCallback((q) => {
+    getClients(q ?? '').then(setClients).catch(() => setClients([]));
   }, []);
 
   const selectedVehicle = vehicles.find((v) => v.id === form.vehicle_catalog_id);
@@ -217,7 +233,12 @@ export default function AddBooking() {
         start_time: start.length === 5 ? start : start.slice(0, 5),
         end_time: end.length === 5 ? end : end.slice(0, 5),
         note: form.note?.trim() || undefined,
-        services: form.services.map((s) => ({ service_catalog_id: s.service_catalog_id, quantity: s.quantity })),
+        services: form.services.map((s) => ({
+          service_catalog_id: s.service_catalog_id,
+          quantity: s.quantity,
+          warranty_mode: !!s.warranty_mode,
+        })),
+        master_user_ids: Array.isArray(form.master_user_ids) ? form.master_user_ids.filter(Boolean) : undefined,
       });
       navigate('/', { replace: true });
     } catch (err) {
@@ -277,6 +298,8 @@ export default function AddBooking() {
             form={form}
             updateForm={updateForm}
             clients={clients}
+            vehicles={vehicles}
+            loadClients={loadClients}
             sourceLocked={sourceLockedFromPrefill}
             prefillOnly={searchParams.get('prefill') === '1' && (searchParams.get('source') === 'whatsapp' || !!searchParams.get('phone') || !!searchParams.get('name'))}
           />
@@ -304,7 +327,7 @@ export default function AddBooking() {
           <StepNote form={form} updateForm={updateForm} />
         )}
         {currentStep === 'summary' && (
-          <StepSummary form={form} selectedVehicle={selectedVehicle} categoriesWithServices={categoriesWithServices} />
+          <StepSummary form={form} updateForm={updateForm} selectedVehicle={selectedVehicle} categoriesWithServices={categoriesWithServices} workers={workers} />
         )}
       </main>
 
@@ -323,8 +346,33 @@ export default function AddBooking() {
   );
 }
 
-function StepClient({ form, updateForm, clients, sourceLocked, prefillOnly }) {
+function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLocked, prefillOnly }) {
   const [showClientBase, setShowClientBase] = useState(false);
+  const [clientSearch, setClientSearch] = useState('');
+  useEffect(() => {
+    if (!showClientBase) return;
+    const t = setTimeout(() => loadClients(clientSearch), 300);
+    return () => clearTimeout(t);
+  }, [showClientBase, clientSearch, loadClients]);
+
+  const selectClient = (c) => {
+    const patch = {
+      client_id: c.id,
+      client_name: c.name,
+      phone: c.phone,
+      source: c.source || form.source,
+      plate_number: c.last_plate_number || form.plate_number || '',
+    };
+    if (c.last_vehicle_name && Array.isArray(vehicles) && vehicles.length > 0) {
+      const v = vehicles.find((x) => x.name === c.last_vehicle_name);
+      if (v) {
+        patch.vehicle_catalog_id = v.id;
+        patch.body_type = v.body_options?.length > 0 ? '' : (v.body_type || v.name);
+      }
+    }
+    updateForm(patch);
+  };
+
   return (
     <div className="space-y-6">
       {/* WhatsApp prefill: only name + phone, no client list */}
@@ -403,32 +451,51 @@ function StepClient({ form, updateForm, clients, sourceLocked, prefillOnly }) {
             <span className="material-symbols-outlined text-lg">{showClientBase ? 'expand_less' : 'expand_more'}</span>
           </button>
           {showClientBase ? (
-            <div className="space-y-3 max-h-48 overflow-y-auto mt-2">
-              {clients.length === 0 ? (
-                <p className="text-text-muted text-sm">Клиенттер жоқ</p>
-              ) : (
-                clients.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => updateForm({ client_id: c.id, client_name: c.name, phone: c.phone, source: c.source || form.source })}
-                    className={`w-full bg-card-bg border rounded-xl p-4 flex items-center justify-between text-left transition-all ${
-                      form.client_id === c.id ? 'border-primary bg-primary/10' : 'border-border-color hover:border-primary'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center text-sm font-bold text-text-muted">
-                        {(c.name || '?').slice(0, 2).toUpperCase()}
+            <div className="space-y-3 mt-2">
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
+                  <span className="material-symbols-outlined text-lg">search</span>
+                </span>
+                <input
+                  type="text"
+                  value={clientSearch}
+                  onChange={(e) => setClientSearch(e.target.value)}
+                  placeholder="Іздеу (аты немесе телефон)"
+                  className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none text-sm"
+                />
+              </div>
+              <div className="max-h-48 overflow-y-auto space-y-2">
+                {clients.length === 0 ? (
+                  <p className="text-text-muted text-sm">Клиенттер жоқ немесе іздеу нәтижесі бос</p>
+                ) : (
+                  clients.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => selectClient(c)}
+                      className={`w-full bg-card-bg border rounded-xl p-4 flex items-center justify-between text-left transition-all ${
+                        form.client_id === c.id ? 'border-primary bg-primary/10' : 'border-border-color hover:border-primary'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center text-sm font-bold text-text-muted">
+                          {(c.name || '?').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-white">{c.name}</div>
+                          <div className="text-xs text-text-muted font-mono">{c.phone}</div>
+                          {(c.last_vehicle_name || c.last_plate_number) && (
+                            <div className="text-[10px] text-text-muted mt-0.5">
+                              {[c.last_vehicle_name, c.last_plate_number].filter(Boolean).join(' • ')}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-sm font-medium text-white">{c.name}</div>
-                        <div className="text-xs text-text-muted font-mono">{c.phone}</div>
-                      </div>
-                    </div>
-                    {form.client_id === c.id && <span className="material-symbols-outlined text-primary">check_circle</span>}
-                  </button>
-                ))
-              )}
+                      {form.client_id === c.id && <span className="material-symbols-outlined text-primary">check_circle</span>}
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
           ) : null}
         </div>
@@ -548,7 +615,7 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
     } else {
       const cat = categoriesWithServices.find((c) => c.services?.some((s) => s.id === serviceId));
       const service = cat?.services?.find((s) => s.id === serviceId);
-      next.push({ service_catalog_id: serviceId, quantity, service_name: service?.name });
+      next.push({ service_catalog_id: serviceId, quantity, service_name: service?.name, warranty_mode: false });
     }
     updateForm({ services: next });
   };
@@ -560,6 +627,13 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
     updateForm({ services: next });
   };
 
+  const toggleWarranty = (serviceId) => {
+    const next = (form.services || []).map((s) =>
+      s.service_catalog_id === serviceId ? { ...s, warranty_mode: !s.warranty_mode } : s
+    );
+    updateForm({ services: next });
+  };
+
   const today = new Date().toISOString().slice(0, 10);
 
   const renderServiceRow = (s) => {
@@ -567,29 +641,45 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
     return (
       <div
         key={s.id}
-        className={`flex items-center justify-between p-4 rounded-xl border mb-2 ${
+        className={`flex flex-wrap items-center justify-between gap-2 p-4 rounded-xl border mb-2 ${
           selected ? 'bg-primary/10 border-primary' : 'bg-card-bg border-border-color'
         }`}
       >
-        <span className="font-medium text-white">{serviceDisplayName(s)}</span>
+        <div className="flex-1 min-w-0">
+          <span className="font-medium text-white">{serviceDisplayName(s)}</span>
+          {selected && (s.warranty_mode || selected.warranty_mode) && (
+            <span className="ml-2 text-xs text-status-completed">(по гарантии — 0 ₸)</span>
+          )}
+        </div>
         {selected ? (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => (selected.quantity || 1) <= 1 ? toggleService(s.id) : setQuantity(s.id, (selected.quantity || 1) - 1)}
-              className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white hover:bg-red-500/20"
-              title="Азайту немесе жою"
-            >
-              −
-            </button>
-            <span className="w-8 text-center font-bold text-white">{selected.quantity}</span>
-            <button
-              type="button"
-              onClick={() => setQuantity(s.id, (selected.quantity || 1) + 1)}
-              className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white disabled:opacity-50"
-            >
-              +
-            </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="flex items-center gap-1 cursor-pointer text-xs text-text-muted">
+              <input
+                type="checkbox"
+                checked={!!selected.warranty_mode}
+                onChange={() => toggleWarranty(s.id)}
+                className="rounded border-border-color text-primary"
+              />
+              По гарантии
+            </label>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => (selected.quantity || 1) <= 1 ? toggleService(s.id) : setQuantity(s.id, (selected.quantity || 1) - 1)}
+                className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white hover:bg-red-500/20"
+                title="Азайту немесе жою"
+              >
+                −
+              </button>
+              <span className="w-8 text-center font-bold text-white">{selected.quantity}</span>
+              <button
+                type="button"
+                onClick={() => setQuantity(s.id, (selected.quantity || 1) + 1)}
+                className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white disabled:opacity-50"
+              >
+                +
+              </button>
+            </div>
           </div>
         ) : (
           <button
@@ -705,16 +795,17 @@ function StepNote({ form, updateForm }) {
   );
 }
 
-function StepSummary({ form, selectedVehicle, categoriesWithServices }) {
-  const serviceNames = (form.services || [])
-    .map((s) => {
-      const service = categoriesWithServices
-        .flatMap((c) => c.services || [])
-        .find((x) => x.id === s.service_catalog_id);
-      const name = serviceDisplayName(service || { id: s.service_catalog_id, name: s.service_name });
-      return `${name} x${s.quantity}`;
-    })
-    .join(', ');
+function StepSummary({ form, updateForm, selectedVehicle, categoriesWithServices, workers }) {
+  const allServices = categoriesWithServices?.flatMap((c) => c.services || []) || [];
+  const masterIds = Array.isArray(form.master_user_ids) ? form.master_user_ids : [];
+
+  const toggleMaster = (userId) => {
+    const ids = Array.isArray(form.master_user_ids) ? [...form.master_user_ids] : [];
+    const i = ids.indexOf(userId);
+    if (i >= 0) ids.splice(i, 1);
+    else ids.push(userId);
+    updateForm({ master_user_ids: ids });
+  };
 
   return (
     <div className="space-y-4">
@@ -733,7 +824,49 @@ function StepSummary({ form, selectedVehicle, categoriesWithServices }) {
         </div>
         <div className="p-4">
           <div className="text-text-muted text-xs uppercase font-semibold mb-1">Қызметтер</div>
-          <div className="text-white text-sm">{serviceNames || '—'}</div>
+          {(form.services || []).length === 0 ? (
+            <div className="text-white text-sm">—</div>
+          ) : (
+            <ul className="space-y-1 text-sm">
+              {(form.services || []).map((s) => {
+                const service = allServices.find((x) => x.id === s.service_catalog_id);
+                const name = serviceDisplayName(service || { id: s.service_catalog_id, name: s.service_name });
+                return (
+                  <li key={s.service_catalog_id} className="flex justify-between items-center text-white">
+                    <span>{name} ×{s.quantity}</span>
+                    <span className={s.warranty_mode ? 'text-status-completed' : ''}>
+                      {s.warranty_mode ? '0 ₸ (по гарантии)' : ''}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+        <div className="p-4">
+          <div className="text-text-muted text-xs uppercase font-semibold mb-2">Шеберлер</div>
+          {workers?.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {workers.map((w) => (
+                <label key={w.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                  <input
+                    type="checkbox"
+                    checked={masterIds.includes(w.id)}
+                    onChange={() => toggleMaster(w.id)}
+                    className="rounded border-border-color text-primary"
+                  />
+                  <span className="text-white">{w.name || w.full_name || w.email || w.id}</span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <div className="text-text-muted text-sm">Шеберлер тізімі бос</div>
+          )}
+          {masterIds.length > 0 && (
+            <div className="mt-2 text-primary text-xs">
+              Таңдалған: {masterIds.length}
+            </div>
+          )}
         </div>
         <div className="p-4">
           <div className="text-text-muted text-xs uppercase font-semibold mb-1">Бокс және уақыт</div>

@@ -70,7 +70,7 @@ async function getPartSalesTotal(serviceId, date) {
  * GET /api/analytics/summary?period=day|week|month&date=YYYY-MM-DD
  * Owner only. Returns period boundaries, aggregated metrics, daily rows, wages breakdown, day_close list.
  */
-export async function getSummary(serviceId, period, date) {
+export async function getSummary(serviceId, period, date, opts = {}) {
   if (!serviceId) throw new Error('service_id қажет');
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new Error('Жарамды күн форматы: YYYY-MM-DD');
@@ -104,49 +104,65 @@ export async function getSummary(serviceId, period, date) {
   const dayCloseList = [];
 
   for (const d of dates) {
-    const { rows: dcRows } = await pool.query('SELECT * FROM day_close WHERE service_id = $1 AND date = $2', [serviceId, d]);
+    const { rows: dcRows } = await pool.query('SELECT * FROM day_close WHERE service_id = $1 AND date = $2 ORDER BY shift_index', [serviceId, d]);
     if (dcRows.length > 0) {
-      const dc = dcRows[0];
-      const svc = num(dc.service_income_total);
-      const parts = num(dc.part_sales_total);
-      const mat = num(dc.material_expense_total);
-      const net = num(dc.net_before_charity) - num(dc.charity_rounded);
+      let svc = 0;
+      let parts = 0;
+      let mat = 0;
+      let netSum = 0;
+      let charityRaw = 0;
+      let charityRounded = 0;
+      let kaspiTax = 0;
+      let ownerDiv = 0;
+      let managerAmt = 0;
+      for (const dc of dcRows) {
+        svc += num(dc.service_income_total);
+        parts += num(dc.part_sales_total);
+        mat += num(dc.material_expense_total);
+        netSum += num(dc.net_before_charity) - num(dc.charity_rounded);
+        charityRaw += num(dc.charity_raw);
+        charityRounded += num(dc.charity_rounded);
+        kaspiTax += num(dc.kaspi_tax_amount);
+        ownerDiv += num(dc.owner_service_dividend) + num(dc.owner_parts_dividend);
+        managerAmt += num(dc.manager_amount);
+
+        const { rows: masters } = await pool.query(
+          `SELECT dcm.master_user_id, u.display_name AS master_name, dcm.amount
+           FROM day_close_master dcm JOIN "user" u ON u.id = dcm.master_user_id
+           WHERE dcm.day_close_id = $1`,
+          [dc.id]
+        );
+        for (const m of masters) {
+          const uid = m.master_user_id;
+          if (!masterTotalsByUser[uid]) masterTotalsByUser[uid] = { master_name: m.master_name, amount: 0 };
+          masterTotalsByUser[uid].amount += num(m.amount);
+        }
+
+        dayCloseList.push({
+          id: dc.id,
+          date: d,
+          shift_index: num(dc.shift_index),
+          service_income_total: num(dc.service_income_total),
+          part_sales_total: num(dc.part_sales_total),
+          net_before_charity: num(dc.net_before_charity),
+          day_closed: true,
+        });
+      }
       service_income_total += svc;
       part_sales_total += parts;
       material_expense_total += mat;
-      net_total += net;
-      charity_total_raw += num(dc.charity_raw);
-      charity_total_rounded += num(dc.charity_rounded);
-      kaspi_tax_total += num(dc.kaspi_tax_amount);
-      owner_dividend_total += num(dc.owner_service_dividend) + num(dc.owner_parts_dividend);
-      manager_total += num(dc.manager_amount);
-
-      const { rows: masters } = await pool.query(
-        `SELECT dcm.master_user_id, u.display_name AS master_name, dcm.amount
-         FROM day_close_master dcm JOIN "user" u ON u.id = dcm.master_user_id
-         WHERE dcm.day_close_id = $1`,
-        [dc.id]
-      );
-      for (const m of masters) {
-        const uid = m.master_user_id;
-        if (!masterTotalsByUser[uid]) masterTotalsByUser[uid] = { master_name: m.master_name, amount: 0 };
-        masterTotalsByUser[uid].amount += num(m.amount);
-      }
-
-      dayCloseList.push({
-        id: dc.id,
-        date: d,
-        service_income_total: svc,
-        part_sales_total: parts,
-        net_before_charity: num(dc.net_before_charity),
-        day_closed: true,
-      });
+      net_total += netSum;
+      charity_total_raw += charityRaw;
+      charity_total_rounded += charityRounded;
+      kaspi_tax_total += kaspiTax;
+      owner_dividend_total += ownerDiv;
+      manager_total += managerAmt;
 
       dailyRows.push({
         date: d,
         service_income: svc,
         part_sales: parts,
-        net: num(dc.net_before_charity) - num(dc.charity_rounded),
+        net: netSum,
         day_closed: true,
       });
     } else {
@@ -181,9 +197,62 @@ export async function getSummary(serviceId, period, date) {
   );
   const unique_clients_count = Number(clientsRows[0]?.cnt || 0);
 
+  const { rows: warrantyRows } = await pool.query(
+    `SELECT COUNT(*) AS cnt FROM warranty w
+     JOIN client c ON c.id = w.client_id AND c.service_id = $1
+     WHERE w.completed_at >= $2::date AND w.completed_at::date <= $3`,
+    [serviceId, start_date, end_date]
+  );
+  const warranty_jobs_count = Number(warrantyRows[0]?.cnt || 0);
+
+  const { rows: productivityRows } = await pool.query(
+    `SELECT bm.master_user_id, u.display_name AS master_name,
+            COUNT(*) AS jobs_count,
+            SUM(b.duration_minutes) AS sum_duration,
+            AVG(b.duration_minutes) AS avg_duration,
+            MIN(b.duration_minutes) AS min_duration,
+            MAX(b.duration_minutes) AS max_duration
+     FROM booking_master bm
+     JOIN booking b ON b.id = bm.booking_id AND b.service_id = $1 AND b.status = 'completed' AND b.date >= $2 AND b.date <= $3
+     JOIN "user" u ON u.id = bm.master_user_id
+     GROUP BY bm.master_user_id, u.display_name
+     ORDER BY sum_duration DESC NULLS LAST`,
+    [serviceId, start_date, end_date]
+  );
+  const productivity = (productivityRows || []).map((r) => ({
+    master_user_id: r.master_user_id,
+    master_name: r.master_name,
+    jobs_count: Number(r.jobs_count || 0),
+    sum_duration_minutes: r.sum_duration != null ? Number(r.sum_duration) : null,
+    avg_duration_minutes: r.avg_duration != null ? Math.round(Number(r.avg_duration) * 10) / 10 : null,
+    min_duration_minutes: r.min_duration != null ? Number(r.min_duration) : null,
+    max_duration_minutes: r.max_duration != null ? Number(r.max_duration) : null,
+  }));
+
   const days_count = dates.length;
   const avg_check = unique_clients_count > 0 ? service_income_total / unique_clients_count : 0;
   const avg_daily_income = days_count > 0 ? service_income_total / days_count : 0;
+
+  let productivity_drill = null;
+  if (opts.drill_master_user_id) {
+    const { rows: drillRows } = await pool.query(
+      `SELECT b.id, b.date, b.start_time, b.end_time, b.duration_minutes, b.service_payment_amount, v.name AS vehicle_name
+       FROM booking_master bm
+       JOIN booking b ON b.id = bm.booking_id AND b.service_id = $1 AND b.status = 'completed' AND b.date >= $2 AND b.date <= $3 AND bm.master_user_id = $4
+       LEFT JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
+       ORDER BY b.date DESC, b.completed_at DESC`,
+      [serviceId, start_date, end_date, opts.drill_master_user_id]
+    );
+    productivity_drill = drillRows.map((r) => ({
+      id: r.id,
+      date: String(r.date).slice(0, 10),
+      start_time: r.start_time,
+      end_time: r.end_time,
+      duration_minutes: r.duration_minutes != null ? Number(r.duration_minutes) : null,
+      service_payment_amount: r.service_payment_amount != null ? Number(r.service_payment_amount) : null,
+      vehicle_name: r.vehicle_name,
+    }));
+  }
 
   const wages_breakdown = {
     manager: manager_total,
@@ -207,7 +276,7 @@ export async function getSummary(serviceId, period, date) {
     opex_totals.rent = num(opexRows[0].rent);
   }
 
-  return {
+  const result = {
     period: periodType,
     start_date,
     end_date,
@@ -222,11 +291,13 @@ export async function getSummary(serviceId, period, date) {
       kaspi_tax_total,
       cars_count,
       unique_clients_count,
+      warranty_jobs_count,
       avg_check: Math.round(avg_check * 100) / 100,
       avg_daily_income: Math.round(avg_daily_income * 100) / 100,
       owner_dividend_total,
       wages_breakdown,
       opex_totals,
+      productivity,
     },
     daily_rows: dailyRows,
     day_close_list: dayCloseList.sort((a, b) => {
@@ -234,4 +305,6 @@ export async function getSummary(serviceId, period, date) {
       return toStr(a.date).localeCompare(toStr(b.date));
     }),
   };
+  if (productivity_drill !== null) result.productivity_drill = productivity_drill;
+  return result;
 }

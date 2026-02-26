@@ -63,7 +63,7 @@ export async function listByDate(date, boxId = null, serviceId = null) {
     return rows.map((r) => ({ ...r, services: [] }));
   }
   const { rows: serviceRows } = await pool.query(
-    `SELECT bs.booking_id, bs.service_catalog_id, bs.quantity, s.name AS service_name
+    `SELECT bs.booking_id, bs.service_catalog_id, bs.quantity, bs.warranty_mode, s.name AS service_name
      FROM booking_service bs
      JOIN service_catalog s ON s.id = bs.service_catalog_id
      WHERE bs.booking_id = ANY($1)`,
@@ -72,11 +72,25 @@ export async function listByDate(date, boxId = null, serviceId = null) {
   const byBooking = {};
   for (const s of serviceRows) {
     if (!byBooking[s.booking_id]) byBooking[s.booking_id] = [];
-    byBooking[s.booking_id].push(s);
+    byBooking[s.booking_id].push({ ...s, warranty_mode: Boolean(s.warranty_mode) });
+  }
+  const bookingIdsList = rows.map((r) => r.id);
+  const { rows: masterRows } = await pool.query(
+    `SELECT bm.booking_id, bm.master_user_id, u.display_name AS master_name
+     FROM booking_master bm
+     JOIN "user" u ON u.id = bm.master_user_id
+     WHERE bm.booking_id = ANY($1)`,
+    [bookingIdsList]
+  );
+  const mastersByBooking = {};
+  for (const m of masterRows) {
+    if (!mastersByBooking[m.booking_id]) mastersByBooking[m.booking_id] = [];
+    mastersByBooking[m.booking_id].push({ master_user_id: m.master_user_id, master_name: m.master_name });
   }
   return rows.map((r) => ({
     ...r,
     services: byBooking[r.id] || [],
+    masters: mastersByBooking[r.id] || [],
   }));
 }
 
@@ -95,13 +109,24 @@ export async function getById(id, serviceId = null) {
   if (rows.length === 0) return null;
   const b = rows[0];
   const { rows: serviceRows } = await pool.query(
-    `SELECT bs.id, bs.service_catalog_id, bs.quantity, s.name AS service_name
+    `SELECT bs.id, bs.service_catalog_id, bs.quantity, bs.warranty_mode, s.name AS service_name
      FROM booking_service bs
      JOIN service_catalog s ON s.id = bs.service_catalog_id
      WHERE bs.booking_id = $1`,
     [id]
   );
-  return { ...b, services: serviceRows };
+  const { rows: masterRows } = await pool.query(
+    `SELECT bm.master_user_id, u.display_name AS master_name
+     FROM booking_master bm
+     JOIN "user" u ON u.id = bm.master_user_id
+     WHERE bm.booking_id = $1 ORDER BY u.display_name`,
+    [id]
+  );
+  return {
+    ...b,
+    services: serviceRows.map((s) => ({ ...s, warranty_mode: Boolean(s.warranty_mode) })),
+    masters: masterRows,
+  };
 }
 
 /**
@@ -123,17 +148,20 @@ export async function create(serviceId, data) {
     end_time,
     note,
     services,
+    master_user_ids,
+    assigned_master_id,
   } = data;
   const valid = await validateTimeSlot(date, box_id, start_time, end_time, null, serviceId);
   if (!valid.valid) throw new Error(valid.error);
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    const masterId = assigned_master_id || (Array.isArray(master_user_ids) && master_user_ids[0]) || null;
     const { rows: [booking] } = await client.query(
       `INSERT INTO booking (
         service_id, client_id, client_name, phone, source, vehicle_catalog_id, body_type, plate_number,
-        box_id, date, start_time, end_time, note, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'planned')
+        box_id, date, start_time, end_time, note, status, assigned_master_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'planned', $14)
       RETURNING *`,
       [
         serviceId,
@@ -149,13 +177,24 @@ export async function create(serviceId, data) {
         start_time,
         end_time,
         note || null,
+        masterId,
       ]
     );
     if (services && services.length > 0) {
       for (const s of services) {
+        const warrantyMode = s.warranty_mode === true || s.warranty_mode === 'true';
         await client.query(
-          'INSERT INTO booking_service (booking_id, service_catalog_id, quantity) VALUES ($1, $2, $3)',
-          [booking.id, s.service_catalog_id, s.quantity]
+          'INSERT INTO booking_service (booking_id, service_catalog_id, quantity, warranty_mode) VALUES ($1, $2, $3, $4)',
+          [booking.id, s.service_catalog_id, s.quantity, warrantyMode]
+        );
+      }
+    }
+    const mids = Array.isArray(master_user_ids) ? master_user_ids : (masterId ? [masterId] : []);
+    for (const mid of mids) {
+      if (mid) {
+        await client.query(
+          'INSERT INTO booking_master (booking_id, master_user_id) VALUES ($1, $2) ON CONFLICT (booking_id, master_user_id) DO NOTHING',
+          [booking.id, mid]
         );
       }
     }
@@ -190,12 +229,15 @@ export async function updateStructure(id, serviceId, data) {
     end_time,
     note,
     services,
+    master_user_ids,
+    assigned_master_id,
   } = data;
   const valid = await validateTimeSlot(date, box_id, start_time, end_time, id, serviceId);
   if (!valid.valid) throw new Error(valid.error);
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    const masterId = assigned_master_id !== undefined ? assigned_master_id : (Array.isArray(master_user_ids) && master_user_ids[0]) || existing.assigned_master_id;
     await client.query(
       `UPDATE booking SET
         client_id = COALESCE($1, client_id),
@@ -210,6 +252,7 @@ export async function updateStructure(id, serviceId, data) {
         start_time = COALESCE($10, start_time),
         end_time = COALESCE($11, end_time),
         note = COALESCE($12, note),
+        assigned_master_id = COALESCE($15, assigned_master_id),
         updated_at = now()
       WHERE id = $13 AND service_id = $14`,
       [
@@ -227,15 +270,29 @@ export async function updateStructure(id, serviceId, data) {
         note !== undefined ? note : existing.note,
         id,
         serviceId,
+        masterId,
       ]
     );
     if (services !== undefined) {
       await client.query('DELETE FROM booking_service WHERE booking_id = $1', [id]);
       for (const s of services) {
+        const warrantyMode = s.warranty_mode === true || s.warranty_mode === 'true';
         await client.query(
-          'INSERT INTO booking_service (booking_id, service_catalog_id, quantity) VALUES ($1, $2, $3)',
-          [id, s.service_catalog_id, s.quantity]
+          'INSERT INTO booking_service (booking_id, service_catalog_id, quantity, warranty_mode) VALUES ($1, $2, $3, $4)',
+          [id, s.service_catalog_id, s.quantity, warrantyMode]
         );
+      }
+    }
+    if (master_user_ids !== undefined) {
+      await client.query('DELETE FROM booking_master WHERE booking_id = $1', [id]);
+      const mids = Array.isArray(master_user_ids) ? master_user_ids : [];
+      for (const mid of mids) {
+        if (mid) {
+          await client.query(
+            'INSERT INTO booking_master (booking_id, master_user_id) VALUES ($1, $2) ON CONFLICT (booking_id, master_user_id) DO NOTHING',
+            [id, mid]
+          );
+        }
       }
     }
     await client.query('COMMIT');

@@ -9,9 +9,10 @@ export async function listByClient(clientId, serviceId) {
     if (check.length === 0) return [];
   }
   const { rows } = await pool.query(
-    `SELECT w.id, w.completed_at, w.expires_at, s.name AS service_name
+    `SELECT w.id, w.completed_at, w.expires_at, w.master_user_id, s.name AS service_name, u.display_name AS master_name
      FROM warranty w
      JOIN service_catalog s ON s.id = w.service_catalog_id
+     LEFT JOIN "user" u ON u.id = w.master_user_id
      WHERE w.client_id = $1
      ORDER BY w.expires_at DESC`,
     [clientId]
@@ -27,6 +28,8 @@ export async function listByClient(clientId, serviceId) {
       completed_at: r.completed_at,
       expires_at: expiresAt,
       status: active ? 'active' : 'expired',
+      master_user_id: r.master_user_id ?? null,
+      master_name: r.master_name ?? null,
     };
   });
 }

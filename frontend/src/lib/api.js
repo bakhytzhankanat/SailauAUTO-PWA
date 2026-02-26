@@ -92,8 +92,12 @@ export async function getServiceCatalog() {
   return api('/service-catalog');
 }
 
-export async function getServiceCategoriesWithServices() {
-  return api('/service-categories-with-services');
+export async function getServiceCategoriesWithServices(vehicleCatalogId = null, bodyType = null) {
+  const params = new URLSearchParams();
+  if (vehicleCatalogId) params.set('vehicle_catalog_id', vehicleCatalogId);
+  if (bodyType) params.set('body_type', bodyType);
+  const q = params.toString() ? `?${params}` : '';
+  return api(`/service-categories-with-services${q}`);
 }
 
 export async function getClients(q = '') {
@@ -161,9 +165,15 @@ export async function createInventoryMovement(body) {
   return api('/inventory/movement', { method: 'POST', body: JSON.stringify(body) });
 }
 
-export async function getDayClose(date) {
-  const q = date ? `?date=${encodeURIComponent(date)}` : '?date=';
-  return api(`/day-close${q}`);
+export async function deleteInventoryItem(id) {
+  return api(`/inventory/${id}`, { method: 'DELETE' });
+}
+
+export async function getDayClose(date, shiftIndex = null) {
+  const params = new URLSearchParams();
+  if (date) params.set('date', date);
+  if (shiftIndex != null && Number.isFinite(shiftIndex)) params.set('shift_index', String(shiftIndex));
+  return api(`/day-close?${params}`);
 }
 
 export async function createDayClose(body) {
@@ -204,8 +214,9 @@ export async function getWhatsappInbound(q = '') {
   return api(`/whatsapp-inbound${query}`);
 }
 
-export async function getAnalyticsSummary(period = 'day', date) {
+export async function getAnalyticsSummary(period = 'day', date, drillMasterId = null) {
   const params = new URLSearchParams({ period });
   if (date) params.set('date', date);
+  if (drillMasterId) params.set('drill', drillMasterId);
   return api(`/analytics/summary?${params}`);
 }

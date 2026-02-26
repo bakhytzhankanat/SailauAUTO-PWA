@@ -7,5 +7,6 @@ const router = Router();
 router.get('/', optionalAuth, requireAuth, requireService, inventoryController.list);
 router.post('/', optionalAuth, requireAuth, requireService, requireOwnerOrManager, inventoryController.create);
 router.post('/movement', optionalAuth, requireAuth, requireService, requireOwnerOrManager, inventoryController.createMovement);
+router.delete('/:id', optionalAuth, requireAuth, requireService, requireOwnerOrManager, inventoryController.remove);
 
 export default router;
