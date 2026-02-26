@@ -133,7 +133,7 @@ export async function create(serviceId, data) {
       `INSERT INTO booking (
         service_id, client_id, client_name, phone, source, vehicle_catalog_id, body_type, plate_number,
         box_id, date, start_time, end_time, note, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'planned')
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'planned')
       RETURNING *`,
       [
         serviceId,
