@@ -120,6 +120,15 @@ export default function AddBooking() {
     }
   }, [form.vehicle_catalog_id, form.body_type]);
 
+  useEffect(() => {
+    const step = stepKeys[stepIndex];
+    if (step === 'services') {
+      getServiceCategoriesWithServices(form.vehicle_catalog_id || null, form.body_type || null)
+        .then((data) => setCategoriesWithServices(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    }
+  }, [stepIndex, stepKeys, form.vehicle_catalog_id, form.body_type]);
+
   const loadClients = useCallback((q) => {
     getClients(q ?? '').then(setClients).catch(() => setClients([]));
   }, []);

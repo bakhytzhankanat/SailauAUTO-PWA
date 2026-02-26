@@ -62,30 +62,49 @@ export async function listByDate(date, boxId = null, serviceId = null) {
   if (bookingIds.length === 0) {
     return rows.map((r) => ({ ...r, services: [] }));
   }
-  const { rows: serviceRows } = await pool.query(
-    `SELECT bs.booking_id, bs.service_catalog_id, bs.quantity, bs.warranty_mode, s.name AS service_name
-     FROM booking_service bs
-     JOIN service_catalog s ON s.id = bs.service_catalog_id
-     WHERE bs.booking_id = ANY($1)`,
-    [bookingIds]
-  );
-  const byBooking = {};
-  for (const s of serviceRows) {
-    if (!byBooking[s.booking_id]) byBooking[s.booking_id] = [];
-    byBooking[s.booking_id].push({ ...s, warranty_mode: Boolean(s.warranty_mode) });
+  let byBooking = {};
+  try {
+    const { rows: serviceRows } = await pool.query(
+      `SELECT bs.booking_id, bs.service_catalog_id, bs.quantity, bs.warranty_mode, s.name AS service_name
+       FROM booking_service bs
+       JOIN service_catalog s ON s.id = bs.service_catalog_id
+       WHERE bs.booking_id = ANY($1)`,
+      [bookingIds]
+    );
+    for (const s of serviceRows) {
+      if (!byBooking[s.booking_id]) byBooking[s.booking_id] = [];
+      byBooking[s.booking_id].push({ ...s, warranty_mode: Boolean(s.warranty_mode) });
+    }
+  } catch (_) {
+    byBooking = {};
+    const { rows: serviceRows } = await pool.query(
+      `SELECT bs.booking_id, bs.service_catalog_id, bs.quantity, s.name AS service_name
+       FROM booking_service bs
+       JOIN service_catalog s ON s.id = bs.service_catalog_id
+       WHERE bs.booking_id = ANY($1)`,
+      [bookingIds]
+    );
+    for (const s of serviceRows) {
+      if (!byBooking[s.booking_id]) byBooking[s.booking_id] = [];
+      byBooking[s.booking_id].push({ ...s, warranty_mode: false });
+    }
   }
   const bookingIdsList = rows.map((r) => r.id);
-  const { rows: masterRows } = await pool.query(
-    `SELECT bm.booking_id, bm.master_user_id, u.display_name AS master_name
-     FROM booking_master bm
-     JOIN "user" u ON u.id = bm.master_user_id
-     WHERE bm.booking_id = ANY($1)`,
-    [bookingIdsList]
-  );
-  const mastersByBooking = {};
-  for (const m of masterRows) {
-    if (!mastersByBooking[m.booking_id]) mastersByBooking[m.booking_id] = [];
-    mastersByBooking[m.booking_id].push({ master_user_id: m.master_user_id, master_name: m.master_name });
+  let mastersByBooking = {};
+  try {
+    const { rows: masterRows } = await pool.query(
+      `SELECT bm.booking_id, bm.master_user_id, u.display_name AS master_name
+       FROM booking_master bm
+       JOIN "user" u ON u.id = bm.master_user_id
+       WHERE bm.booking_id = ANY($1)`,
+      [bookingIdsList]
+    );
+    for (const m of masterRows) {
+      if (!mastersByBooking[m.booking_id]) mastersByBooking[m.booking_id] = [];
+      mastersByBooking[m.booking_id].push({ master_user_id: m.master_user_id, master_name: m.master_name });
+    }
+  } catch (_) {
+    mastersByBooking = {};
   }
   return rows.map((r) => ({
     ...r,
@@ -108,23 +127,42 @@ export async function getById(id, serviceId = null) {
   );
   if (rows.length === 0) return null;
   const b = rows[0];
-  const { rows: serviceRows } = await pool.query(
-    `SELECT bs.id, bs.service_catalog_id, bs.quantity, bs.warranty_mode, s.name AS service_name
-     FROM booking_service bs
-     JOIN service_catalog s ON s.id = bs.service_catalog_id
-     WHERE bs.booking_id = $1`,
-    [id]
-  );
-  const { rows: masterRows } = await pool.query(
-    `SELECT bm.master_user_id, u.display_name AS master_name
-     FROM booking_master bm
-     JOIN "user" u ON u.id = bm.master_user_id
-     WHERE bm.booking_id = $1 ORDER BY u.display_name`,
-    [id]
-  );
+  let serviceRows = [];
+  try {
+    const res = await pool.query(
+      `SELECT bs.id, bs.service_catalog_id, bs.quantity, bs.warranty_mode, s.name AS service_name
+       FROM booking_service bs
+       JOIN service_catalog s ON s.id = bs.service_catalog_id
+       WHERE bs.booking_id = $1`,
+      [id]
+    );
+    serviceRows = (res.rows || []).map((s) => ({ ...s, warranty_mode: Boolean(s.warranty_mode) }));
+  } catch (_) {
+    const res = await pool.query(
+      `SELECT bs.id, bs.service_catalog_id, bs.quantity, s.name AS service_name
+       FROM booking_service bs
+       JOIN service_catalog s ON s.id = bs.service_catalog_id
+       WHERE bs.booking_id = $1`,
+      [id]
+    );
+    serviceRows = (res.rows || []).map((s) => ({ ...s, warranty_mode: false }));
+  }
+  let masterRows = [];
+  try {
+    const res = await pool.query(
+      `SELECT bm.master_user_id, u.display_name AS master_name
+       FROM booking_master bm
+       JOIN "user" u ON u.id = bm.master_user_id
+       WHERE bm.booking_id = $1 ORDER BY u.display_name`,
+      [id]
+    );
+    masterRows = res.rows || [];
+  } catch (_) {
+    masterRows = [];
+  }
   return {
     ...b,
-    services: serviceRows.map((s) => ({ ...s, warranty_mode: Boolean(s.warranty_mode) })),
+    services: serviceRows,
     masters: masterRows,
   };
 }

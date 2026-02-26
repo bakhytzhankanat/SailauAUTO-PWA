@@ -182,6 +182,7 @@ export default function DayClose() {
     }
     try {
       const body = {
+        date: date,
         kaspi_amount: kaspi,
         cash_amount: cashAmount === '' ? undefined : Number(cashAmount),
         opex_lunch: Number(opexLunch),

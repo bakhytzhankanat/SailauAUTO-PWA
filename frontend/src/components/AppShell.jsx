@@ -55,17 +55,19 @@ export default function AppShell({ children }) {
               </NavLink>
             );
           })}
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex flex-col items-center py-1 flex-1 min-w-0 text-text-muted hover:text-white transition-colors"
-            title="Шығу"
-          >
-            <div className="w-10 h-8 rounded-full flex items-center justify-center mb-1">
-              <span className="material-symbols-outlined text-xl">logout</span>
-            </div>
-            <span className="text-[10px] font-medium">Шығу</span>
-          </button>
+          {(role === 'manager' || role === 'worker' || role === 'super_admin') && (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex flex-col items-center py-1 flex-1 min-w-0 text-text-muted hover:text-white transition-colors"
+              title="Шығу"
+            >
+              <div className="w-10 h-8 rounded-full flex items-center justify-center mb-1">
+                <span className="material-symbols-outlined text-xl">logout</span>
+              </div>
+              <span className="text-[10px] font-medium">Шығу</span>
+            </button>
+          )}
         </div>
       </nav>
     </div>

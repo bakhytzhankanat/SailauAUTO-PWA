@@ -205,21 +205,23 @@ export async function getSummary(serviceId, period, date, opts = {}) {
   );
   const warranty_jobs_count = Number(warrantyRows[0]?.cnt || 0);
 
-  const { rows: productivityRows } = await pool.query(
-    `SELECT bm.master_user_id, u.display_name AS master_name,
-            COUNT(*) AS jobs_count,
-            SUM(b.duration_minutes) AS sum_duration,
-            AVG(b.duration_minutes) AS avg_duration,
-            MIN(b.duration_minutes) AS min_duration,
-            MAX(b.duration_minutes) AS max_duration
-     FROM booking_master bm
-     JOIN booking b ON b.id = bm.booking_id AND b.service_id = $1 AND b.status = 'completed' AND b.date >= $2 AND b.date <= $3
-     JOIN "user" u ON u.id = bm.master_user_id
-     GROUP BY bm.master_user_id, u.display_name
-     ORDER BY sum_duration DESC NULLS LAST`,
-    [serviceId, start_date, end_date]
-  );
-  const productivity = (productivityRows || []).map((r) => ({
+  let productivity = [];
+  try {
+    const { rows: productivityRows } = await pool.query(
+      `SELECT bm.master_user_id, u.display_name AS master_name,
+              COUNT(*) AS jobs_count,
+              SUM(b.duration_minutes) AS sum_duration,
+              AVG(b.duration_minutes) AS avg_duration,
+              MIN(b.duration_minutes) AS min_duration,
+              MAX(b.duration_minutes) AS max_duration
+       FROM booking_master bm
+       JOIN booking b ON b.id = bm.booking_id AND b.service_id = $1 AND b.status = 'completed' AND b.date >= $2 AND b.date <= $3
+       JOIN "user" u ON u.id = bm.master_user_id
+       GROUP BY bm.master_user_id, u.display_name
+       ORDER BY sum_duration DESC NULLS LAST`,
+      [serviceId, start_date, end_date]
+    );
+    productivity = (productivityRows || []).map((r) => ({
     master_user_id: r.master_user_id,
     master_name: r.master_name,
     jobs_count: Number(r.jobs_count || 0),
@@ -228,6 +230,9 @@ export async function getSummary(serviceId, period, date, opts = {}) {
     min_duration_minutes: r.min_duration != null ? Number(r.min_duration) : null,
     max_duration_minutes: r.max_duration != null ? Number(r.max_duration) : null,
   }));
+  } catch (_) {
+    productivity = [];
+  }
 
   const days_count = dates.length;
   const avg_check = unique_clients_count > 0 ? service_income_total / unique_clients_count : 0;
@@ -235,23 +240,27 @@ export async function getSummary(serviceId, period, date, opts = {}) {
 
   let productivity_drill = null;
   if (opts.drill_master_user_id) {
-    const { rows: drillRows } = await pool.query(
-      `SELECT b.id, b.date, b.start_time, b.end_time, b.duration_minutes, b.service_payment_amount, v.name AS vehicle_name
-       FROM booking_master bm
-       JOIN booking b ON b.id = bm.booking_id AND b.service_id = $1 AND b.status = 'completed' AND b.date >= $2 AND b.date <= $3 AND bm.master_user_id = $4
-       LEFT JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
-       ORDER BY b.date DESC, b.completed_at DESC`,
-      [serviceId, start_date, end_date, opts.drill_master_user_id]
-    );
-    productivity_drill = drillRows.map((r) => ({
-      id: r.id,
-      date: String(r.date).slice(0, 10),
-      start_time: r.start_time,
-      end_time: r.end_time,
-      duration_minutes: r.duration_minutes != null ? Number(r.duration_minutes) : null,
-      service_payment_amount: r.service_payment_amount != null ? Number(r.service_payment_amount) : null,
-      vehicle_name: r.vehicle_name,
-    }));
+    try {
+      const { rows: drillRows } = await pool.query(
+        `SELECT b.id, b.date, b.start_time, b.end_time, b.duration_minutes, b.service_payment_amount, v.name AS vehicle_name
+         FROM booking_master bm
+         JOIN booking b ON b.id = bm.booking_id AND b.service_id = $1 AND b.status = 'completed' AND b.date >= $2 AND b.date <= $3 AND bm.master_user_id = $4
+         LEFT JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
+         ORDER BY b.date DESC, b.completed_at DESC`,
+        [serviceId, start_date, end_date, opts.drill_master_user_id]
+      );
+      productivity_drill = drillRows.map((r) => ({
+        id: r.id,
+        date: String(r.date).slice(0, 10),
+        start_time: r.start_time,
+        end_time: r.end_time,
+        duration_minutes: r.duration_minutes != null ? Number(r.duration_minutes) : null,
+        service_payment_amount: r.service_payment_amount != null ? Number(r.service_payment_amount) : null,
+        vehicle_name: r.vehicle_name,
+      }));
+    } catch (_) {
+      productivity_drill = [];
+    }
   }
 
   const wages_breakdown = {
