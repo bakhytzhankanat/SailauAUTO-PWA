@@ -20,6 +20,7 @@ import Admin from './pages/Admin';
 import Reminders from './pages/Reminders';
 import WhatsAppInbox from './pages/WhatsAppInbox';
 import Analytics from './pages/Analytics';
+import ServicesManage from './pages/ServicesManage';
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAuth();
@@ -56,6 +57,7 @@ function AppRoutes() {
                 <Route path="/reminders" element={<Reminders />} />
                 <Route path="/whatsapp" element={<WhatsAppInbox />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/services-manage" element={<ServicesManage />} />
                 <Route path="/admin" element={<Admin />} />
               </Routes>
               </AppShell>

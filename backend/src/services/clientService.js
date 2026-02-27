@@ -14,19 +14,34 @@ function toDateStr(d) {
 export async function search(serviceId, opts = {}) {
   if (!serviceId) throw new Error('service_id қажет');
   const q = (opts.q || '').trim();
-  let sql = `
-    SELECT c.id, c.name, c.phone, c.source, c.created_at, c.last_vehicle_name, c.last_plate_number, c.last_body_type,
-           (SELECT MAX(b.date) FROM booking b WHERE b.client_id = c.id AND b.status = 'completed') AS last_visit_date
-    FROM client c
-    WHERE c.service_id = $1
-  `;
-  const params = [serviceId];
-  if (q) {
-    params.push(`%${q}%`);
-    sql += ` AND (c.phone LIKE $2 OR c.name ILIKE $2)`;
+
+  const buildSql = (includeBody) => {
+    let sql = `
+      SELECT c.id, c.name, c.phone, c.source, c.created_at, c.last_vehicle_name, c.last_plate_number${includeBody ? ', c.last_body_type' : ''},
+             (SELECT MAX(b.date) FROM booking b WHERE b.client_id = c.id AND b.status = 'completed') AS last_visit_date
+      FROM client c
+      WHERE c.service_id = $1
+    `;
+    const params = [serviceId];
+    if (q) {
+      params.push(`%${q}%`);
+      sql += ` AND (c.phone LIKE $2 OR c.name ILIKE $2)`;
+    }
+    sql += ' ORDER BY c.name';
+    return { sql, params };
+  };
+
+  let rows;
+  try {
+    const { sql, params } = buildSql(true);
+    const res = await pool.query(sql, params);
+    rows = res.rows;
+  } catch (_) {
+    const { sql, params } = buildSql(false);
+    const res = await pool.query(sql, params);
+    rows = res.rows;
   }
-  sql += ' ORDER BY c.name';
-  const { rows } = await pool.query(sql, params);
+
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -45,10 +60,20 @@ export async function search(serviceId, opts = {}) {
  */
 export async function getById(id, serviceId) {
   if (!serviceId) throw new Error('service_id қажет');
-  const { rows: clients } = await pool.query(
-    'SELECT id, name, phone, source, created_at, last_vehicle_name, last_plate_number, last_body_type FROM client WHERE id = $1 AND service_id = $2',
-    [id, serviceId]
-  );
+  let clients;
+  try {
+    const res = await pool.query(
+      'SELECT id, name, phone, source, created_at, last_vehicle_name, last_plate_number, last_body_type FROM client WHERE id = $1 AND service_id = $2',
+      [id, serviceId]
+    );
+    clients = res.rows;
+  } catch (_) {
+    const res = await pool.query(
+      'SELECT id, name, phone, source, created_at, last_vehicle_name, last_plate_number FROM client WHERE id = $1 AND service_id = $2',
+      [id, serviceId]
+    );
+    clients = res.rows;
+  }
   if (clients.length === 0) return null;
   const client = clients[0];
 

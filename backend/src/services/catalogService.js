@@ -60,6 +60,33 @@ function serviceAppliesToVehicle(service, vehicleCatalogId, bodyType) {
   return vehicleMatch || bodyMatch;
 }
 
+export async function createService({ category_id, name, subgroup, applicable_to_vehicle_models, applicable_to_body_types }) {
+  if (!category_id || !name) throw new Error('category_id және name міндетті');
+  const vModels = Array.isArray(applicable_to_vehicle_models) && applicable_to_vehicle_models.length > 0
+    ? applicable_to_vehicle_models : null;
+  const bTypes = Array.isArray(applicable_to_body_types) && applicable_to_body_types.length > 0
+    ? applicable_to_body_types : null;
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO service_catalog (category_id, name, subgroup, applicable_to_vehicle_models, applicable_to_body_types)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [category_id, name.trim(), subgroup || null, vModels, bTypes]
+    );
+    return rows[0];
+  } catch (_) {
+    const { rows } = await pool.query(
+      `INSERT INTO service_catalog (category_id, name, subgroup) VALUES ($1, $2, $3) RETURNING *`,
+      [category_id, name.trim(), subgroup || null]
+    );
+    return rows[0];
+  }
+}
+
+export async function deleteService(id) {
+  const { rowCount } = await pool.query('DELETE FROM service_catalog WHERE id = $1', [id]);
+  return rowCount > 0;
+}
+
 /** Get categories with nested services for wizard; optional filter by vehicle. */
 export async function getCategoriesWithServices(vehicleCatalogId = null, bodyType = null) {
   const categories = await getServiceCategories();

@@ -202,6 +202,20 @@ export default function Settings() {
               </div>
               <span className="material-symbols-outlined text-text-muted">chevron_right</span>
             </button>
+            <button
+              type="button"
+              onClick={() => navigate('/services-manage')}
+              className="w-full flex items-center gap-3 p-4 rounded-xl border border-border-color hover:border-primary hover:bg-primary/5 transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary text-xl">build</span>
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-white">Қызметтер</div>
+                <div className="text-xs text-text-muted">Қызметтер қосу, жою, басқару</div>
+              </div>
+              <span className="material-symbols-outlined text-text-muted">chevron_right</span>
+            </button>
             {canAccessWhatsApp && (
               <button
                 type="button"

@@ -92,6 +92,18 @@ export async function getServiceCatalog() {
   return api('/service-catalog');
 }
 
+export async function createServiceCatalogItem(body) {
+  return api('/service-catalog', { method: 'POST', body: JSON.stringify(body) });
+}
+
+export async function deleteServiceCatalogItem(id) {
+  return api(`/service-catalog/${id}`, { method: 'DELETE' });
+}
+
+export async function getServiceCategories() {
+  return api('/service-categories');
+}
+
 export async function getServiceCategoriesWithServices(vehicleCatalogId = null, bodyType = null) {
   const params = new URLSearchParams();
   if (vehicleCatalogId) params.set('vehicle_catalog_id', vehicleCatalogId);
