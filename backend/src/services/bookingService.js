@@ -108,6 +108,7 @@ export async function listByDate(date, boxId = null, serviceId = null) {
   }
   return rows.map((r) => ({
     ...r,
+    date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : r.date,
     services: byBooking[r.id] || [],
     masters: mastersByBooking[r.id] || [],
   }));
@@ -162,6 +163,7 @@ export async function getById(id, serviceId = null) {
   }
   return {
     ...b,
+    date: b.date instanceof Date ? b.date.toISOString().slice(0, 10) : b.date,
     services: serviceRows,
     masters: masterRows,
   };

@@ -251,7 +251,7 @@ export async function getSummary(serviceId, period, date, opts = {}) {
       );
       productivity_drill = drillRows.map((r) => ({
         id: r.id,
-        date: String(r.date).slice(0, 10),
+        date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10),
         start_time: r.start_time,
         end_time: r.end_time,
         duration_minutes: r.duration_minutes != null ? Number(r.duration_minutes) : null,

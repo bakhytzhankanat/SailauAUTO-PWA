@@ -208,7 +208,7 @@ function mapRow(r) {
   if (!r) return null;
   return {
     id: r.id,
-    date: r.date,
+    date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : r.date,
     shift_index: r.shift_index != null ? Number(r.shift_index) : 0,
     closed_by_id: r.closed_by_id,
     closed_at: r.closed_at,

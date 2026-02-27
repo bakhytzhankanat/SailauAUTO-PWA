@@ -1,5 +1,13 @@
 import { pool } from '../db/pool.js';
 
+function toDateStr(d) {
+  if (!d) return null;
+  if (d instanceof Date) return d.toISOString().slice(0, 10);
+  const s = String(d);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? m[0] : s;
+}
+
 /**
  * List warranties for a client with service name, completed_at, expires_at, status (active/expired).
  */
@@ -34,7 +42,7 @@ export async function listByClient(clientId, serviceId) {
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   return rows.map((r) => {
-    const expiresAt = r.expires_at ? String(r.expires_at).slice(0, 10) : null;
+    const expiresAt = toDateStr(r.expires_at);
     const active = expiresAt && expiresAt >= today;
     return {
       id: r.id,
@@ -74,6 +82,6 @@ export async function listExpiring(serviceId, opts = {}) {
     client_name: r.client_name,
     phone: r.phone,
     service_name: r.service_name,
-    expires_at: String(r.expires_at).slice(0, 10),
+    expires_at: toDateStr(r.expires_at),
   }));
 }
