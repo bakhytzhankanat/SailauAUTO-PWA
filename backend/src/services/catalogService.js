@@ -96,24 +96,53 @@ export async function deleteService(id) {
 
 /** Get categories with nested services for wizard; optional filter by vehicle. */
 export async function getCategoriesWithServices(vehicleCatalogId = null, bodyType = null) {
-  const categories = await getServiceCategories();
+  let categories = await getServiceCategories();
   const services = await getServiceCatalog();
+
+  // Ensure Guarantee category exists in response
+  const hasGuaranteeCat = categories.some((c) => String(c.id) === GUARANTEE_CATEGORY_ID);
+  if (!hasGuaranteeCat) {
+    categories = [{ id: GUARANTEE_CATEGORY_ID, name: 'Гарантия', sort_order: 0 }, ...categories];
+  }
+
+  // Ensure Guarantee service exists
+  let guarantee = services.find((s) => String(s.id) === GUARANTEE_SERVICE_ID);
+  if (!guarantee) {
+    guarantee = {
+      id: GUARANTEE_SERVICE_ID,
+      category_id: GUARANTEE_CATEGORY_ID,
+      name: 'Гарантия',
+      subgroup: null,
+      applicable_to_vehicle_models: null,
+      applicable_to_body_types: null,
+      warranty_mode: true,
+    };
+    services.push(guarantee);
+  } else if (String(guarantee.category_id) !== GUARANTEE_CATEGORY_ID) {
+    // Fix category_id in memory if wrong
+    guarantee.category_id = GUARANTEE_CATEGORY_ID;
+  }
+
   const filtered = vehicleCatalogId || bodyType
     ? services.filter((s) => serviceAppliesToVehicle(s, vehicleCatalogId, bodyType))
     : services;
-  const guarantee = services.find((s) => String(s.id) === GUARANTEE_SERVICE_ID);
-  const hasGuarantee = guarantee && filtered.some((s) => String(s.id) === GUARANTEE_SERVICE_ID);
-  if (guarantee && !hasGuarantee) {
+
+  // Always include guarantee
+  if (!filtered.some((s) => String(s.id) === GUARANTEE_SERVICE_ID)) {
     filtered.push(guarantee);
   }
+
   const result = categories.map((cat) => ({
     ...cat,
-    services: filtered.filter((s) => s.category_id === cat.id),
+    services: filtered.filter((s) => String(s.category_id) === String(cat.id)),
   }));
+
+  // Sort: Guarantee first
   result.sort((a, b) => {
     if (String(a.id) === GUARANTEE_CATEGORY_ID) return -1;
     if (String(b.id) === GUARANTEE_CATEGORY_ID) return 1;
     return (a.sort_order ?? 0) - (b.sort_order ?? 0);
   });
+
   return result;
 }
