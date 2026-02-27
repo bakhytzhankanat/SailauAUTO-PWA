@@ -47,8 +47,10 @@ export async function getServiceCatalog() {
 
 /**
  * Filter services by vehicle: include if service has no restrictions, or vehicle_catalog_id/body_type matches.
+ * Warranty (Guarantee) service is always visible for all vehicles.
  */
 function serviceAppliesToVehicle(service, vehicleCatalogId, bodyType) {
+  if (service.warranty_mode) return true;
   const vid = service.applicable_to_vehicle_models;
   const btypes = service.applicable_to_body_types;
   const noVehicleFilter = !vid || (Array.isArray(vid) && vid.length === 0);
