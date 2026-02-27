@@ -297,8 +297,12 @@ export default function Analytics() {
               <p className="text-white font-semibold">{fmt(m.avg_daily_income)}</p>
             </div>
             <div className="bg-card-bg border border-border-color rounded-xl p-3">
-              <p className="text-text-muted text-xs">Кепілдік жұмыстары</p>
+              <p className="text-text-muted text-xs">Кепілдік берілді</p>
               <p className="text-white font-semibold">{m.warranty_jobs_count ?? '—'}</p>
+            </div>
+            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+              <p className="text-text-muted text-xs">Кепілдікпен жасалды</p>
+              <p className="text-white font-semibold">{m.warranty_used_count ?? '—'}</p>
             </div>
           </div>
 

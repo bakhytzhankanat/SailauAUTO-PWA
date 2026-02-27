@@ -8,6 +8,7 @@ import {
   getServiceCategoriesWithServices,
   getBookings,
   createBooking,
+  getClientWarranties,
 } from '../lib/api';
 
 const STEP_KEYS_BASE = ['client', 'vehicle', 'plate', 'services', 'note', 'summary'];
@@ -81,6 +82,7 @@ export default function AddBooking() {
   const [conflictError, setConflictError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [clientWarranties, setClientWarranties] = useState([]);
 
   useEffect(() => {
     const prefill = searchParams.get('prefill');
@@ -119,6 +121,22 @@ export default function AddBooking() {
   const loadClients = useCallback((q) => {
     getClients(q ?? '').then(setClients).catch(() => setClients([]));
   }, []);
+
+  useEffect(() => {
+    if (form.client_id) {
+      getClientWarranties(form.client_id)
+        .then((data) => {
+          const active = (data || []).filter((w) => {
+            if (!w.expires_at) return false;
+            return new Date(w.expires_at) >= new Date();
+          });
+          setClientWarranties(active);
+        })
+        .catch(() => setClientWarranties([]));
+    } else {
+      setClientWarranties([]);
+    }
+  }, [form.client_id]);
 
   const selectedVehicle = vehicles.find((v) => v.id === form.vehicle_catalog_id);
   const stepKeys = useMemo(() => getStepKeys(selectedVehicle), [selectedVehicle, vehicles]);
@@ -297,15 +315,36 @@ export default function AddBooking() {
         )}
 
         {currentStep === 'client' && (
-          <StepClient
-            form={form}
-            updateForm={updateForm}
-            clients={clients}
-            vehicles={vehicles}
-            loadClients={loadClients}
-            sourceLocked={sourceLockedFromPrefill}
-            prefillOnly={searchParams.get('prefill') === '1' && (searchParams.get('source') === 'whatsapp' || !!searchParams.get('phone') || !!searchParams.get('name'))}
-          />
+          <>
+            <StepClient
+              form={form}
+              updateForm={updateForm}
+              clients={clients}
+              vehicles={vehicles}
+              loadClients={loadClients}
+              sourceLocked={sourceLockedFromPrefill}
+              prefillOnly={searchParams.get('prefill') === '1' && (searchParams.get('source') === 'whatsapp' || !!searchParams.get('phone') || !!searchParams.get('name'))}
+            />
+            {clientWarranties.length > 0 && (
+              <div className="bg-amber-500/20 border border-amber-500 rounded-xl p-4 mt-4">
+                <div className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-amber-500 text-2xl">warning</span>
+                  <div className="flex-1">
+                    <p className="text-amber-400 font-bold text-sm mb-2">Клиенттің белсенді кепілдігі бар!</p>
+                    {clientWarranties.map((w) => (
+                      <div key={w.id} className="text-white text-xs mb-2 bg-[#2A2A2A] rounded-lg p-2">
+                        <p className="font-semibold">{w.service_name || 'Қызмет'}</p>
+                        <p className="text-text-muted mt-0.5">Мерзімі: {new Date(w.expires_at).toLocaleDateString('kk-KZ')}</p>
+                        {w.master_name && (
+                          <p className="text-primary mt-0.5">Орындаған шебер: {w.master_name}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
         {currentStep === 'vehicle' && (
           <StepVehicle form={form} updateForm={updateForm} vehicles={vehicles} />

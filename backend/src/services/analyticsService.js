@@ -205,6 +205,20 @@ export async function getSummary(serviceId, period, date, opts = {}) {
   );
   const warranty_jobs_count = Number(warrantyRows[0]?.cnt || 0);
 
+  let warranty_used_count = 0;
+  try {
+    const { rows: warrantyUsedRows } = await pool.query(
+      `SELECT COUNT(DISTINCT b.id) AS cnt
+       FROM booking b
+       JOIN booking_service bs ON bs.booking_id = b.id AND bs.warranty_mode = true
+       WHERE b.service_id = $1 AND b.date >= $2 AND b.date <= $3 AND b.status = 'completed'`,
+      [serviceId, start_date, end_date]
+    );
+    warranty_used_count = Number(warrantyUsedRows[0]?.cnt || 0);
+  } catch (_) {
+    warranty_used_count = 0;
+  }
+
   let productivity = [];
   try {
     const { rows: productivityRows } = await pool.query(
@@ -301,6 +315,7 @@ export async function getSummary(serviceId, period, date, opts = {}) {
       cars_count,
       unique_clients_count,
       warranty_jobs_count,
+      warranty_used_count,
       avg_check: Math.round(avg_check * 100) / 100,
       avg_daily_income: Math.round(avg_daily_income * 100) / 100,
       owner_dividend_total,
