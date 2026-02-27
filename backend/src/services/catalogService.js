@@ -1,5 +1,8 @@
 import { pool } from '../db/pool.js';
 
+/** ID услуги "Гарантия" — всегда показывать для всех машин */
+const GUARANTEE_SERVICE_ID = 'b0000000-0000-0000-0000-000000000099';
+
 export async function getVehicleCatalog() {
   const { rows } = await pool.query(
     `SELECT id, name, body_type, year, body_options FROM vehicle_catalog ORDER BY name`
@@ -47,10 +50,10 @@ export async function getServiceCatalog() {
 
 /**
  * Filter services by vehicle: include if service has no restrictions, or vehicle_catalog_id/body_type matches.
- * Warranty (Guarantee) service is always visible for all vehicles.
+ * Warranty (Guarantee) service is always visible for all vehicles (by ID and by warranty_mode).
  */
 function serviceAppliesToVehicle(service, vehicleCatalogId, bodyType) {
-  if (service.warranty_mode) return true;
+  if (String(service.id) === GUARANTEE_SERVICE_ID || service.warranty_mode) return true;
   const vid = service.applicable_to_vehicle_models;
   const btypes = service.applicable_to_body_types;
   const noVehicleFilter = !vid || (Array.isArray(vid) && vid.length === 0);
@@ -96,6 +99,11 @@ export async function getCategoriesWithServices(vehicleCatalogId = null, bodyTyp
   const filtered = vehicleCatalogId || bodyType
     ? services.filter((s) => serviceAppliesToVehicle(s, vehicleCatalogId, bodyType))
     : services;
+  const guarantee = services.find((s) => String(s.id) === GUARANTEE_SERVICE_ID);
+  const hasGuarantee = guarantee && filtered.some((s) => String(s.id) === GUARANTEE_SERVICE_ID);
+  if (guarantee && !hasGuarantee) {
+    filtered.push(guarantee);
+  }
   return categories.map((cat) => ({
     ...cat,
     services: filtered.filter((s) => s.category_id === cat.id),
