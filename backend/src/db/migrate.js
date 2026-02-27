@@ -24,9 +24,17 @@ async function migrate() {
         continue;
       }
       const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
-      await client.query(sql);
-      await client.query('INSERT INTO _migrations (name) VALUES ($1)', [name]);
-      console.log('Ran:', name);
+      try {
+        await client.query('BEGIN');
+        await client.query(sql);
+        await client.query('INSERT INTO _migrations (name) VALUES ($1)', [name]);
+        await client.query('COMMIT');
+        console.log('Ran:', name);
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Migration failed:', name, err.message);
+        throw err;
+      }
     }
   } finally {
     client.release();
