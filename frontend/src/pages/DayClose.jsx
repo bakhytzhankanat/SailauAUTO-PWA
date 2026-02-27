@@ -239,9 +239,10 @@ export default function DayClose() {
   }
 
   const dc = snapshot;
-  const serviceTotal = derived?.service_income_total ?? 0;
-  const materialTotal = derived?.material_expense_total ?? 0;
-  const partSalesTotal = derived?.part_sales_total ?? 0;
+  const isViewingExtraShift = dc && dc.shift_index > 0;
+  const serviceTotal = isViewingExtraShift ? (dc.service_income_total ?? 0) : (derived?.service_income_total ?? 0);
+  const materialTotal = isViewingExtraShift ? (dc.material_expense_total ?? 0) : (derived?.material_expense_total ?? 0);
+  const partSalesTotal = isViewingExtraShift ? (dc.part_sales_total ?? 0) : (derived?.part_sales_total ?? 0);
   const netService = serviceTotal - materialTotal;
   const kaspiTaxPercent = settings?.kaspi_tax_percent ?? 4;
   const charityPercent = settings?.charity_percent ?? 10;
@@ -316,6 +317,20 @@ export default function DayClose() {
               )}
             </div>
           </section>
+        )}
+
+        {isExtraShift && (
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <span className="material-symbols-outlined text-yellow-400 text-xl">info</span>
+              <div>
+                <div className="font-semibold text-yellow-400 text-sm">Қосымша смена</div>
+                <div className="text-yellow-400/80 text-xs mt-1">
+                  Бұл смена бірінші сменаға тәуелсіз. Кірістер мен шығындарды қолмен енгізіңіз.
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         <section className="space-y-3">
