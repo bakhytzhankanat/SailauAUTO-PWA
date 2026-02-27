@@ -2,6 +2,8 @@ import { pool } from '../db/pool.js';
 
 /** ID услуги "Гарантия" — всегда показывать для всех машин */
 const GUARANTEE_SERVICE_ID = 'b0000000-0000-0000-0000-000000000099';
+/** ID категории "Гарантия" — всегда первой в списке (не среди дополнительных) */
+const GUARANTEE_CATEGORY_ID = 'a0000000-0000-0000-0000-000000000004';
 
 export async function getVehicleCatalog() {
   const { rows } = await pool.query(
@@ -104,8 +106,14 @@ export async function getCategoriesWithServices(vehicleCatalogId = null, bodyTyp
   if (guarantee && !hasGuarantee) {
     filtered.push(guarantee);
   }
-  return categories.map((cat) => ({
+  const result = categories.map((cat) => ({
     ...cat,
     services: filtered.filter((s) => s.category_id === cat.id),
   }));
+  result.sort((a, b) => {
+    if (String(a.id) === GUARANTEE_CATEGORY_ID) return -1;
+    if (String(b.id) === GUARANTEE_CATEGORY_ID) return 1;
+    return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+  });
+  return result;
 }
