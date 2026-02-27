@@ -84,12 +84,15 @@ export async function completeBooking(id, serviceId, payload) {
       );
     }
     if (clientId && (booking.vehicle_name != null || booking.plate_number != null)) {
+      await client.query('SAVEPOINT sp_client_body');
       try {
         await client.query(
           'UPDATE client SET last_vehicle_name = COALESCE($2, last_vehicle_name), last_plate_number = COALESCE($3, last_plate_number), last_body_type = COALESCE($4, last_body_type), updated_at = now() WHERE id = $1',
           [clientId, booking.vehicle_name || null, booking.plate_number || null, booking.body_type || null]
         );
+        await client.query('RELEASE SAVEPOINT sp_client_body');
       } catch (_) {
+        await client.query('ROLLBACK TO SAVEPOINT sp_client_body');
         await client.query(
           'UPDATE client SET last_vehicle_name = COALESCE($2, last_vehicle_name), last_plate_number = COALESCE($3, last_plate_number), updated_at = now() WHERE id = $1',
           [clientId, booking.vehicle_name || null, booking.plate_number || null]
@@ -121,15 +124,27 @@ export async function completeBooking(id, serviceId, payload) {
       ]
     );
 
-    const warrantyMasterId = booking.assigned_master_id || (booking.masters && booking.masters[0] && booking.masters[0].master_user_id) || null;
     if (clientId && warranty_service_ids.length > 0) {
+      const warrantyMasterId = booking.assigned_master_id || (booking.masters && booking.masters[0] && booking.masters[0].master_user_id) || null;
       for (const serviceCatalogId of warranty_service_ids) {
-        await client.query(
-          `INSERT INTO warranty (client_id, booking_id, service_catalog_id, completed_at, expires_at, master_user_id)
-           VALUES ($1, $2, $3, $4, $5, $6)
-           ON CONFLICT (booking_id, service_catalog_id) DO UPDATE SET master_user_id = EXCLUDED.master_user_id`,
-          [clientId, id, serviceCatalogId, completedAt, expiresAtDate, warrantyMasterId]
-        );
+        await client.query('SAVEPOINT sp_warranty');
+        try {
+          await client.query(
+            `INSERT INTO warranty (client_id, booking_id, service_catalog_id, completed_at, expires_at, master_user_id)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             ON CONFLICT (booking_id, service_catalog_id) DO UPDATE SET master_user_id = EXCLUDED.master_user_id`,
+            [clientId, id, serviceCatalogId, completedAt, expiresAtDate, warrantyMasterId]
+          );
+          await client.query('RELEASE SAVEPOINT sp_warranty');
+        } catch (_) {
+          await client.query('ROLLBACK TO SAVEPOINT sp_warranty');
+          await client.query(
+            `INSERT INTO warranty (client_id, booking_id, service_catalog_id, completed_at, expires_at)
+             VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (booking_id, service_catalog_id) DO NOTHING`,
+            [clientId, id, serviceCatalogId, completedAt, expiresAtDate]
+          );
+        }
       }
     }
 
@@ -172,6 +187,7 @@ export async function completeBooking(id, serviceId, payload) {
 
     const mids = Array.isArray(master_user_ids) ? master_user_ids.filter(Boolean) : [];
     if (mids.length > 0) {
+      await client.query('SAVEPOINT sp_masters');
       try {
         await client.query('DELETE FROM booking_master WHERE booking_id = $1', [id]);
         for (const mid of mids) {
@@ -184,7 +200,10 @@ export async function completeBooking(id, serviceId, payload) {
           'UPDATE booking SET assigned_master_id = $2, updated_at = now() WHERE id = $1',
           [id, mids[0]]
         );
-      } catch (_) { /* booking_master table may not exist yet */ }
+        await client.query('RELEASE SAVEPOINT sp_masters');
+      } catch (_) {
+        await client.query('ROLLBACK TO SAVEPOINT sp_masters');
+      }
     }
 
     await client.query('COMMIT');
