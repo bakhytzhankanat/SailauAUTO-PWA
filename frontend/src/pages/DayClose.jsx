@@ -240,9 +240,23 @@ export default function DayClose() {
 
   const dc = snapshot;
   const isViewingExtraShift = dc && dc.shift_index > 0;
-  const serviceTotal = isViewingExtraShift ? (dc.service_income_total ?? 0) : (derived?.service_income_total ?? 0);
-  const materialTotal = isViewingExtraShift ? (dc.material_expense_total ?? 0) : (derived?.material_expense_total ?? 0);
-  const partSalesTotal = isViewingExtraShift ? (dc.part_sales_total ?? 0) : (derived?.part_sales_total ?? 0);
+  const isCreatingExtraShift = isExtraShift && showNewShiftForm;
+
+  let serviceTotal, materialTotal, partSalesTotal;
+  if (isCreatingExtraShift) {
+    serviceTotal = Number(manualServiceIncome) || 0;
+    partSalesTotal = Number(manualPartSales) || 0;
+    materialTotal = Number(manualMaterialExpense) || 0;
+  } else if (isViewingExtraShift) {
+    serviceTotal = dc.service_income_total ?? 0;
+    partSalesTotal = dc.part_sales_total ?? 0;
+    materialTotal = dc.material_expense_total ?? 0;
+  } else {
+    serviceTotal = derived?.service_income_total ?? 0;
+    partSalesTotal = derived?.part_sales_total ?? 0;
+    materialTotal = derived?.material_expense_total ?? 0;
+  }
+
   const netService = serviceTotal - materialTotal;
   const kaspiTaxPercent = settings?.kaspi_tax_percent ?? 4;
   const charityPercent = settings?.charity_percent ?? 10;
