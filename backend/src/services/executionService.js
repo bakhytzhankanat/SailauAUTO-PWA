@@ -44,6 +44,7 @@ export async function completeBooking(id, serviceId, payload) {
     kaspi_tax_amount: payloadKaspiTax,
     part_sales = [],
     warranty_service_ids = [],
+    master_user_ids = [],
   } = payload;
 
   let kaspi_tax_amount = payloadKaspiTax != null ? Number(payloadKaspiTax) : null;
@@ -83,10 +84,17 @@ export async function completeBooking(id, serviceId, payload) {
       );
     }
     if (clientId && (booking.vehicle_name != null || booking.plate_number != null)) {
-      await client.query(
-        'UPDATE client SET last_vehicle_name = COALESCE($2, last_vehicle_name), last_plate_number = COALESCE($3, last_plate_number), updated_at = now() WHERE id = $1',
-        [clientId, booking.vehicle_name || null, booking.plate_number || null]
-      );
+      try {
+        await client.query(
+          'UPDATE client SET last_vehicle_name = COALESCE($2, last_vehicle_name), last_plate_number = COALESCE($3, last_plate_number), last_body_type = COALESCE($4, last_body_type), updated_at = now() WHERE id = $1',
+          [clientId, booking.vehicle_name || null, booking.plate_number || null, booking.body_type || null]
+        );
+      } catch (_) {
+        await client.query(
+          'UPDATE client SET last_vehicle_name = COALESCE($2, last_vehicle_name), last_plate_number = COALESCE($3, last_plate_number), updated_at = now() WHERE id = $1',
+          [clientId, booking.vehicle_name || null, booking.plate_number || null]
+        );
+      }
     }
 
     const completedAt = new Date();
@@ -160,6 +168,23 @@ export async function completeBooking(id, serviceId, payload) {
          VALUES ($1, 'sale', $2, $3, 'booking_completion', $4)`,
         [inventory_item_id, qty, qty * unitPrice, id]
       );
+    }
+
+    const mids = Array.isArray(master_user_ids) ? master_user_ids.filter(Boolean) : [];
+    if (mids.length > 0) {
+      try {
+        await client.query('DELETE FROM booking_master WHERE booking_id = $1', [id]);
+        for (const mid of mids) {
+          await client.query(
+            'INSERT INTO booking_master (booking_id, master_user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [id, mid]
+          );
+        }
+        await client.query(
+          'UPDATE booking SET assigned_master_id = $2, updated_at = now() WHERE id = $1',
+          [id, mids[0]]
+        );
+      } catch (_) { /* booking_master table may not exist yet */ }
     }
 
     await client.query('COMMIT');

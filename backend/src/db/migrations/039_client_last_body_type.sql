@@ -1,0 +1,1 @@
+ALTER TABLE client ADD COLUMN IF NOT EXISTS last_body_type VARCHAR(100);

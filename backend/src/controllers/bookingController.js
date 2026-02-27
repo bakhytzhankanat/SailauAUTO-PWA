@@ -74,6 +74,7 @@ export async function complete(req, res) {
       'kaspi_tax_amount',
       'part_sales',
       'warranty_service_ids',
+      'master_user_ids',
     ];
     const filtered = {};
     for (const key of allowed) {

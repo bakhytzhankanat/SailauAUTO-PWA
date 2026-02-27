@@ -102,6 +102,9 @@ export default function DayClose() {
 
   const [editMode, setEditMode] = useState(false);
   const [editReason, setEditReason] = useState('');
+  const [manualServiceIncome, setManualServiceIncome] = useState('');
+  const [manualPartSales, setManualPartSales] = useState('');
+  const [manualMaterialExpense, setManualMaterialExpense] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -168,14 +171,17 @@ export default function DayClose() {
   const isOwner = user?.role === 'owner';
   const canEdit = isOwner && snapshot;
   const showForm = showNewShiftForm || !snapshot || editMode;
+  const isExtraShift = showNewShiftForm && dayClosesForDate.length > 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
     const kaspi = kaspiAmount === '' ? 0 : Number(kaspiAmount);
-    const incomeTotal = (derived?.service_income_total ?? 0) + (derived?.part_sales_total ?? 0);
-    if (derived && kaspi > incomeTotal) {
+    const effServiceIncome = isExtraShift ? (Number(manualServiceIncome) || 0) : (derived?.service_income_total ?? 0);
+    const effPartSales = isExtraShift ? (Number(manualPartSales) || 0) : (derived?.part_sales_total ?? 0);
+    const incomeTotal = effServiceIncome + effPartSales;
+    if (kaspi > incomeTotal && !isExtraShift) {
       setError('KaspiPay сомасы қызмет пен бөлшек кірісінен аспауы керек');
       setSubmitting(false);
       return;
@@ -191,6 +197,11 @@ export default function DayClose() {
         present_master_user_ids: presentMasterIds,
         manual_master_distribution: manualMasterDistribution,
       };
+      if (isExtraShift) {
+        body.manual_service_income = effServiceIncome;
+        body.manual_part_sales = effPartSales;
+        body.manual_material_expense = Number(manualMaterialExpense) || 0;
+      }
       if (manualMasterDistribution && presentMasterIds.length > 0) {
         if (Math.abs(masterPercentsSum - 100) > 0.01) {
           setError('Мастерлер үлесінің қосындысы 100% болуы керек');
@@ -289,13 +300,13 @@ export default function DayClose() {
                       : 'bg-card-bg border-border-color text-white hover:border-primary'
                   }`}
                 >
-                  Смена {s.shift_index + 1}
+                  {(() => { const d = new Date(date + 'T00:00:00'); const day = d.getDate(); const months = ['ЯНВ','ФЕВ','МАР','АПР','МАЙ','ИЮН','ИЮЛ','АВГ','СЕН','ОКТ','НОЯ','ДЕК']; return `${day}${months[d.getMonth()]}(${s.shift_index + 1})`; })()}
                 </button>
               ))}
               {canCreate && (
                 <button
                   type="button"
-                  onClick={() => { setShowNewShiftForm(true); setSnapshot(null); setSelectedShiftIndex(dayClosesForDate.length); load(); }}
+                  onClick={() => { setShowNewShiftForm(true); setSnapshot(null); setSelectedShiftIndex(dayClosesForDate.length); setManualServiceIncome(''); setManualPartSales(''); setManualMaterialExpense(''); load(); }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium border border-dashed border-border-color text-text-muted hover:border-primary hover:text-primary ${
                     showNewShiftForm ? 'border-primary text-primary' : ''
                   }`}
@@ -310,22 +321,48 @@ export default function DayClose() {
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
             <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
-            Кірістер
+            Кірістер {isExtraShift ? '(қолмен)' : ''}
           </h2>
-          <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-3">
-            <div className="flex justify-between items-center pb-2 border-b border-border-color">
-              <span className="text-text-muted text-sm">Қызмет кассасы</span>
-              <span className="font-bold text-lg">{fmt(serviceTotal)}</span>
+          {isExtraShift ? (
+            <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-4">
+              <div>
+                <label className="text-xs text-text-muted block mb-1">Қызмет кірісі</label>
+                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                  <input type="number" min="0" value={manualServiceIncome} onChange={(e) => setManualServiceIncome(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-white font-medium text-right" placeholder="0" />
+                  <span className="text-text-muted ml-2">₸</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-text-muted block mb-1">Бөлшек сатылымы</label>
+                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                  <input type="number" min="0" value={manualPartSales} onChange={(e) => setManualPartSales(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-white font-medium text-right" placeholder="0" />
+                  <span className="text-text-muted ml-2">₸</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-text-muted block mb-1">Материал шығыны</label>
+                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                  <input type="number" min="0" value={manualMaterialExpense} onChange={(e) => setManualMaterialExpense(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-white font-medium text-right" placeholder="0" />
+                  <span className="text-text-muted ml-2">₸</span>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between items-center pb-2 border-b border-border-color">
-              <span className="text-text-muted text-sm">Бөлшек сатылымы</span>
-              <span className="font-bold text-lg">{fmt(partSalesTotal)}</span>
+          ) : (
+            <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-3">
+              <div className="flex justify-between items-center pb-2 border-b border-border-color">
+                <span className="text-text-muted text-sm">Қызмет кассасы</span>
+                <span className="font-bold text-lg">{fmt(serviceTotal)}</span>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b border-border-color">
+                <span className="text-text-muted text-sm">Бөлшек сатылымы</span>
+                <span className="font-bold text-lg">{fmt(partSalesTotal)}</span>
+              </div>
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-text-muted text-sm">Материал шығыны</span>
+                <span className="font-bold text-lg text-red-400">- {fmt(materialTotal)}</span>
+              </div>
             </div>
-            <div className="flex justify-between items-center pt-1">
-              <span className="text-text-muted text-sm">Материал шығыны</span>
-              <span className="font-bold text-lg text-red-400">- {fmt(materialTotal)}</span>
-            </div>
-          </div>
+          )}
         </section>
 
         {!canCreate && !snapshot && (

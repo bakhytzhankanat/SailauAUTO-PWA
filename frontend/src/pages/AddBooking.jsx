@@ -229,7 +229,7 @@ export default function AddBooking() {
         client_name: form.client_name.trim(),
         phone: form.phone.trim(),
         source: form.source,
-        vehicle_catalog_id: form.vehicle_catalog_id,
+        vehicle_catalog_id: form.vehicle_catalog_id === '__other__' ? (vehicles[0]?.id || form.vehicle_catalog_id) : form.vehicle_catalog_id,
         body_type: form.body_type,
         plate_number: form.plate_number?.trim() || undefined,
         box_id: form.box_id,
@@ -334,17 +334,17 @@ export default function AddBooking() {
         )}
       </main>
 
-      <footer className="p-4 bg-bg-main border-t border-border-color shrink-0">
+      <div className="fixed bottom-20 right-4 z-40">
         <button
           type="button"
           onClick={handleNext}
           disabled={!canNext()}
-          className="w-full bg-primary text-white font-semibold py-4 rounded-xl shadow-lg hover:opacity-90 active:scale-[0.98] transition-all text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+          className="bg-primary text-white font-semibold px-6 py-4 rounded-full shadow-2xl shadow-primary/40 hover:opacity-90 active:scale-95 transition-all text-base flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none"
         >
           {currentStep === 'summary' ? (submitting ? 'Сақталуда...' : 'Жазбаны сақтау') : 'Келесі'}
           {currentStep !== 'summary' && <span className="material-symbols-outlined text-xl">arrow_forward</span>}
         </button>
-      </footer>
+      </div>
     </div>
   );
 }
@@ -370,7 +370,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
       const v = vehicles.find((x) => x.name === c.last_vehicle_name);
       if (v) {
         patch.vehicle_catalog_id = v.id;
-        patch.body_type = v.body_options?.length > 0 ? '' : (v.body_type || v.name);
+        patch.body_type = c.last_body_type || (v.body_options?.length > 0 ? '' : (v.body_type || v.name));
       }
     }
     updateForm(patch);
@@ -487,9 +487,9 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
                         <div>
                           <div className="text-sm font-medium text-white">{c.name}</div>
                           <div className="text-xs text-text-muted font-mono">{c.phone}</div>
-                          {(c.last_vehicle_name || c.last_plate_number) && (
+                          {(c.last_vehicle_name || c.last_plate_number || c.last_body_type) && (
                             <div className="text-[10px] text-text-muted mt-0.5">
-                              {[c.last_vehicle_name, c.last_plate_number].filter(Boolean).join(' • ')}
+                              {[c.last_vehicle_name, c.last_body_type, c.last_plate_number].filter(Boolean).join(' • ')}
                             </div>
                           )}
                         </div>
@@ -508,8 +508,10 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
 }
 
 function StepVehicle({ form, updateForm, vehicles }) {
+  const OTHER_ID = '__other__';
+  const isOther = form.vehicle_catalog_id === OTHER_ID;
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-24">
       <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2">Танымал модельдер</h2>
       <div className="grid grid-cols-2 gap-3">
         {vehicles.map((v) => {
@@ -540,6 +542,26 @@ function StepVehicle({ form, updateForm, vehicles }) {
             </button>
           );
         })}
+        <button
+          type="button"
+          onClick={() => updateForm({ vehicle_catalog_id: OTHER_ID, body_type: 'Другое' })}
+          className={`relative rounded-2xl overflow-hidden border-2 transition-all text-left ${
+            isOther ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20' : 'border-border-color bg-card-bg'
+          }`}
+        >
+          <div className="aspect-[4/3] bg-[#1a1a1a] flex items-center justify-center">
+            <span className="material-symbols-outlined text-4xl text-text-muted">more_horiz</span>
+          </div>
+          <div className="p-3">
+            <div className="font-semibold text-white text-sm leading-tight">Другое</div>
+            <div className="text-xs text-text-muted mt-0.5">Басқа көлік</div>
+          </div>
+          {isOther && (
+            <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-white text-lg">check</span>
+            </div>
+          )}
+        </button>
       </div>
     </div>
   );

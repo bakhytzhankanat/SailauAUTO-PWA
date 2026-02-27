@@ -79,15 +79,16 @@ export async function createSnapshot(serviceId, payload, user) {
   }
 
   const settings = await getSettings(serviceId);
-  const service_income_total = await getServiceIncomeTotal(serviceId, date);
-  const material_expense_total = await getMaterialExpenseTotal(serviceId, date);
-  const part_sales_total = await getPartSalesTotal(serviceId, date);
+  const hasManualIncome = payload.manual_service_income != null;
+  const service_income_total = hasManualIncome ? num(payload.manual_service_income) : await getServiceIncomeTotal(serviceId, date);
+  const material_expense_total = hasManualIncome ? num(payload.manual_material_expense || 0) : await getMaterialExpenseTotal(serviceId, date);
+  const part_sales_total = hasManualIncome ? num(payload.manual_part_sales || 0) : await getPartSalesTotal(serviceId, date);
 
   const income_total = service_income_total + part_sales_total;
   let kaspi_amount = num(payload.kaspi_amount);
   let cash_amount = payload.cash_amount != null && payload.cash_amount !== '' ? num(payload.cash_amount) : null;
 
-  if (kaspi_amount > income_total) {
+  if (!hasManualIncome && kaspi_amount > income_total) {
     throw new Error('KaspiPay сомасы қызмет пен бөлшек кірісінен аспауы керек');
   }
   if (cash_amount === null) {
@@ -95,7 +96,7 @@ export async function createSnapshot(serviceId, payload, user) {
   } else if (cash_amount < 0) {
     throw new Error('Қолма-қол сома теріс болмауы керек');
   }
-  if (kaspi_amount + cash_amount > income_total) {
+  if (!hasManualIncome && kaspi_amount + cash_amount > income_total) {
     throw new Error('KaspiPay мен қолма-қол қызмет пен бөлшек кірісінен аспауы керек');
   }
 

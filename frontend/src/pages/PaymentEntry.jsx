@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getBooking, getInventoryItems, completeBooking } from '../lib/api';
+import { getBooking, getInventoryItems, completeBooking, getWorkers } from '../lib/api';
 
 const PAYMENT_TYPES = [
   { value: 'cash', label: 'Қолма-қол', icon: 'payments' },
@@ -25,6 +25,12 @@ export default function PaymentEntry() {
   const [addPartQty, setAddPartQty] = useState(1);
   const [addPartUnitPrice, setAddPartUnitPrice] = useState('');
   const [addPartPriceError, setAddPartPriceError] = useState('');
+  const [workers, setWorkers] = useState([]);
+  const [selectedMasterIds, setSelectedMasterIds] = useState([]);
+
+  useEffect(() => {
+    getWorkers().then(setWorkers).catch(() => setWorkers([]));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,6 +108,7 @@ export default function PaymentEntry() {
         material_expense: material,
         part_sales: partSales.map((p) => ({ inventory_item_id: p.inventory_item_id, quantity: p.quantity, unit_price: p.unit_price })),
         warranty_service_ids: warrantyServiceIds,
+        master_user_ids: selectedMasterIds.length > 0 ? selectedMasterIds : undefined,
       });
       navigate(`/booking/${id}/done`, { replace: true, state: { booking: updated } });
     } catch (err) {
@@ -317,6 +324,29 @@ export default function PaymentEntry() {
             </div>
           </div>
         )}
+        <div className="space-y-3 pt-2">
+          <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Қай шебер(лер) жұмыс жасады?</label>
+          <div className="space-y-2">
+            {workers.map((w) => (
+              <label key={w.id} className="flex items-center gap-3 p-3 rounded-xl border border-border-color bg-card-bg cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedMasterIds.includes(w.id)}
+                  onChange={() => {
+                    setSelectedMasterIds((prev) =>
+                      prev.includes(w.id) ? prev.filter((x) => x !== w.id) : [...prev, w.id]
+                    );
+                  }}
+                  className="rounded border-border-color text-primary focus:ring-primary"
+                />
+                <span className="text-white text-sm">{w.display_name || w.phone}</span>
+              </label>
+            ))}
+            {workers.length === 0 && (
+              <p className="text-text-muted text-xs">Шеберлер тізімі бос</p>
+            )}
+          </div>
+        </div>
         <button
           type="submit"
           disabled={submitting || (servicePaymentAmount !== '' && Number(servicePaymentAmount) < 0)}
