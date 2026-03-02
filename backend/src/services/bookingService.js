@@ -161,11 +161,31 @@ export async function getById(id, serviceId = null) {
   } catch (_) {
     masterRows = [];
   }
+  let partSalesRows = [];
+  try {
+    const res = await pool.query(
+      `SELECT ps.id, ps.inventory_item_id, ps.quantity, ps.unit_price, ii.name AS item_name
+       FROM part_sale ps
+       JOIN inventory_item ii ON ii.id = ps.inventory_item_id
+       WHERE ps.booking_id = $1`,
+      [id]
+    );
+    partSalesRows = res.rows || [];
+  } catch (_) {
+    partSalesRows = [];
+  }
   return {
     ...b,
     date: b.date instanceof Date ? b.date.toISOString().slice(0, 10) : b.date,
     services: serviceRows,
     masters: masterRows,
+    part_sales: partSalesRows.map((ps) => ({
+      id: ps.id,
+      inventory_item_id: ps.inventory_item_id,
+      quantity: Number(ps.quantity),
+      unit_price: Number(ps.unit_price),
+      name: ps.item_name,
+    })),
   };
 }
 

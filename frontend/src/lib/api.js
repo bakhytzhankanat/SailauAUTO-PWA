@@ -161,6 +161,10 @@ export async function completeBooking(id, body) {
   return api(`/bookings/${id}/complete`, { method: 'PATCH', body: JSON.stringify(body) });
 }
 
+export async function updateBookingCompletion(id, body) {
+  return api(`/bookings/${id}/completion`, { method: 'PATCH', body: JSON.stringify(body) });
+}
+
 export async function getInventoryItems(name = '') {
   const q = name ? `?name=${encodeURIComponent(name)}` : '';
   return api(`/inventory-items${q}`);

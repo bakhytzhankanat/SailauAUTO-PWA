@@ -215,3 +215,111 @@ export async function completeBooking(id, serviceId, payload) {
     client.release();
   }
 }
+
+/**
+ * Update completion data of an already completed booking (price, payment type, material expense, part sales).
+ * Owner/Manager only. Reverts old part_sales to inventory, then applies new part_sales.
+ */
+export async function updateCompletion(id, serviceId, payload) {
+  const booking = await getById(id, serviceId);
+  if (!booking) return null;
+  if (booking.status !== 'completed') {
+    throw new Error('Тек аяқталған жазбаның төлем мәліметін өзгертуге болады');
+  }
+  const sid = booking.service_id || serviceId;
+  const {
+    service_payment_amount,
+    payment_type,
+    material_expense,
+    part_sales = undefined,
+  } = payload;
+
+  const finalAmount = service_payment_amount !== undefined
+    ? (service_payment_amount != null && service_payment_amount !== '' ? Number(service_payment_amount) : null)
+    : booking.service_payment_amount;
+  const finalPayType = payment_type !== undefined ? (payment_type || null) : booking.payment_type;
+  const finalMaterial = material_expense !== undefined
+    ? (material_expense != null && material_expense !== '' ? Number(material_expense) : null)
+    : booking.material_expense;
+
+  let kaspi_tax_amount = 0;
+  if (finalPayType === 'kaspipay' && finalAmount != null) {
+    kaspi_tax_amount = Math.round(finalAmount * 0.04 * 100) / 100;
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    if (part_sales !== undefined) {
+      const { rows: oldPartSales } = await client.query(
+        'SELECT inventory_item_id, quantity FROM part_sale WHERE booking_id = $1',
+        [id]
+      );
+      for (const ps of oldPartSales) {
+        await client.query(
+          'UPDATE inventory_item SET quantity = quantity + $2, updated_at = now() WHERE id = $1',
+          [ps.inventory_item_id, Number(ps.quantity)]
+        );
+      }
+      await client.query('DELETE FROM part_sale WHERE booking_id = $1', [id]);
+
+      const newPartSales = Array.isArray(part_sales) ? part_sales : [];
+      for (const line of newPartSales) {
+        const { inventory_item_id, quantity, unit_price: payloadUnitPrice } = line;
+        const qty = Math.max(1, parseInt(quantity, 10) || 1);
+        if (payloadUnitPrice == null || payloadUnitPrice === '') {
+          throw new Error('Бөлшек үшін сату бағасы (unit_price) көрсетілуі керек');
+        }
+        const unitPrice = Number(payloadUnitPrice);
+        if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+          throw new Error('Сату бағасы жарамды сан болуы керек');
+        }
+        const { rows: items } = await client.query(
+          'SELECT id, sale_price_min, sale_price_max, quantity FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
+          [inventory_item_id, sid]
+        );
+        if (items.length === 0) throw new Error(`Бөлшек табылмады: ${inventory_item_id}`);
+        const item = items[0];
+        const minP = Number(item.sale_price_min);
+        const maxP = Number(item.sale_price_max);
+        if (unitPrice < minP || unitPrice > maxP) {
+          throw new Error(`Сату бағасы ${minP}–${maxP} аралығында болуы керек`);
+        }
+        if (item.quantity < qty) throw new Error(`Қоймада жеткіліксіз: ${item.quantity} < ${qty}`);
+        await client.query(
+          'INSERT INTO part_sale (booking_id, inventory_item_id, quantity, unit_price) VALUES ($1, $2, $3, $4)',
+          [id, inventory_item_id, qty, unitPrice]
+        );
+        await client.query(
+          'UPDATE inventory_item SET quantity = quantity - $2, updated_at = now() WHERE id = $1',
+          [inventory_item_id, qty]
+        );
+        await client.query(
+          `INSERT INTO inventory_movement (item_id, type, quantity, amount, ref_type, ref_id)
+           VALUES ($1, 'sale', $2, $3, 'booking_completion', $4)`,
+          [inventory_item_id, qty, qty * unitPrice, id]
+        );
+      }
+    }
+
+    await client.query(
+      `UPDATE booking SET
+        service_payment_amount = $2,
+        payment_type = $3,
+        material_expense = $4,
+        kaspi_tax_amount = $5,
+        updated_at = now()
+       WHERE id = $1 AND service_id = $6`,
+      [id, finalAmount, finalPayType, finalMaterial, kaspi_tax_amount, sid]
+    );
+
+    await client.query('COMMIT');
+    return getById(id, serviceId);
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}

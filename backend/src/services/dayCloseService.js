@@ -104,7 +104,8 @@ export async function createSnapshot(serviceId, payload, user) {
   const opex_transport = num(payload.opex_transport);
   const opex_rent = num(payload.opex_rent);
 
-  const kaspi_tax_amount = income_total * (settings.kaspi_tax_percent / 100);
+  // Налог 4% только с оплат через Kaspi Pay; наличные не облагаются
+  const kaspi_tax_amount = kaspi_amount * (settings.kaspi_tax_percent / 100);
   const net_before_charity =
     service_income_total - material_expense_total - opex_lunch - opex_transport - opex_rent - kaspi_tax_amount;
 
@@ -316,7 +317,8 @@ export async function updateSnapshot(id, serviceId, payload, user) {
   const opex_transport = payload.opex_transport != null && payload.opex_transport !== '' ? num(payload.opex_transport) : Number(row.opex_transport);
   const opex_rent = payload.opex_rent != null && payload.opex_rent !== '' ? num(payload.opex_rent) : Number(row.opex_rent);
 
-  const kaspi_tax_amount = income_total * (settings.kaspi_tax_percent / 100);
+  // Налог только с Kaspi Pay
+  const kaspi_tax_amount = kaspi_amount * (settings.kaspi_tax_percent / 100);
   const net_before_charity =
     service_income_total - material_expense_total - opex_lunch - opex_transport - opex_rent - kaspi_tax_amount;
   let charity_raw = net_before_charity >= 10000 ? net_before_charity * (settings.charity_percent / 100) : 0;

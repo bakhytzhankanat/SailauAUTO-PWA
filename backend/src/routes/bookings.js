@@ -10,5 +10,6 @@ router.post('/', optionalAuth, requireAuth, requireService, requireOwnerOrManage
 router.patch('/:id', optionalAuth, requireAuth, requireService, requireOwnerOrManagerOrSeniorWorker, bookingController.update);
 router.patch('/:id/start', optionalAuth, requireAuth, requireService, requireWorkerOrOwner, bookingController.start);
 router.patch('/:id/complete', optionalAuth, requireAuth, requireService, requireWorkerOrOwner, bookingController.complete);
+router.patch('/:id/completion', optionalAuth, requireAuth, requireService, requireOwnerOrManagerOrSeniorWorker, bookingController.updateCompletion);
 
 export default router;

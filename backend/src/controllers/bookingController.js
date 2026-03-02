@@ -89,3 +89,23 @@ export async function complete(req, res) {
     return res.status(400).json({ error: err.message });
   }
 }
+
+export async function updateCompletion(req, res) {
+  const serviceId = req.user?.service_id;
+  if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
+  try {
+    const payload = req.body || {};
+    const allowed = ['service_payment_amount', 'payment_type', 'material_expense', 'part_sales'];
+    const filtered = {};
+    for (const key of allowed) {
+      if (payload[key] !== undefined) filtered[key] = payload[key];
+    }
+    const booking = await executionService.updateCompletion(req.params.id, serviceId, filtered);
+    if (!booking) {
+      return res.status(404).json({ error: 'Жазба табылмады' });
+    }
+    return res.json(booking);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+}

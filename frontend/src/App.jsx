@@ -10,8 +10,10 @@ import Inventory from './pages/Inventory';
 import DayClose from './pages/DayClose';
 import AddBooking from './pages/AddBooking';
 import BookingDetail from './pages/BookingDetail';
+import EditBooking from './pages/EditBooking';
 import WorkInProgress from './pages/WorkInProgress';
 import PaymentEntry from './pages/PaymentEntry';
+import EditCompletion from './pages/EditCompletion';
 import JobCompletedSuccess from './pages/JobCompletedSuccess';
 import ClientsList from './pages/ClientsList';
 import ClientProfile from './pages/ClientProfile';
@@ -46,8 +48,10 @@ function AppRoutes() {
                 <Route path="/" element={<Calendar />} />
                 <Route path="/booking/add" element={<AddBooking />} />
                 <Route path="/booking/:id" element={<BookingDetail />} />
+                <Route path="/booking/:id/edit" element={<EditBooking />} />
                 <Route path="/booking/:id/in-progress" element={<WorkInProgress />} />
                 <Route path="/booking/:id/payment" element={<PaymentEntry />} />
+                <Route path="/booking/:id/completion" element={<EditCompletion />} />
                 <Route path="/booking/:id/done" element={<JobCompletedSuccess />} />
                 <Route path="/inventory" element={<Inventory />} />
                 <Route path="/day-close" element={<DayClose />} />

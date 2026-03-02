@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { getBooking, startBooking } from '../lib/api';
 
 function formatTime(t) {
   if (!t) return '';
   const s = typeof t === 'string' ? t : String(t);
   return s.slice(0, 5);
+}
+
+function formatDateTime(isoOrDate) {
+  if (!isoOrDate) return '—';
+  const d = new Date(isoOrDate);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString('kk-KZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function formatOrderNumber(id) {
@@ -27,7 +35,10 @@ function formatServiceName(name) {
 export default function BookingDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [booking, setBooking] = useState(null);
+  const canEditBooking = user?.role === 'owner' || user?.role === 'manager' || (user?.role === 'worker' && user?.is_senior_worker);
+  const canEditCompletion = user?.role === 'owner' || user?.role === 'manager' || (user?.role === 'worker' && user?.is_senior_worker);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(false);
@@ -158,7 +169,7 @@ export default function BookingDetail() {
           </div>
           <div className="p-4">
             <h2 className="text-text-muted text-xs uppercase font-semibold tracking-wider mb-2">Кесте</h2>
-            <div className="flex gap-4">
+            <div className="flex gap-4 mb-3">
               <div className="flex-1 bg-[#252525] rounded-lg p-3 border border-border-color">
                 <div className="text-text-muted text-xs mb-1">Орын</div>
                 <div className="text-white font-semibold flex items-center gap-2">
@@ -167,13 +178,28 @@ export default function BookingDetail() {
                 </div>
               </div>
               <div className="flex-1 bg-[#252525] rounded-lg p-3 border border-border-color">
-                <div className="text-text-muted text-xs mb-1">Уақыты</div>
+                <div className="text-text-muted text-xs mb-1">Уақыты (жазба)</div>
                 <div className="text-white font-semibold">
                   {formatTime(booking.start_time)} – {formatTime(booking.end_time)}
                 </div>
               </div>
             </div>
-            <div className="text-text-muted text-xs mt-2">{booking.date}</div>
+            <div className="text-text-muted text-xs mb-3">{booking.date}</div>
+            {(booking.started_at || booking.completed_at) && (
+              <div className="bg-[#252525] rounded-lg p-3 border border-border-color space-y-2">
+                <div className="text-text-muted text-xs uppercase font-semibold tracking-wider">Фактілі жұмыс уақыты</div>
+                <div className="grid gap-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-text-muted text-sm">Жұмысты бастау</span>
+                    <span className="text-white font-medium tabular-nums">{formatDateTime(booking.started_at)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-text-muted text-sm">Жұмысты аяқтау</span>
+                    <span className="text-white font-medium tabular-nums">{formatDateTime(booking.completed_at)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         {booking.note && (
@@ -183,15 +209,27 @@ export default function BookingDetail() {
           </div>
         )}
         {canStart && (
-          <button
-            type="button"
-            onClick={handleStart}
-            disabled={starting}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined">play_arrow</span>
-            {starting ? '...' : 'Жұмысты бастау'}
-          </button>
+          <div className="flex flex-col gap-2 mt-4">
+            {canEditBooking && (
+              <button
+                type="button"
+                onClick={() => navigate(`/booking/${id}/edit`)}
+                className="w-full bg-card-bg border border-border-color hover:bg-[#2A2A2A] text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined">edit</span>
+                Жазбаны өңдеу
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleStart}
+              disabled={starting}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined">play_arrow</span>
+              {starting ? '...' : 'Жұмысты бастау'}
+            </button>
+          </div>
         )}
         {canFinish && (
           <button
@@ -204,8 +242,20 @@ export default function BookingDetail() {
           </button>
         )}
         {isDone && (
-          <div className={`mt-4 py-3 px-4 rounded-xl font-semibold text-center ${statusColors[booking.status] || 'bg-card-bg text-text-muted'}`}>
-            {statusLabels[booking.status]}
+          <div className="mt-4 space-y-2">
+            <div className={`py-3 px-4 rounded-xl font-semibold text-center ${statusColors[booking.status] || 'bg-card-bg text-text-muted'}`}>
+              {statusLabels[booking.status]}
+            </div>
+            {canEditCompletion && booking.status === 'completed' && (
+              <button
+                type="button"
+                onClick={() => navigate(`/booking/${id}/completion`)}
+                className="w-full bg-card-bg border border-border-color hover:bg-[#2A2A2A] text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined">receipt_long</span>
+                Төлем мен бөлшектерді өңдеу
+              </button>
+            )}
           </div>
         )}
       </main>

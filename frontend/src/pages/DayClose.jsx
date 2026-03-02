@@ -435,9 +435,9 @@ export default function DayClose() {
                   </div>
                 </div>
                 <div className="pt-2 flex justify-between items-center">
-                  <span className="text-xs text-text-muted">Салық ({kaspiTaxPercent}% кіріс бойынша)</span>
+                  <span className="text-xs text-text-muted">Салық ({kaspiTaxPercent}% тек Kaspi Pay)</span>
                   <span className="text-sm font-bold text-red-400">
-                    - {fmt((serviceTotal + partSalesTotal) * (kaspiTaxPercent / 100))}
+                    - {fmt((Number(kaspiAmount) || 0) * (kaspiTaxPercent / 100))}
                   </span>
                 </div>
               </div>
