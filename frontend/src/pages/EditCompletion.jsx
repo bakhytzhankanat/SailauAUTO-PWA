@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getBooking, getInventoryItems, updateBookingCompletion } from '../lib/api';
+import { getBooking, getInventoryItems, getServiceCategoriesWithServices, updateBookingCompletion } from '../lib/api';
 
 const PAYMENT_TYPES = [
   { value: 'cash', label: 'Қолма-қол', icon: 'payments' },
@@ -26,6 +26,8 @@ export default function EditCompletion() {
   const [addPartQty, setAddPartQty] = useState(1);
   const [addPartUnitPrice, setAddPartUnitPrice] = useState('');
   const [addPartPriceError, setAddPartPriceError] = useState('');
+  const [categoriesWithServices, setCategoriesWithServices] = useState([]);
+  const [services, setServices] = useState([]);
 
   const canEdit = user?.role === 'owner' || user?.role === 'manager' || (user?.role === 'worker' && user?.is_senior_worker);
 
@@ -45,6 +47,12 @@ export default function EditCompletion() {
             unit_price: p.unit_price,
             name: p.name,
           })));
+          setServices((bookingData.services || []).map((s) => ({
+            service_catalog_id: s.service_catalog_id,
+            quantity: s.quantity ?? 1,
+            service_name: s.service_name,
+            warranty_mode: !!s.warranty_mode,
+          })));
         }
       })
       .catch((err) => {
@@ -55,6 +63,16 @@ export default function EditCompletion() {
       });
     return () => { cancelled = true; };
   }, [id]);
+
+  useEffect(() => {
+    if (!booking?.vehicle_catalog_id) {
+      getServiceCategoriesWithServices(null, null).then((d) => setCategoriesWithServices(Array.isArray(d) ? d : []));
+      return;
+    }
+    getServiceCategoriesWithServices(booking.vehicle_catalog_id, booking.body_type || null)
+      .then((d) => setCategoriesWithServices(Array.isArray(d) ? d : []))
+      .catch(() => setCategoriesWithServices([]));
+  }, [booking?.vehicle_catalog_id, booking?.body_type]);
 
   const getSelectedItem = () => (addPartItemId ? items.find((i) => i.id === addPartItemId) : null);
   const selectedItem = getSelectedItem();
@@ -93,9 +111,38 @@ export default function EditCompletion() {
     setPartSales((prev) => prev.filter((p) => p.inventory_item_id !== inventoryItemId));
   };
 
+  const toggleService = (serviceId, quantity = 1) => {
+    const cat = categoriesWithServices.find((c) => c.services?.some((s) => s.id === serviceId));
+    const svc = cat?.services?.find((s) => s.id === serviceId);
+    const next = [...services];
+    const idx = next.findIndex((s) => s.service_catalog_id === serviceId);
+    if (idx >= 0) {
+      next.splice(idx, 1);
+    } else {
+      next.push({
+        service_catalog_id: serviceId,
+        quantity,
+        service_name: svc?.name,
+        warranty_mode: !!svc?.warranty_mode,
+      });
+    }
+    setServices(next);
+  };
+
+  const setServiceQuantity = (serviceId, quantity) => {
+    const q = Math.min(10, Math.max(1, quantity));
+    setServices((prev) =>
+      prev.map((s) => (s.service_catalog_id === serviceId ? { ...s, quantity: q } : s))
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!services.length) {
+      setError('Кем дегенде бір қызметті таңдаңыз');
+      return;
+    }
     setSubmitting(true);
     try {
       await updateBookingCompletion(id, {
@@ -103,6 +150,7 @@ export default function EditCompletion() {
         payment_type: paymentType,
         material_expense: materialExpense === '' ? null : Number(materialExpense),
         part_sales: partSales.map((p) => ({ inventory_item_id: p.inventory_item_id, quantity: p.quantity, unit_price: p.unit_price })),
+        services: services.map((s) => ({ service_catalog_id: s.service_catalog_id, quantity: s.quantity ?? 1, warranty_mode: !!s.warranty_mode })),
       });
       navigate(`/booking/${id}`, { replace: true });
     } catch (err) {
@@ -170,6 +218,40 @@ export default function EditCompletion() {
                 <span className={`text-sm font-medium ${paymentType === pt.value ? (pt.accent ? 'text-red-500' : 'text-primary') : 'text-white'}`}>{pt.label}</span>
               </label>
             ))}
+          </div>
+        </div>
+        <div className="space-y-3 pt-2">
+          <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Қызметтер (қосу/өзгерту/саны)</label>
+          <div className="space-y-2">
+            {services.map((s) => (
+              <div key={s.service_catalog_id} className="bg-card-bg border border-border-color rounded-xl p-3 flex justify-between items-center flex-wrap gap-2">
+                <div className="font-medium text-white text-sm">{s.service_name}{s.warranty_mode ? ' (Гарантия)' : ''}</div>
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={() => (s.quantity <= 1 ? toggleService(s.service_catalog_id) : setServiceQuantity(s.service_catalog_id, s.quantity - 1))} className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white">−</button>
+                  <span className="w-8 text-center font-bold text-white">{s.quantity}</span>
+                  <button type="button" onClick={() => setServiceQuantity(s.service_catalog_id, (s.quantity || 1) + 1)} className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white">+</button>
+                  <button type="button" onClick={() => toggleService(s.service_catalog_id)} className="text-red-400 text-xs font-medium ml-1">Жою</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-text-muted text-xs mt-1">Қызмет қосу:</div>
+          <div className="flex flex-wrap gap-2">
+            {categoriesWithServices.map((cat) =>
+              (cat.services || []).map((svc) => {
+                const selected = services.some((s) => s.service_catalog_id === svc.id);
+                return (
+                  <button
+                    key={svc.id}
+                    type="button"
+                    onClick={() => toggleService(svc.id)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${selected ? 'bg-primary/20 border-primary text-primary' : 'bg-card-bg border-border-color text-white'}`}
+                  >
+                    {svc.name}{selected ? ` (${services.find((s) => s.service_catalog_id === svc.id)?.quantity ?? 1})` : ' +'}
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
         <div className="space-y-2">

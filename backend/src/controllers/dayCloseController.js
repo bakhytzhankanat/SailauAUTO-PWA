@@ -31,3 +31,14 @@ export async function update(req, res) {
     return res.status(400).json({ error: e.message });
   }
 }
+
+export async function remove(req, res) {
+  const serviceId = req.user?.service_id;
+  if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
+  try {
+    const result = await dayCloseService.deleteDayClose(req.params.id, serviceId);
+    return res.json(result);
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
+  }
+}

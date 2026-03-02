@@ -202,6 +202,10 @@ export async function updateDayClose(id, body) {
   return api(`/day-close/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
 }
 
+export async function deleteDayClose(id) {
+  return api(`/day-close/${id}`, { method: 'DELETE' });
+}
+
 export async function getDayCloseWorkers() {
   return api('/day-close/workers');
 }

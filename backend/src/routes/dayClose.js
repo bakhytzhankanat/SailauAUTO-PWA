@@ -8,6 +8,7 @@ const router = Router();
 router.post('/', optionalAuth, requireAuth, requireService, requireSeniorWorkerOrOwner, dayCloseController.create);
 router.get('/', optionalAuth, requireAuth, requireService, dayCloseController.getByDate);
 router.patch('/:id', optionalAuth, requireAuth, requireService, requireOwner, dayCloseController.update);
+router.delete('/:id', optionalAuth, requireAuth, requireService, requireOwner, dayCloseController.remove);
 
 router.get('/workers', optionalAuth, requireAuth, requireService, async (req, res) => {
   const serviceId = req.user?.service_id;

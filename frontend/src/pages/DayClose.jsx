@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getSettings, getDayClose, getDayCloseWorkers, createDayClose, updateDayClose } from '../lib/api';
+import { getSettings, getDayClose, getDayCloseWorkers, createDayClose, updateDayClose, deleteDayClose } from '../lib/api';
 
 function fmt(n) {
   return Number(n).toLocaleString('kk-KZ') + ' ₸';
@@ -90,6 +90,7 @@ export default function DayClose() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [deletingShiftId, setDeletingShiftId] = useState(null);
 
   const [kaspiAmount, setKaspiAmount] = useState('');
   const [cashAmount, setCashAmount] = useState('');
@@ -170,7 +171,23 @@ export default function DayClose() {
   const canCreate = user?.role === 'owner' || user?.is_senior_worker === true;
   const isOwner = user?.role === 'owner';
   const canEdit = isOwner && snapshot;
+  const canDeleteShift = isOwner && snapshot && snapshot.id;
   const showForm = showNewShiftForm || !snapshot || editMode;
+
+  const handleDeleteShift = async () => {
+    if (!snapshot?.id || !confirm('Бұл ауысымды жоюға сенімдісіз бе? Кері алынбайды.')) return;
+    setDeletingShiftId(snapshot.id);
+    setError('');
+    try {
+      await deleteDayClose(snapshot.id);
+      setSelectedShiftIndex(0);
+      await load();
+    } catch (err) {
+      setError(err.message || 'Ауысымды жою сәтсіз');
+    } finally {
+      setDeletingShiftId(null);
+    }
+  };
   const isExtraShift = showNewShiftForm && dayClosesForDate.length > 0;
 
   const handleSubmit = async (e) => {
@@ -681,22 +698,35 @@ export default function DayClose() {
             </section>
 
             {canEdit && (
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEditMode(true)}
-                  className="flex-1 py-3 border border-primary text-primary font-bold rounded-xl"
-                >
-                  Түзету
-                </button>
-                <button
-                  type="button"
-                  onClick={runPrintReport}
-                  className="flex-1 py-3 bg-card-bg border border-border-color text-white font-bold rounded-xl hover:bg-border-color hover:border-primary/50 transition-colors flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
-                  PDF
-                </button>
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditMode(true)}
+                    className="flex-1 py-3 border border-primary text-primary font-bold rounded-xl"
+                  >
+                    Түзету
+                  </button>
+                  <button
+                    type="button"
+                    onClick={runPrintReport}
+                    className="flex-1 py-3 bg-card-bg border border-border-color text-white font-bold rounded-xl hover:bg-border-color hover:border-primary/50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
+                    PDF
+                  </button>
+                </div>
+                {canDeleteShift && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteShift}
+                    disabled={!!deletingShiftId}
+                    className="w-full py-3 border border-red-500/50 text-red-400 font-bold rounded-xl hover:bg-red-500/10 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-lg">delete</span>
+                    {deletingShiftId ? 'Жойылуда...' : 'Ауысымды жою'}
+                  </button>
+                )}
               </div>
             )}
           </>

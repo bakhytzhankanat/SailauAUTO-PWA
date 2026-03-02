@@ -386,3 +386,15 @@ export async function updateSnapshot(id, serviceId, payload, user) {
 
   return getByDate(serviceId, date, row.shift_index);
 }
+
+/**
+ * DELETE: owner only. Remove one shift (day_close) and its day_close_master rows.
+ */
+export async function deleteDayClose(id, serviceId) {
+  if (!serviceId) throw new Error('service_id қажет');
+  const { rows } = await pool.query('SELECT id, date, shift_index FROM day_close WHERE id = $1 AND service_id = $2', [id, serviceId]);
+  if (rows.length === 0) throw new Error('Ауысым жабу жазбасы табылмады');
+  await pool.query('DELETE FROM day_close_master WHERE day_close_id = $1', [id]);
+  await pool.query('DELETE FROM day_close WHERE id = $1 AND service_id = $2', [id, serviceId]);
+  return { deleted: true, date: rows[0].date, shift_index: rows[0].shift_index };
+}

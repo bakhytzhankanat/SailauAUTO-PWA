@@ -232,6 +232,7 @@ export async function updateCompletion(id, serviceId, payload) {
     payment_type,
     material_expense,
     part_sales = undefined,
+    services: servicesPayload = undefined,
   } = payload;
 
   const finalAmount = service_payment_amount !== undefined
@@ -300,6 +301,21 @@ export async function updateCompletion(id, serviceId, payload) {
            VALUES ($1, 'sale', $2, $3, 'booking_completion', $4)`,
           [inventory_item_id, qty, qty * unitPrice, id]
         );
+      }
+    }
+
+    if (servicesPayload !== undefined && Array.isArray(servicesPayload)) {
+      await client.query('DELETE FROM booking_service WHERE booking_id = $1', [id]);
+      for (const s of servicesPayload) {
+        const catalogId = s.service_catalog_id;
+        const qty = Math.max(1, parseInt(s.quantity, 10) || 1);
+        const warrantyMode = s.warranty_mode === true || s.warranty_mode === 'true';
+        if (catalogId) {
+          await client.query(
+            'INSERT INTO booking_service (booking_id, service_catalog_id, quantity, warranty_mode) VALUES ($1, $2, $3, $4)',
+            [id, catalogId, qty, warrantyMode]
+          );
+        }
       }
     }
 

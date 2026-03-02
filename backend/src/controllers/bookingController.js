@@ -95,7 +95,7 @@ export async function updateCompletion(req, res) {
   if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   try {
     const payload = req.body || {};
-    const allowed = ['service_payment_amount', 'payment_type', 'material_expense', 'part_sales'];
+    const allowed = ['service_payment_amount', 'payment_type', 'material_expense', 'part_sales', 'services'];
     const filtered = {};
     for (const key of allowed) {
       if (payload[key] !== undefined) filtered[key] = payload[key];
