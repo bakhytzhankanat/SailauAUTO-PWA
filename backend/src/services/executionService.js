@@ -306,6 +306,7 @@ export async function updateCompletion(id, serviceId, payload) {
 
     if (servicesPayload !== undefined && Array.isArray(servicesPayload)) {
       await client.query('DELETE FROM booking_service WHERE booking_id = $1', [id]);
+      const warrantyServiceIds = [];
       for (const s of servicesPayload) {
         const catalogId = s.service_catalog_id;
         const qty = Math.max(1, parseInt(s.quantity, 10) || 1);
@@ -315,6 +316,36 @@ export async function updateCompletion(id, serviceId, payload) {
             'INSERT INTO booking_service (booking_id, service_catalog_id, quantity, warranty_mode) VALUES ($1, $2, $3, $4)',
             [id, catalogId, qty, warrantyMode]
           );
+          if (warrantyMode) warrantyServiceIds.push(catalogId);
+        }
+      }
+      if (booking.client_id) {
+        const completedAt = booking.completed_at ? new Date(booking.completed_at) : new Date();
+        const expiresAt = new Date(completedAt);
+        expiresAt.setMonth(expiresAt.getMonth() + 3);
+        const expiresAtDate = expiresAt.toISOString().slice(0, 10);
+        const warrantyMasterId = booking.assigned_master_id || (booking.masters && booking.masters[0] && booking.masters[0].master_user_id) || null;
+        await client.query(
+          'DELETE FROM warranty WHERE booking_id = $1',
+          [id]
+        );
+        for (const serviceCatalogId of warrantyServiceIds) {
+          await client.query('SAVEPOINT sp_warranty_edit');
+          try {
+            await client.query(
+              `INSERT INTO warranty (client_id, booking_id, service_catalog_id, completed_at, expires_at, master_user_id)
+               VALUES ($1, $2, $3, $4, $5, $6)`,
+              [booking.client_id, id, serviceCatalogId, completedAt, expiresAtDate, warrantyMasterId]
+            );
+            await client.query('RELEASE SAVEPOINT sp_warranty_edit');
+          } catch (_) {
+            await client.query('ROLLBACK TO SAVEPOINT sp_warranty_edit');
+            await client.query(
+              `INSERT INTO warranty (client_id, booking_id, service_catalog_id, completed_at, expires_at)
+               VALUES ($1, $2, $3, $4, $5)`,
+              [booking.client_id, id, serviceCatalogId, completedAt, expiresAtDate]
+            );
+          }
         }
       }
     }

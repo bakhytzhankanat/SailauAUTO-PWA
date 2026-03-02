@@ -222,6 +222,7 @@ export default function EditCompletion() {
         </div>
         <div className="space-y-3 pt-2">
           <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Қызметтер (қосу/өзгерту/саны)</label>
+          <p className="text-text-muted text-xs">Кепілдік берілген қызметтер (Гарантия) тізімі автоматты жаңарады — қызметтерді өзгерту кезінде клиентке кепілдік берілген қызметтер сәйкес өзгереді.</p>
           <div className="space-y-2">
             {services.map((s) => (
               <div key={s.service_catalog_id} className="bg-card-bg border border-border-color rounded-xl p-3 flex justify-between items-center flex-wrap gap-2">
