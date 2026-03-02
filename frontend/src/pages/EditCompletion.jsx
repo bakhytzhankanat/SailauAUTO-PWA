@@ -136,6 +136,12 @@ export default function EditCompletion() {
     );
   };
 
+  const setServiceWarranty = (serviceId, warranty) => {
+    setServices((prev) =>
+      prev.map((s) => (s.service_catalog_id === serviceId ? { ...s, warranty_mode: !!warranty } : s))
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -221,18 +227,29 @@ export default function EditCompletion() {
           </div>
         </div>
         <div className="space-y-3 pt-2">
-          <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Қызметтер (қосу/өзгерту/саны)</label>
-          <p className="text-text-muted text-xs">Кепілдік берілген қызметтер (Гарантия) тізімі автоматты жаңарады — қызметтерді өзгерту кезінде клиентке кепілдік берілген қызметтер сәйкес өзгереді.</p>
+          <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Қызметтер (қосу / саны / кепілдік)</label>
+          <p className="text-text-muted text-xs">Қай қызметке кепілдік берілгенін «Кепілдік берілді» белгісімен таңдаңыз. Қызмет қосу мен кепілдік беру — бөлек.</p>
           <div className="space-y-2">
             {services.map((s) => (
-              <div key={s.service_catalog_id} className="bg-card-bg border border-border-color rounded-xl p-3 flex justify-between items-center flex-wrap gap-2">
-                <div className="font-medium text-white text-sm">{s.service_name}{s.warranty_mode ? ' (Гарантия)' : ''}</div>
-                <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => (s.quantity <= 1 ? toggleService(s.service_catalog_id) : setServiceQuantity(s.service_catalog_id, s.quantity - 1))} className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white">−</button>
-                  <span className="w-8 text-center font-bold text-white">{s.quantity}</span>
-                  <button type="button" onClick={() => setServiceQuantity(s.service_catalog_id, (s.quantity || 1) + 1)} className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white">+</button>
-                  <button type="button" onClick={() => toggleService(s.service_catalog_id)} className="text-red-400 text-xs font-medium ml-1">Жою</button>
+              <div key={s.service_catalog_id} className="bg-card-bg border border-border-color rounded-xl p-3 space-y-2">
+                <div className="flex justify-between items-center flex-wrap gap-2">
+                  <div className="font-medium text-white text-sm">{s.service_name}</div>
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => (s.quantity <= 1 ? toggleService(s.service_catalog_id) : setServiceQuantity(s.service_catalog_id, s.quantity - 1))} className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white">−</button>
+                    <span className="w-8 text-center font-bold text-white">{s.quantity}</span>
+                    <button type="button" onClick={() => setServiceQuantity(s.service_catalog_id, (s.quantity || 1) + 1)} className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white">+</button>
+                    <button type="button" onClick={() => toggleService(s.service_catalog_id)} className="text-red-400 text-xs font-medium ml-1">Жою</button>
+                  </div>
                 </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!s.warranty_mode}
+                    onChange={(e) => setServiceWarranty(s.service_catalog_id, e.target.checked)}
+                    className="rounded border-border-color text-primary focus:ring-primary"
+                  />
+                  <span className="text-text-muted text-xs">Кепілдік берілді (осы қызметке)</span>
+                </label>
               </div>
             ))}
           </div>
