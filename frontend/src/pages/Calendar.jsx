@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
-import { getBookings } from '../lib/api';
+import { getBookings, deleteBooking } from '../lib/api';
 
 function parseHourStart(str) {
   if (!str) return 10;
@@ -117,6 +117,7 @@ export default function Calendar() {
   const [weekBookings, setWeekBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
 
   const weekDates = useMemo(() => getWeekDates(date), [date]);
 
@@ -160,6 +161,33 @@ export default function Calendar() {
     const d = new Date(date + 'T12:00:00');
     d.setDate(d.getDate() + delta * 7);
     setDate(d.toISOString().slice(0, 10));
+  };
+
+  const canDeleteBooking =
+    user?.role === 'owner' || user?.role === 'manager' || (user?.role === 'worker' && user?.is_senior_worker);
+
+  const handleDeleteBooking = async (booking) => {
+    if (!canDeleteBooking) return;
+    if (!booking?.id) return;
+    if (!window.confirm('Бұл жазбаны толық жоюға сенімдісіз бе? Аяқталған немесе жұмыс үстіндегі жазбаны жоюға болмайды.')) {
+      return;
+    }
+    setDeletingId(booking.id);
+    try {
+      await deleteBooking(booking.id);
+      // Reload current view
+      if (viewMode === 'day') {
+        const data = await getBookings(date);
+        setBookings(Array.isArray(data) ? data : []);
+      } else {
+        const results = await Promise.all(weekDates.map((d) => getBookings(d)));
+        setWeekBookings(results.map((data) => (Array.isArray(data) ? data : [])));
+      }
+    } catch (e) {
+      setError(e.message || 'Жазбаны жою сәтсіз');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const boxes = useMemo(() => {
@@ -310,7 +338,14 @@ export default function Calendar() {
                       </div>
                     )}
                     {!loading && !error && (bookingsByBox[boxId] || []).map((b) => (
-                      <BookingCard key={b.id} booking={b} startHour={startHour} onClick={() => navigate(`/booking/${b.id}`)} />
+                      <BookingCard
+                        key={b.id}
+                        booking={b}
+                        startHour={startHour}
+                        onClick={() => navigate(`/booking/${b.id}`)}
+                        onDelete={canDeleteBooking ? () => handleDeleteBooking(b) : undefined}
+                        deleting={deletingId === b.id}
+                      />
                     ))}
                   </div>
                 ))}
@@ -353,7 +388,15 @@ export default function Calendar() {
                     {boxes.map((boxId) => (
                       <div key={boxId} className="flex-1 relative border-r border-border-color border-dashed border-opacity-20 last:border-r-0 min-w-0" style={{ minHeight: HOURS.length * 90 }}>
                         {(bookingsByDateAndBox[dayDate]?.[boxId] || []).map((b) => (
-                          <BookingCard key={b.id} booking={b} startHour={startHour} compact onClick={() => navigate(`/booking/${b.id}`)} />
+                          <BookingCard
+                            key={b.id}
+                            booking={b}
+                            startHour={startHour}
+                            compact
+                            onClick={() => navigate(`/booking/${b.id}`)}
+                            onDelete={canDeleteBooking ? () => handleDeleteBooking(b) : undefined}
+                            deleting={deletingId === b.id}
+                          />
                         ))}
                       </div>
                     ))}
@@ -368,7 +411,7 @@ export default function Calendar() {
   );
 }
 
-function BookingCard({ booking, startHour = 10, onClick, compact }) {
+function BookingCard({ booking, startHour = 10, onClick, compact, onDelete, deleting }) {
   const borderCls = STATUS_BORDER[booking.status] || STATUS_BORDER.no_show;
   const badgeCls = STATUS_BADGE[booking.status] || STATUS_BADGE.no_show;
   const rowH = compact ? 90 : 180;
@@ -393,8 +436,21 @@ function BookingCard({ booking, startHour = 10, onClick, compact }) {
             {formatTime(booking.start_time)}–{formatTime(booking.end_time)}
           </span>
         </div>
-        <div className={`font-bold text-white leading-tight truncate ${compact ? 'text-xs' : 'text-sm'} mb-0.5`}>
-          {booking.vehicle_name}
+        <div className={`font-bold text-white leading-tight truncate ${compact ? 'text-xs' : 'text-sm'} mb-0.5 flex items-center justify-between gap-2`}>
+          <span className="truncate">{booking.vehicle_name}</span>
+          {!compact && onDelete && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!deleting) onDelete();
+              }}
+              className="ml-1 text-[12px] text-red-400 hover:text-red-300 flex items-center gap-0.5"
+              disabled={deleting}
+            >
+              <span className="material-symbols-outlined text-[14px]">delete</span>
+            </button>
+          )}
         </div>
         {!compact && (
           <>

@@ -109,3 +109,17 @@ export async function updateCompletion(req, res) {
     return res.status(400).json({ error: err.message });
   }
 }
+
+export async function remove(req, res) {
+  const serviceId = req.user?.service_id;
+  if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
+  try {
+    const ok = await bookingService.remove(req.params.id, serviceId);
+    if (!ok) {
+      return res.status(404).json({ error: 'Жазба табылмады' });
+    }
+    return res.json({ deleted: true });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+}

@@ -139,6 +139,10 @@ export async function getBookings(date, boxId = null) {
   return api(`/bookings?${params}`);
 }
 
+export async function deleteBooking(id) {
+  return api(`/bookings/${id}`, { method: 'DELETE' });
+}
+
 export async function getBooking(id) {
   return api(`/bookings/${id}`);
 }

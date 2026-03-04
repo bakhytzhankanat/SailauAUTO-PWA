@@ -269,6 +269,34 @@ export async function create(serviceId, data) {
 }
 
 /**
+ * Hard delete booking (structure only) before work is started/completed.
+ * Allowed statuses: planned, arrived. Also deletes related booking_service/booking_master/part_sale rows.
+ */
+export async function remove(id, serviceId) {
+  if (!serviceId) throw new Error('service_id қажет');
+  const existing = await getById(id, serviceId);
+  if (!existing) return false;
+  if (existing.status !== 'planned' && existing.status !== 'arrived') {
+    throw new Error('Тек жоспарланған немесе келген жазбаны жоюға болады');
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM booking_service WHERE booking_id = $1', [id]);
+    await client.query('DELETE FROM booking_master WHERE booking_id = $1', [id]);
+    await client.query('DELETE FROM part_sale WHERE booking_id = $1', [id]);
+    await client.query('DELETE FROM booking WHERE id = $1 AND service_id = $2', [id, serviceId]);
+    await client.query('COMMIT');
+    return true;
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+/**
  * Update booking structure only. Owner/Manager only. Do not update execution fields.
  */
 export async function updateStructure(id, serviceId, data) {

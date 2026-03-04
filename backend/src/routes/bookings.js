@@ -11,5 +11,6 @@ router.patch('/:id', optionalAuth, requireAuth, requireService, requireOwnerOrMa
 router.patch('/:id/start', optionalAuth, requireAuth, requireService, requireWorkerOrOwner, bookingController.start);
 router.patch('/:id/complete', optionalAuth, requireAuth, requireService, requireWorkerOrOwner, bookingController.complete);
 router.patch('/:id/completion', optionalAuth, requireAuth, requireService, requireOwnerOrManagerOrSeniorWorker, bookingController.updateCompletion);
+router.delete('/:id', optionalAuth, requireAuth, requireService, requireOwnerOrManagerOrSeniorWorker, bookingController.remove);
 
 export default router;
