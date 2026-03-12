@@ -58,27 +58,45 @@ export default function AddBooking() {
     }
     return list.length ? list : ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
   }, [startHour, endHour]);
-  const [stepIndex, setStepIndex] = useState(0);
+  const [stepIndex, setStepIndex] = useState(() => {
+    try {
+      const draft = localStorage.getItem('booking_draft');
+      if (draft) return JSON.parse(draft).stepIndex || 0;
+    } catch(e) {}
+    return 0;
+  });
   const [clients, setClients] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [categoriesWithServices, setCategoriesWithServices] = useState([]);
   const [sourceLockedFromPrefill, setSourceLockedFromPrefill] = useState(false);
-  const [form, setForm] = useState({
-    client_id: null,
-    client_name: '',
-    phone: '',
-    source: 'live',
-    vehicle_catalog_id: null,
-    body_type: '',
-    plate_number: '',
-    box_id: 1,
-    date: new Date().toISOString().slice(0, 10),
-    start_time: '',
-    duration: 60,
-    end_time: '',
-    note: '',
-    services: [],
+  const [form, setForm] = useState(() => {
+    try {
+      const draft = localStorage.getItem('booking_draft');
+      if (draft && JSON.parse(draft).form) return JSON.parse(draft).form;
+    } catch(e) {}
+    return {
+      client_id: null,
+      client_name: '',
+      phone: '',
+      source: 'live',
+      vehicle_catalog_id: null,
+      body_type: '',
+      plate_number: '',
+      box_id: 1,
+      date: new Date().toISOString().slice(0, 10),
+      start_time: '',
+      duration: 60,
+      end_time: '',
+      note: '',
+      services: [],
+    };
   });
+
+  useEffect(() => {
+    if (form.client_name || form.phone || stepIndex > 0) {
+      localStorage.setItem('booking_draft', JSON.stringify({ form, stepIndex }));
+    }
+  }, [form, stepIndex]);
   const [conflictError, setConflictError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -261,6 +279,7 @@ export default function AddBooking() {
           warranty_mode: !!s.warranty_mode,
         })),
       });
+      localStorage.removeItem('booking_draft');
       navigate('/', { replace: true });
     } catch (err) {
       setSubmitError(err.message || 'Жазбаны сақтау сәтсіз');

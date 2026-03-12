@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -29,9 +30,52 @@ export default function AppShell({ children }) {
     navigate('/login', { replace: true });
   };
 
+  const [draftExists, setDraftExists] = useState(false);
+
+  useEffect(() => {
+    const checkDraft = () => {
+      try {
+        const draft = localStorage.getItem('booking_draft');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          if (parsed.form && (parsed.form.client_name || parsed.form.phone || parsed.stepIndex > 0)) {
+            setDraftExists(true);
+            return;
+          }
+        }
+      } catch (e) {}
+      setDraftExists(false);
+    };
+    checkDraft();
+    const interval = setInterval(checkDraft, 1000);
+    return () => clearInterval(interval);
+  }, [location.pathname]);
+
+  const handleClearDraft = () => {
+    localStorage.removeItem('booking_draft');
+    setDraftExists(false);
+  };
+
+  const handleContinueDraft = () => {
+    navigate('/booking/add');
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-bg-main">
-      <main className="flex-1 overflow-auto pb-20">{children}</main>
+      <main className="flex-1 overflow-auto pb-20">
+        {children}
+        {draftExists && location.pathname !== '/booking/add' && (
+          <div className="fixed bottom-20 left-4 right-4 z-40 flex items-center justify-between bg-primary text-white px-4 py-3 rounded-xl shadow-lg shadow-black/50">
+            <button type="button" onClick={handleContinueDraft} className="flex-1 text-left flex items-center gap-3">
+              <span className="material-symbols-outlined text-2xl">edit_document</span>
+              <span className="font-semibold text-sm">Жазбаны жалғастыру (қаралама)</span>
+            </button>
+            <button type="button" onClick={handleClearDraft} className="w-8 h-8 shrink-0 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors ml-2">
+              <span className="material-symbols-outlined text-sm">close</span>
+            </button>
+          </div>
+        )}
+      </main>
       <nav className="bg-card-bg border-t border-border-color px-2 pt-2 pb-safe fixed bottom-0 left-0 right-0 z-30">
         <div className="flex justify-around items-end pb-4">
           {visibleItems.map((item) => {
