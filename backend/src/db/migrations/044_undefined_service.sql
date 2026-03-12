@@ -9,8 +9,8 @@ BEGIN
         INSERT INTO service_category (id, name, sort_order) VALUES (cat_id, 'Диагностика', 99);
     END IF;
 
-    SELECT id INTO serv_id FROM service_catalog WHERE name = 'Неопределенная' LIMIT 1;
+    SELECT id INTO serv_id FROM service_catalog WHERE name = 'Белгісіз' LIMIT 1;
     IF serv_id IS NULL THEN
-        INSERT INTO service_catalog (id, category_id, name) VALUES (gen_random_uuid(), cat_id, 'Неопределенная');
+        INSERT INTO service_catalog (id, category_id, name) VALUES (gen_random_uuid(), cat_id, 'Белгісіз');
     END IF;
 END $$;
