@@ -68,7 +68,7 @@ export default function AppShell({ children }) {
           <div className="fixed bottom-20 left-4 right-4 z-40 flex items-center justify-between bg-primary text-white px-4 py-3 rounded-xl shadow-lg shadow-black/50">
             <button type="button" onClick={handleContinueDraft} className="flex-1 text-left flex items-center gap-3">
               <span className="material-symbols-outlined text-2xl">edit_document</span>
-              <span className="font-semibold text-sm">Жазбаны жалғастыру (қаралама)</span>
+              <span className="font-semibold text-sm">Жазбаны жалғастыру</span>
             </button>
             <button type="button" onClick={handleClearDraft} className="w-8 h-8 shrink-0 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors ml-2">
               <span className="material-symbols-outlined text-sm">close</span>
