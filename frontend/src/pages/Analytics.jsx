@@ -409,32 +409,34 @@ export default function Analytics() {
               return (
                 <div key={row.date}>
                   <p className="px-3 py-2 text-text-muted text-xs font-medium border-b border-border-color">{row.date}</p>
-                  <table className="w-full text-xs text-left">
-                    <thead>
-                      <tr className="border-b border-border-color text-text-muted uppercase font-medium">
-                        <th className="px-3 py-2 w-8">№</th>
-                        <th className="px-3 py-2">Көлік</th>
-                        <th className="px-3 py-2">Нөмір</th>
-                        <th className="px-3 py-2">Шебер</th>
-                        <th className="px-3 py-2 text-right">Уақыт</th>
-                        <th className="px-3 py-2 text-right">Қызмет</th>
-                        <th className="px-3 py-2 text-right">Бөлшек</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {records.map((r) => (
-                        <tr key={r.booking_id} className="border-b border-border-color last:border-0 hover:bg-[#2A2A2A]/50">
-                          <td className="px-3 py-2.5 text-white">{r.order_number}</td>
-                          <td className="px-3 py-2.5 text-white">{r.vehicle_name}</td>
-                          <td className="px-3 py-2.5 text-text-muted">{r.plate_number}</td>
-                          <td className="px-3 py-2.5 text-text-muted">{r.master_names}</td>
-                          <td className="px-3 py-2.5 text-right text-white">{r.duration_minutes != null ? r.duration_minutes : '—'}</td>
-                          <td className="px-3 py-2.5 text-right text-white">{r.service_payment_amount != null ? fmt(r.service_payment_amount) : '—'}</td>
-                          <td className="px-3 py-2.5 text-right text-white">{r.parts_amount != null && r.parts_amount > 0 ? fmt(r.parts_amount) : '—'}</td>
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full min-w-[640px] text-xs text-left">
+                      <thead>
+                        <tr className="border-b border-border-color text-text-muted uppercase font-medium">
+                          <th className="px-3 py-2 w-8">№</th>
+                          <th className="px-3 py-2">Көлік</th>
+                          <th className="px-3 py-2">Нөмір</th>
+                          <th className="px-3 py-2">Шебер</th>
+                          <th className="px-3 py-2 text-right">Уақыт</th>
+                          <th className="px-3 py-2 text-right">Қызмет</th>
+                          <th className="px-3 py-2 text-right">Бөлшек</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {records.map((r) => (
+                          <tr key={r.booking_id} className="border-b border-border-color last:border-0 hover:bg-[#2A2A2A]/50">
+                            <td className="px-3 py-2.5 text-white">{r.order_number}</td>
+                            <td className="px-3 py-2.5 text-white">{r.vehicle_name}</td>
+                            <td className="px-3 py-2.5 text-text-muted">{r.plate_number}</td>
+                            <td className="px-3 py-2.5 text-text-muted">{r.master_names}</td>
+                            <td className="px-3 py-2.5 text-right text-white">{r.duration_minutes != null ? r.duration_minutes : '—'}</td>
+                            <td className="px-3 py-2.5 text-right text-white">{r.service_payment_amount != null ? fmt(r.service_payment_amount) : '—'}</td>
+                            <td className="px-3 py-2.5 text-right text-white">{r.parts_amount != null && r.parts_amount > 0 ? fmt(r.parts_amount) : '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               );
             })}
