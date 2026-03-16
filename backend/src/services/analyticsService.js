@@ -67,6 +67,62 @@ async function getPartSalesTotal(serviceId, date) {
 }
 
 /**
+ * Completed bookings for a day, ordered by start_time. For analytics "записи за день".
+ * Returns: order_number (1-based), vehicle_name, plate_number, master_names, duration_minutes, service_payment_amount, parts_amount.
+ */
+async function getDayRecords(serviceId, date) {
+  const { rows: bookingRows } = await pool.query(
+    `SELECT b.id, b.start_time, b.vehicle_catalog_id, v.name AS vehicle_name, b.plate_number,
+            b.duration_minutes, b.service_payment_amount
+     FROM booking b
+     LEFT JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
+     WHERE b.service_id = $1 AND b.date = $2 AND b.status = 'completed'
+     ORDER BY b.start_time NULLS LAST, b.id`,
+    [serviceId, date]
+  );
+  if (bookingRows.length === 0) return [];
+
+  const bookingIds = bookingRows.map((r) => r.id);
+  const mastersByBooking = {};
+  const partsByBooking = {};
+  try {
+    const { rows: masterRows } = await pool.query(
+      `SELECT bm.booking_id, u.display_name
+       FROM booking_master bm
+       JOIN "user" u ON u.id = bm.master_user_id
+       WHERE bm.booking_id = ANY($1)
+       ORDER BY bm.booking_id, u.display_name`,
+      [bookingIds]
+    );
+    for (const m of masterRows || []) {
+      if (!mastersByBooking[m.booking_id]) mastersByBooking[m.booking_id] = [];
+      if (m.display_name) mastersByBooking[m.booking_id].push(m.display_name);
+    }
+  } catch (_) {}
+  try {
+    const { rows: partRows } = await pool.query(
+      `SELECT booking_id, COALESCE(SUM(quantity * unit_price), 0) AS total
+       FROM part_sale WHERE booking_id = ANY($1) GROUP BY booking_id`,
+      [bookingIds]
+    );
+    for (const p of partRows || []) {
+      partsByBooking[p.booking_id] = num(p.total);
+    }
+  } catch (_) {}
+
+  return bookingRows.map((row, i) => ({
+    order_number: i + 1,
+    booking_id: row.id,
+    vehicle_name: row.vehicle_name || '—',
+    plate_number: row.plate_number || '—',
+    master_names: (mastersByBooking[row.id] || []).join(', ') || '—',
+    duration_minutes: row.duration_minutes != null ? Number(row.duration_minutes) : null,
+    service_payment_amount: row.service_payment_amount != null ? Number(row.service_payment_amount) : null,
+    parts_amount: partsByBooking[row.id] ?? 0,
+  }));
+}
+
+/**
  * GET /api/analytics/summary?period=day|week|month&date=YYYY-MM-DD
  * Owner only. Returns period boundaries, aggregated metrics, daily rows, wages breakdown, day_close list.
  */
@@ -158,12 +214,14 @@ export async function getSummary(serviceId, period, date, opts = {}) {
       owner_dividend_total += ownerDiv;
       manager_total += managerAmt;
 
+      const dayRecords = await getDayRecords(serviceId, d);
       dailyRows.push({
         date: d,
         service_income: svc,
         part_sales: parts,
         net: netSum,
         day_closed: true,
+        records: dayRecords,
       });
     } else {
       const svc = await getServiceIncomeTotal(serviceId, d);
@@ -175,12 +233,14 @@ export async function getSummary(serviceId, period, date, opts = {}) {
       material_expense_total += mat;
       net_total += net;
 
+      const dayRecords = await getDayRecords(serviceId, d);
       dailyRows.push({
         date: d,
         service_income: svc,
         part_sales: parts,
         net,
         day_closed: false,
+        records: dayRecords,
       });
     }
   }
