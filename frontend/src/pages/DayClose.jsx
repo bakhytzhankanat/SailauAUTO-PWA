@@ -170,7 +170,8 @@ export default function DayClose() {
 
   const canCreate = user?.role === 'owner' || user?.is_senior_worker === true;
   const isOwner = user?.role === 'owner';
-  const canEdit = isOwner && snapshot;
+  const isSenior = user?.is_senior_worker === true;
+  const canEdit = (isOwner || isSenior) && snapshot;
   const canDeleteShift = isOwner && snapshot && snapshot.id;
   const showForm = showNewShiftForm || !snapshot || editMode;
 

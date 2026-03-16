@@ -116,16 +116,18 @@ export default function Analytics() {
   const [error, setError] = useState('');
 
   const isOwner = user?.role === 'owner';
+  const isSenior = user?.is_senior_worker === true;
+  const canAccessAccounting = isOwner || isSenior;
 
   useEffect(() => {
-    if (!isOwner) {
-      navigate('/', { replace: true, state: { message: 'Есепке тек иесі кіре алады' } });
+    if (!canAccessAccounting) {
+      navigate('/', { replace: true, state: { message: 'Есепке тек иесі немесе аға шебер кіре алады' } });
       return;
     }
-  }, [isOwner, navigate]);
+  }, [canAccessAccounting, navigate]);
 
   const load = useCallback(async () => {
-    if (!isOwner) return;
+    if (!canAccessAccounting) return;
     setLoading(true);
     setError('');
     try {
@@ -141,13 +143,13 @@ export default function Analytics() {
     } finally {
       setLoading(false);
     }
-  }, [isOwner, period, date, drillMasterId]);
+  }, [canAccessAccounting, period, date, drillMasterId]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  if (!isOwner) return null;
+  if (!canAccessAccounting) return null;
 
   const m = data?.metrics || {};
   const dailyRows = data?.daily_rows || [];

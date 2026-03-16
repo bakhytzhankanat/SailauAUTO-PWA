@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { optionalAuth, requireAuth, requireService, requireOwner } from '../middleware/auth.js';
+import { optionalAuth, requireAuth, requireService, requireSeniorWorkerOrOwner } from '../middleware/auth.js';
 import * as analyticsController from '../controllers/analyticsController.js';
 
 const router = Router();
@@ -9,7 +9,7 @@ router.get(
   optionalAuth,
   requireAuth,
   requireService,
-  requireOwner,
+  requireSeniorWorkerOrOwner,
   analyticsController.getSummary
 );
 
