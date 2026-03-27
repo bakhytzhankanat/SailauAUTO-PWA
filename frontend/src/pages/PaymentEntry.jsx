@@ -69,6 +69,7 @@ export default function PaymentEntry() {
     if (!addPartItemId || addPartQty < 1) return;
     const item = items.find((i) => i.id === addPartItemId);
     if (!item) return;
+    const qtyToAdd = Math.max(1, parseInt(addPartQty, 10) || 1);
     const min = Number(item.sale_price_min);
     const max = Number(item.sale_price_max);
     let unitPrice;
@@ -82,10 +83,17 @@ export default function PaymentEntry() {
       }
       unitPrice = raw;
     }
-    setPartSales((prev) => [
-      ...prev.filter((p) => p.inventory_item_id !== addPartItemId),
-      { inventory_item_id: addPartItemId, quantity: addPartQty, unit_price: unitPrice, name: item.name },
-    ]);
+    setPartSales((prev) => {
+      const existing = prev.find((p) => p.inventory_item_id === addPartItemId);
+      if (!existing) {
+        return [...prev, { inventory_item_id: addPartItemId, quantity: qtyToAdd, unit_price: unitPrice, name: item.name }];
+      }
+      return prev.map((p) =>
+        p.inventory_item_id === addPartItemId
+          ? { ...p, quantity: (Number(p.quantity) || 0) + qtyToAdd, unit_price: unitPrice, name: item.name }
+          : p
+      );
+    });
     setAddPartItemId('');
     setAddPartQty(1);
     setAddPartUnitPrice('');
