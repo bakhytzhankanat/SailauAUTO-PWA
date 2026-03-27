@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getInventory, createInventoryItem, createInventoryMovement, deleteInventoryItem } from '../lib/api';
 
-const canEdit = (role) => role === 'owner' || role === 'manager';
+const canEdit = (user) => user?.role === 'owner' || user?.role === 'manager' || user?.is_senior_worker === true;
 
 export default function Inventory() {
   const [searchParams] = useSearchParams();
@@ -50,7 +50,7 @@ export default function Inventory() {
     setMovementModalOpen(false);
   };
 
-  const editable = canEdit(user?.role);
+  const editable = canEdit(user);
 
   const handleDeleteItem = async (item) => {
     if (!editable) return;

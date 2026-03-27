@@ -13,7 +13,7 @@ export default function ClientsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const isWorker = user?.role === 'worker';
+  const isWorker = user?.role === 'worker' && user?.is_senior_worker !== true;
   useEffect(() => {
     if (isWorker) {
       navigate('/', { replace: true, state: { message: 'Клиенттер тізіміне рұқсат жоқ.' } });

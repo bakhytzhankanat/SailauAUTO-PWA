@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 const navItems = [
   { to: '/', icon: 'calendar_month', label: 'Күнтізбе', roles: ['owner', 'manager', 'worker'] },
   { to: '/booking/add', icon: 'add_box', label: 'Жазба қосу', roles: ['owner', 'manager'], seniorWorker: true },
+  { to: '/clients', icon: 'group', label: 'Клиенттер', roles: ['owner', 'manager'], seniorWorker: true },
   { to: '/inventory', icon: 'inventory_2', label: 'Қойма', roles: ['owner', 'manager', 'worker'] },
   { to: '/analytics', icon: 'analytics', label: 'Есеп', roles: ['owner'] },
   { to: '/reminders', icon: 'notifications', label: 'Ескертпелер', roles: ['owner', 'manager', 'worker'] },
