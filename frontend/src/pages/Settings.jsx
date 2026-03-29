@@ -13,7 +13,7 @@ import {
 export default function Settings() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { refresh: refreshSettingsContext } = useSettings();
+  const { refresh: refreshSettingsContext, mergeSettings: mergeSettingsContext } = useSettings();
   const [settings, setSettings] = useState({});
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,6 +104,7 @@ export default function Settings() {
       };
       const updated = await updateSettings(keyValues);
       setSettings(updated);
+      mergeSettingsContext(updated);
       await refreshSettingsContext();
       showToast('Сақталды');
     } catch (e) {
