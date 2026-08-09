@@ -33,6 +33,9 @@ export default function Settings() {
     kaspi_tax_percent: '4',
     charity_percent: '10',
     round_charity_to_nearest_1000: 'true',
+    push_booking_reminder_minutes: '30',
+    push_day_close_reminder_enabled: 'true',
+    push_day_close_reminder_time: '21:30',
   });
   const [workerEdits, setWorkerEdits] = useState({});
   const [workerSaving, setWorkerSaving] = useState({});
@@ -64,6 +67,9 @@ export default function Settings() {
         kaspi_tax_percent: String(s?.kaspi_tax_percent ?? '4'),
         charity_percent: String(s?.charity_percent ?? '10'),
         round_charity_to_nearest_1000: (s?.round_charity_to_nearest_1000 === 'true' || s?.round_charity_to_nearest_1000 === '1000') ? 'true' : 'false',
+        push_booking_reminder_minutes: String(s?.push_booking_reminder_minutes ?? '30'),
+        push_day_close_reminder_enabled: s?.push_day_close_reminder_enabled === 'false' ? 'false' : 'true',
+        push_day_close_reminder_time: s?.push_day_close_reminder_time ?? '21:30',
       });
       setStaff(Array.isArray(u) ? u : []);
       setWorkerEdits({});
@@ -102,6 +108,9 @@ export default function Settings() {
         kaspi_tax_percent: form.kaspi_tax_percent,
         charity_percent: form.charity_percent,
         round_charity_to_nearest_1000: form.round_charity_to_nearest_1000,
+        push_booking_reminder_minutes: form.push_booking_reminder_minutes,
+        push_day_close_reminder_enabled: form.push_day_close_reminder_enabled,
+        push_day_close_reminder_time: form.push_day_close_reminder_time,
       };
       const updated = await updateSettings(keyValues);
       setSettings(updated);
@@ -415,6 +424,44 @@ export default function Settings() {
               />
               <span className="text-sm text-white">Жақын 1000-ға дөңгелектеу</span>
             </label>
+          </div>
+        </section>
+
+        <section className="bg-card-bg rounded-xl border border-border-color p-4">
+          <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Хабарландыру еске салулары</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs text-text-muted mb-1">Жазылуға дейінгі еске салу</label>
+              <select
+                value={form.push_booking_reminder_minutes}
+                onChange={(e) => setForm((f) => ({ ...f, push_booking_reminder_minutes: e.target.value }))}
+                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white"
+              >
+                <option value="0">Өшірулі</option>
+                <option value="15">15 минут</option>
+                <option value="30">30 минут</option>
+                <option value="60">60 минут</option>
+              </select>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.push_day_close_reminder_enabled === 'true'}
+                onChange={(e) => setForm((f) => ({ ...f, push_day_close_reminder_enabled: e.target.checked ? 'true' : 'false' }))}
+                className="rounded border-border-color text-primary"
+              />
+              <span className="text-sm text-white">Ауысымды жабу туралы еске салу</span>
+            </label>
+            <div>
+              <label className="block text-xs text-text-muted mb-1">Еске салу уақыты</label>
+              <input
+                type="time"
+                value={form.push_day_close_reminder_time}
+                onChange={(e) => setForm((f) => ({ ...f, push_day_close_reminder_time: e.target.value }))}
+                disabled={form.push_day_close_reminder_enabled !== 'true'}
+                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white disabled:opacity-50"
+              />
+            </div>
           </div>
         </section>
 

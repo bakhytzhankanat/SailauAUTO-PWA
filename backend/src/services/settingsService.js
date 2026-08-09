@@ -10,6 +10,9 @@ const WHITELIST = new Set([
   'kaspi_tax_percent',
   'charity_percent',
   'round_charity_to_nearest_1000',
+  'push_booking_reminder_minutes',
+  'push_day_close_reminder_enabled',
+  'push_day_close_reminder_time',
 ]);
 
 const TIME_REGEX = /^([01]?\d|2[0-3]):([0-5]\d)$/;
@@ -106,6 +109,26 @@ export async function updateKeyValues(serviceId, keyValues) {
       throw new Error('round_charity_to_nearest_1000: true немесе false');
     }
     updates.round_charity_to_nearest_1000 = v === 'true' || v === '1' ? 'true' : 'false';
+  }
+
+  if (updates.push_booking_reminder_minutes != null) {
+    const minutes = Number(updates.push_booking_reminder_minutes);
+    if (![0, 15, 30, 60].includes(minutes)) {
+      throw new Error('Жазылу еске салуы 0, 15, 30 немесе 60 минут болуы керек');
+    }
+    updates.push_booking_reminder_minutes = String(minutes);
+  }
+
+  if (updates.push_day_close_reminder_enabled != null) {
+    const enabled = updates.push_day_close_reminder_enabled.toLowerCase();
+    if (!['true', 'false', '1', '0'].includes(enabled)) {
+      throw new Error('Ауысым еске салуы true немесе false болуы керек');
+    }
+    updates.push_day_close_reminder_enabled = enabled === 'true' || enabled === '1' ? 'true' : 'false';
+  }
+
+  if (updates.push_day_close_reminder_time != null && !TIME_REGEX.test(updates.push_day_close_reminder_time)) {
+    throw new Error('Ауысым еске салу уақыты HH:MM форматында болуы керек');
   }
 
   for (const [key, value] of Object.entries(updates)) {

@@ -1,12 +1,13 @@
 import * as dayCloseService from '../services/dayCloseService.js';
-import { notifyDayClose, queuePush } from '../services/pushService.js';
+import { queuePush } from '../services/pushService.js';
+import { dispatchPushEvent, PUSH_EVENT_TYPES } from '../services/notificationEventService.js';
 
 export async function create(req, res) {
   const serviceId = req.user?.service_id;
   if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   try {
     const result = await dayCloseService.createSnapshot(serviceId, req.body, req.user);
-    queuePush(() => notifyDayClose(serviceId, result.day_close), 'day close');
+    queuePush(() => dispatchPushEvent({ serviceId, type: PUSH_EVENT_TYPES.DAY_CLOSED, entity: result.day_close }), 'day close');
     return res.status(201).json(result);
   } catch (e) {
     if (e.statusCode === 409) return res.status(409).json({ error: e.message });

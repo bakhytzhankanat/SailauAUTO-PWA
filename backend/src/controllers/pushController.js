@@ -1,4 +1,9 @@
 import * as pushService from '../services/pushService.js';
+import {
+  getPushPreferences,
+  testPushPayload,
+  updatePushPreferences,
+} from '../services/notificationEventService.js';
 
 const KEY_PATTERN = /^[A-Za-z0-9_-]+={0,2}$/;
 
@@ -80,6 +85,29 @@ export async function status(req, res) {
 export async function sendTest(req, res) {
   const serviceId = currentServiceId(req, res);
   if (!serviceId) return;
-  const result = await pushService.sendTestNotification(serviceId, req.user.id);
+  if (!pushService.getPublicPushConfig().enabled) {
+    return res.status(503).json({ error: 'Хабарландырулар әзірге қолжетімсіз' });
+  }
+  const result = await pushService.sendTestNotification(serviceId, req.user.id, testPushPayload());
   return res.json({ sent: result.sent > 0 });
+}
+
+export async function preferences(req, res) {
+  const serviceId = currentServiceId(req, res);
+  if (!serviceId) return;
+  try {
+    return res.json(await getPushPreferences(serviceId, req.user.id));
+  } catch (error) {
+    return res.status(400).json({ error: error.message || 'Хабарландыру баптауларын оқу мүмкін болмады' });
+  }
+}
+
+export async function updatePreferences(req, res) {
+  const serviceId = currentServiceId(req, res);
+  if (!serviceId) return;
+  try {
+    return res.json(await updatePushPreferences(serviceId, req.user.id, req.body?.preferences));
+  } catch (error) {
+    return res.status(400).json({ error: error.message || 'Хабарландыру баптауларын сақтау мүмкін болмады' });
+  }
 }

@@ -9,5 +9,7 @@ router.get('/status', optionalAuth, requireAuth, requireService, pushController.
 router.post('/subscribe', optionalAuth, requireAuth, requireService, pushController.subscribe);
 router.delete('/unsubscribe', optionalAuth, requireAuth, requireService, pushController.unsubscribe);
 router.post('/test', optionalAuth, requireAuth, requireService, pushController.sendTest);
+router.get('/preferences', optionalAuth, requireAuth, requireService, pushController.preferences);
+router.patch('/preferences', optionalAuth, requireAuth, requireService, pushController.updatePreferences);
 
 export default router;

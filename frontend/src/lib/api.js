@@ -81,6 +81,14 @@ export async function sendPushTest() {
   return api('/push/test', { method: 'POST' });
 }
 
+export async function getPushPreferences() {
+  return api('/push/preferences');
+}
+
+export async function updatePushPreferences(preferences) {
+  return api('/push/preferences', { method: 'PATCH', body: JSON.stringify({ preferences }) });
+}
+
 export async function getUsers() {
   return api('/users');
 }

@@ -6,6 +6,15 @@ import {
   pushSupport,
   sendPushTestNotification,
 } from '../lib/pushNotifications';
+import { getPushPreferences, updatePushPreferences } from '../lib/api';
+
+const PREFERENCE_LABELS = {
+  bookings: 'Жаңа жазылулар',
+  work: 'Жұмыс барысы',
+  payments: 'Төлемдер',
+  inventory: 'Қойма',
+  day_close: 'Ауысым',
+};
 
 function messageForError(error) {
   if (error?.message === 'PUSH_PERMISSION_DENIED') {
@@ -20,6 +29,7 @@ export default function PushNotificationSettings() {
   const [status, setStatus] = useState(() => ({ ...pushSupport(), loading: true }));
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [preferences, setPreferences] = useState([]);
 
   const refresh = useCallback(async () => {
     const support = pushSupport();
@@ -32,6 +42,12 @@ export default function PushNotificationSettings() {
       setStatus({ ...next, loading: false });
     } catch {
       setStatus({ ...support, loading: false, browserSubscribed: false, endpointActive: false, configured: false });
+    }
+    try {
+      const result = await getPushPreferences();
+      setPreferences(Array.isArray(result.preferences) ? result.preferences : []);
+    } catch {
+      setPreferences([]);
     }
   }, []);
 
@@ -85,6 +101,20 @@ export default function PushNotificationSettings() {
     }
   };
 
+  const handlePreference = async (key, enabled) => {
+    setBusy(true);
+    setMessage('');
+    try {
+      const result = await updatePushPreferences({ [key]: enabled });
+      setPreferences(Array.isArray(result.preferences) ? result.preferences : []);
+      setMessage('Хабарландыру баптаулары сақталды');
+    } catch {
+      setMessage('Хабарландыру баптауларын сақтау мүмкін болмады. Кейінірек қайталап көріңіз.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <section className="bg-card-bg rounded-xl border border-border-color p-4">
       <div className="flex items-start gap-3">
@@ -96,7 +126,7 @@ export default function PushNotificationSettings() {
           <p className="mt-1 text-xs leading-5 text-text-muted">Жаңа жазылу, төлем және жұмыс барысы туралы хабарлар.</p>
         </div>
         <span className={`shrink-0 text-xs px-2 py-1 rounded ${enabled ? 'bg-primary/20 text-primary' : 'bg-border-color text-text-muted'}`}>
-          {status.loading ? 'Тексерілуде' : enabled ? 'Қосылған' : 'Өшірулі'}
+          {status.loading ? 'Тексерілуде' : enabled ? 'Осы құрылғыда қосылған' : 'Осы құрылғыда өшірулі'}
         </span>
       </div>
 
@@ -130,6 +160,26 @@ export default function PushNotificationSettings() {
               {busy ? 'Қосылуда...' : 'Хабарландыруларды қосу'}
             </button>
           )}
+        </div>
+      )}
+
+      {preferences.length > 0 && (
+        <div className="mt-5 pt-4 border-t border-border-color">
+          <h3 className="text-sm font-medium text-white">Қандай хабарландырулар керек?</h3>
+          <div className="mt-3 space-y-3">
+            {preferences.map((preference) => (
+              <label key={preference.key} className="flex items-center justify-between gap-4 cursor-pointer">
+                <span className="text-sm text-white">{PREFERENCE_LABELS[preference.key] || 'Хабарландыру'}</span>
+                <input
+                  type="checkbox"
+                  checked={Boolean(preference.enabled)}
+                  disabled={busy}
+                  onChange={(event) => handlePreference(preference.key, event.target.checked)}
+                  className="shrink-0 rounded border-border-color text-primary disabled:opacity-50"
+                />
+              </label>
+            ))}
+          </div>
         </div>
       )}
     </section>

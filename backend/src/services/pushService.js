@@ -4,17 +4,6 @@ import { pool } from '../db/pool.js';
 const DEAD_SUBSCRIPTION_STATUS_CODES = new Set([404, 410]);
 let configuredSignature = null;
 
-export const PUSH_RECIPIENTS = Object.freeze({
-  newBooking: { roles: ['owner', 'manager', 'worker'] },
-  bookingReminder: { roles: ['manager', 'worker'] },
-  workStarted: { roles: ['manager'], includeSeniorWorkers: true, includeAssignedMasters: true },
-  workCompleted: { roles: ['owner', 'manager'] },
-  payment: { roles: ['owner', 'manager'] },
-  lowStock: { roles: ['owner', 'manager'], includeSeniorWorkers: true },
-  dayCloseOpen: { roles: ['owner'], includeSeniorWorkers: true },
-  dayClose: { roles: ['owner'] },
-});
-
 export function isValidVapidSubject(subject) {
   if (!subject || typeof subject !== 'string') return false;
   try {
@@ -50,7 +39,7 @@ function configureWebPush() {
 }
 
 function activeUserSql() {
-  return "(u.is_active IS NULL OR u.is_active = true)";
+  return '(u.is_active IS NULL OR u.is_active = true)';
 }
 
 function safeErrorLabel(error) {
@@ -60,15 +49,6 @@ function safeErrorLabel(error) {
 
 function asArray(values) {
   return [...new Set((Array.isArray(values) ? values : [values]).filter(Boolean))];
-}
-
-function numberOrZero(value) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : 0;
-}
-
-export function formatTenge(value) {
-  return `${Math.round(numberOrZero(value)).toLocaleString('kk-KZ')} ₸`;
 }
 
 export function isLowStockThresholdCrossing(previousQuantity, nextQuantity, minimumQuantity) {
@@ -84,103 +64,6 @@ export function isLowStockThresholdCrossing(previousQuantity, nextQuantity, mini
 
 export function isDeadSubscriptionResponse(error) {
   return DEAD_SUBSCRIPTION_STATUS_CODES.has(error?.statusCode);
-}
-
-function bookingSummary(booking, includeTime = false) {
-  const details = [booking?.vehicle_name || 'Көлік'];
-  if (includeTime && booking?.start_time) details.push(String(booking.start_time).slice(0, 5));
-  if (booking?.box_id) details.push(`${booking.box_id}-бокс`);
-  return details.join(' • ');
-}
-
-function bookingUrl(booking) {
-  return booking?.id ? `/booking/${booking.id}` : '/';
-}
-
-function paymentLabel(paymentType) {
-  if (paymentType === 'kaspipay') return 'Kaspi';
-  if (paymentType === 'mixed') return 'Аралас төлем';
-  return 'Қолма-қол';
-}
-
-export function buildNewBookingPayload(booking) {
-  return {
-    title: 'Жаңа жазылу',
-    body: bookingSummary(booking, true),
-    url: bookingUrl(booking),
-  };
-}
-
-export function buildBookingReminderPayload(booking) {
-  return {
-    title: '30 минуттан кейін клиент келеді',
-    body: bookingSummary(booking, true),
-    url: bookingUrl(booking),
-  };
-}
-
-export function buildWorkStartedPayload(booking) {
-  return {
-    title: 'Жұмыс басталды',
-    body: bookingSummary(booking),
-    url: bookingUrl(booking),
-  };
-}
-
-export function buildWorkCompletedPayload(booking) {
-  const amount = booking?.service_payment_amount;
-  return {
-    title: 'Жұмыс аяқталды',
-    body: amount == null || amount === '' ? bookingSummary(booking) : `${bookingSummary(booking)} • ${formatTenge(amount)}`,
-    url: bookingUrl(booking),
-  };
-}
-
-export function buildPaymentPayload(booking) {
-  const partSalesTotal = (booking?.part_sales || []).reduce(
-    (total, line) => total + numberOrZero(line.quantity) * numberOrZero(line.unit_price),
-    0
-  );
-  return {
-    title: 'Төлем қабылданды',
-    body: `${formatTenge(numberOrZero(booking?.service_payment_amount) + partSalesTotal)} • ${paymentLabel(booking?.payment_type)}`,
-    url: bookingUrl(booking),
-  };
-}
-
-export function buildLowStockPayload(item) {
-  const unit = item?.unit ? ` ${item.unit}` : ' дана';
-  return {
-    title: 'Қоймадағы қалдық азайды',
-    body: `${item?.name || 'Тауар'} • ${numberOrZero(item?.quantity)}${unit} қалды`,
-    url: '/inventory',
-  };
-}
-
-export function buildDayClosePayload(dayClose) {
-  const revenue = numberOrZero(dayClose?.service_income_total) + numberOrZero(dayClose?.part_sales_total);
-  const expenses = numberOrZero(dayClose?.material_expense_total)
-    + numberOrZero(dayClose?.opex_lunch)
-    + numberOrZero(dayClose?.opex_transport)
-    + numberOrZero(dayClose?.opex_rent)
-    + numberOrZero(dayClose?.kaspi_tax_amount);
-  const ownerShare = numberOrZero(dayClose?.owner_service_dividend) + numberOrZero(dayClose?.owner_parts_dividend);
-  const params = new URLSearchParams();
-  if (dayClose?.date) params.set('date', dayClose.date);
-  if (dayClose?.shift_index != null) params.set('shift_index', String(dayClose.shift_index));
-  return {
-    title: 'Ауысым жабылды',
-    body: `Түсім ${formatTenge(revenue)} • шығыс ${formatTenge(expenses)} • иесіне ${formatTenge(ownerShare)}`,
-    url: `/day-close${params.toString() ? `?${params}` : ''}`,
-  };
-}
-
-export function buildDayCloseOpenPayload() {
-  return {
-    title: 'Ауысым әлі жабылған жоқ',
-    body: 'Бүгінгі ауысымды жабуды ұмытпаңыз',
-    url: '/day-close',
-  };
 }
 
 export function getPublicPushConfig() {
@@ -293,7 +176,7 @@ export async function deliverPushSubscriptions({ serviceId, subscriptions, paylo
   }), { sent: 0, failed: 0, deactivated: 0, skipped: 0 });
 }
 
-async function sendToSubscriptions(serviceId, subscriptions, payload) {
+async function sendToSubscriptions(serviceId, subscriptions, payload, delivery = {}) {
   if (!configureWebPush() || subscriptions.length === 0) {
     return { sent: 0, failed: 0, deactivated: 0, skipped: subscriptions.length };
   }
@@ -304,7 +187,10 @@ async function sendToSubscriptions(serviceId, subscriptions, payload) {
     sendNotification: (subscription, serializedPayload) => webpush.sendNotification({
       endpoint: subscription.endpoint,
       keys: { p256dh: subscription.p256dh, auth: subscription.auth },
-    }, serializedPayload, { TTL: 60 * 60 }),
+    }, serializedPayload, {
+      TTL: delivery.ttl ?? 60 * 60,
+      ...(delivery.urgency ? { urgency: delivery.urgency } : {}),
+    }),
     deactivate: (subscription, scopedServiceId) => pool.query(
       'UPDATE push_subscription SET is_active = false, updated_at = now() WHERE id = $1 AND service_id = $2',
       [subscription.id, scopedServiceId]
@@ -312,18 +198,13 @@ async function sendToSubscriptions(serviceId, subscriptions, payload) {
   });
 }
 
-export async function sendToUsers(serviceId, userIds, payload) {
+export async function sendToUsers(serviceId, userIds, payload, delivery) {
   const subscriptions = await activeSubscriptionsForUsers(serviceId, userIds);
-  return sendToSubscriptions(serviceId, subscriptions, payload);
+  return sendToSubscriptions(serviceId, subscriptions, payload, delivery);
 }
 
-export async function sendToUser(serviceId, userId, payload) {
-  return sendToUsers(serviceId, [userId], payload);
-}
-
-export async function sendToRoles(serviceId, options, payload) {
-  const userIds = await resolveRecipientUserIds(serviceId, options);
-  return sendToUsers(serviceId, userIds, payload);
+export async function sendToUser(serviceId, userId, payload, delivery) {
+  return sendToUsers(serviceId, [userId], payload, delivery);
 }
 
 export function queuePush(task, label) {
@@ -332,47 +213,6 @@ export function queuePush(task, label) {
   });
 }
 
-export async function notifyNewBooking(serviceId, booking) {
-  return sendToRoles(serviceId, PUSH_RECIPIENTS.newBooking, buildNewBookingPayload(booking));
-}
-
-export async function notifyBookingReminder(serviceId, booking) {
-  return sendToRoles(serviceId, PUSH_RECIPIENTS.bookingReminder, buildBookingReminderPayload(booking));
-}
-
-export async function notifyWorkStarted(serviceId, booking) {
-  const staffIds = await resolveRecipientUserIds(serviceId, PUSH_RECIPIENTS.workStarted);
-  const masterIds = asArray([
-    booking?.assigned_master_id,
-    ...(booking?.masters || []).map((master) => master.master_user_id),
-  ]);
-  return sendToUsers(serviceId, [...staffIds, ...masterIds], buildWorkStartedPayload(booking));
-}
-
-export async function notifyWorkCompleted(serviceId, booking) {
-  return sendToRoles(serviceId, PUSH_RECIPIENTS.workCompleted, buildWorkCompletedPayload(booking));
-}
-
-export async function notifyPayment(serviceId, booking) {
-  return sendToRoles(serviceId, PUSH_RECIPIENTS.payment, buildPaymentPayload(booking));
-}
-
-export async function notifyLowStock(serviceId, item) {
-  return sendToRoles(serviceId, PUSH_RECIPIENTS.lowStock, buildLowStockPayload(item));
-}
-
-export async function notifyDayClose(serviceId, dayClose) {
-  return sendToRoles(serviceId, PUSH_RECIPIENTS.dayClose, buildDayClosePayload(dayClose));
-}
-
-export async function notifyDayCloseOpen(serviceId) {
-  return sendToRoles(serviceId, PUSH_RECIPIENTS.dayCloseOpen, buildDayCloseOpenPayload());
-}
-
-export async function sendTestNotification(serviceId, userId) {
-  return sendToUser(serviceId, userId, {
-    title: 'Хабарландырулар қосылды',
-    body: 'Бұл — сынақ хабарламасы',
-    url: '/settings',
-  });
+export async function sendTestNotification(serviceId, userId, payload) {
+  return sendToUser(serviceId, userId, payload, { urgency: 'normal' });
 }
