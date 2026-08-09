@@ -15,6 +15,17 @@ export const PUSH_RECIPIENTS = Object.freeze({
   dayClose: { roles: ['owner'] },
 });
 
+export function isValidVapidSubject(subject) {
+  if (!subject || typeof subject !== 'string') return false;
+  try {
+    const url = new URL(subject.trim());
+    if (url.protocol === 'https:') return true;
+    return url.protocol === 'mailto:' && url.pathname.includes('@');
+  } catch {
+    return false;
+  }
+}
+
 function vapidConfig() {
   const publicKey = process.env.VAPID_PUBLIC_KEY?.trim();
   const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
@@ -23,7 +34,7 @@ function vapidConfig() {
     publicKey,
     privateKey,
     subject,
-    enabled: Boolean(publicKey && privateKey && subject),
+    enabled: Boolean(publicKey && privateKey && isValidVapidSubject(subject)),
   };
 }
 

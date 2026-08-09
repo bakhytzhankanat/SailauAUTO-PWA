@@ -6,7 +6,15 @@ import {
   buildPaymentPayload,
   deliverPushSubscriptions,
   isLowStockThresholdCrossing,
+  isValidVapidSubject,
 } from './pushService.js';
+
+test('VAPID subject is limited to a real mailto address or HTTPS URL', () => {
+  assert.equal(isValidVapidSubject('mailto:ops@example.com'), true);
+  assert.equal(isValidVapidSubject('https://example.com/push-contact'), true);
+  assert.equal(isValidVapidSubject('owner@example.com'), false);
+  assert.equal(isValidVapidSubject('http://example.com'), false);
+});
 
 test('role routing follows the existing owner, manager, worker and senior-worker model', () => {
   assert.deepEqual(PUSH_RECIPIENTS.newBooking.roles, ['owner', 'manager', 'worker']);
