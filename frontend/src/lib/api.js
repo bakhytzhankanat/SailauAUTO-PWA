@@ -60,6 +60,35 @@ export async function updateSettings(keyValues) {
   return api('/settings', { method: 'PATCH', body: JSON.stringify({ keyValues }) });
 }
 
+export async function getPushPublicKey() {
+  return api('/push/public-key');
+}
+
+export async function getPushStatus(endpoint = '') {
+  const query = endpoint ? `?endpoint=${encodeURIComponent(endpoint)}` : '';
+  return api(`/push/status${query}`);
+}
+
+export async function subscribePush(subscription) {
+  return api('/push/subscribe', { method: 'POST', body: JSON.stringify(subscription) });
+}
+
+export async function unsubscribePush(body) {
+  return api('/push/unsubscribe', { method: 'DELETE', body: JSON.stringify(body) });
+}
+
+export async function sendPushTest() {
+  return api('/push/test', { method: 'POST' });
+}
+
+export async function getPushPreferences() {
+  return api('/push/preferences');
+}
+
+export async function updatePushPreferences(preferences) {
+  return api('/push/preferences', { method: 'PATCH', body: JSON.stringify({ preferences }) });
+}
+
 export async function getUsers() {
   return api('/users');
 }

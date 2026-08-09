@@ -1,4 +1,6 @@
 import { pool } from '../db/pool.js';
+import { isLowStockThresholdCrossing, queuePush } from './pushService.js';
+import { dispatchPushEvent, PUSH_EVENT_TYPES } from './notificationEventService.js';
 
 /**
  * List inventory items for management. Any role. Scoped by service.
@@ -66,7 +68,7 @@ export async function createMovement(serviceId, data) {
   try {
     await client.query('BEGIN');
     const { rows: items } = await client.query(
-      'SELECT id, quantity FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
+      'SELECT id, name, quantity, min_quantity, unit FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
       [inventory_item_id, serviceId]
     );
     if (items.length === 0) {
@@ -88,12 +90,23 @@ export async function createMovement(serviceId, data) {
       [inventory_item_id, newQty]
     );
     const amount = null;
-    await client.query(
+    const movement = await client.query(
       `INSERT INTO inventory_movement (item_id, type, quantity, amount, ref_type, ref_id, note)
-       VALUES ($1, $2, $3, $4, 'manual', NULL, $5)`,
+       VALUES ($1, $2, $3, $4, 'manual', NULL, $5)
+       RETURNING id`,
       [inventory_item_id, type, qty, amount, note && note.trim() ? note.trim() : null]
     );
     await client.query('COMMIT');
+    if (isLowStockThresholdCrossing(current, newQty, items[0].min_quantity)) {
+      queuePush(
+        () => dispatchPushEvent({
+          serviceId,
+          type: PUSH_EVENT_TYPES.INVENTORY_LOW,
+          entity: { id: items[0].id, name: items[0].name, quantity: newQty, unit: items[0].unit, movement_id: movement.rows[0].id },
+        }),
+        'low stock'
+      );
+    }
     return { ok: true, new_quantity: newQty };
   } catch (e) {
     await client.query('ROLLBACK').catch(() => {});

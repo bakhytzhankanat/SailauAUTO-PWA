@@ -1,5 +1,7 @@
 import * as bookingService from '../services/bookingService.js';
 import * as executionService from '../services/executionService.js';
+import { queuePush } from '../services/pushService.js';
+import { dispatchPushEvent, PUSH_EVENT_TYPES } from '../services/notificationEventService.js';
 
 export async function list(req, res) {
   const serviceId = req.user?.service_id;
@@ -27,6 +29,7 @@ export async function create(req, res) {
   if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   try {
     const booking = await bookingService.create(serviceId, req.body);
+    queuePush(() => dispatchPushEvent({ serviceId, type: PUSH_EVENT_TYPES.BOOKING_CREATED, entity: booking }), 'new booking');
     return res.status(201).json(booking);
   } catch (err) {
     return res.status(400).json({ error: err.message });
@@ -56,6 +59,7 @@ export async function start(req, res) {
     if (!booking) {
       return res.status(404).json({ error: 'Жазба табылмады' });
     }
+    queuePush(() => dispatchPushEvent({ serviceId, type: PUSH_EVENT_TYPES.WORK_STARTED, entity: booking }), 'work started');
     return res.json(booking);
   } catch (err) {
     return res.status(400).json({ error: err.message });
@@ -84,6 +88,8 @@ export async function complete(req, res) {
     if (!booking) {
       return res.status(404).json({ error: 'Жазба табылмады' });
     }
+    queuePush(() => dispatchPushEvent({ serviceId, type: PUSH_EVENT_TYPES.WORK_COMPLETED, entity: booking }), 'work completed');
+    queuePush(() => dispatchPushEvent({ serviceId, type: PUSH_EVENT_TYPES.PAYMENT_RECEIVED, entity: booking }), 'payment received');
     return res.json(booking);
   } catch (err) {
     return res.status(400).json({ error: err.message });

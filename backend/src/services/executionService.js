@@ -1,5 +1,7 @@
 import { pool } from '../db/pool.js';
 import { getById } from './bookingService.js';
+import { isLowStockThresholdCrossing, queuePush } from './pushService.js';
+import { dispatchPushEvent, PUSH_EVENT_TYPES } from './notificationEventService.js';
 
 /**
  * Start job: status planned|arrived → in_progress, started_at = now().
@@ -36,6 +38,7 @@ export async function completeBooking(id, serviceId, payload) {
     throw new Error('Жазбаны басталмаған күйде аяқтауға болмайды. Алдымен жұмысты бастаңыз.');
   }
   const sid = booking.service_id || serviceId;
+  const lowStockItems = [];
 
   const {
     service_payment_amount,
@@ -159,7 +162,7 @@ export async function completeBooking(id, serviceId, payload) {
         throw new Error('Сату бағасы жарамды сан болуы керек');
       }
       const { rows: items } = await client.query(
-        'SELECT id, sale_price_min, sale_price_max, quantity FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
+        'SELECT id, name, sale_price_min, sale_price_max, quantity, min_quantity, unit FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
         [inventory_item_id, sid]
       );
       if (items.length === 0) throw new Error(`Бөлшек табылмады: ${inventory_item_id}`);
@@ -174,15 +177,20 @@ export async function completeBooking(id, serviceId, payload) {
         'INSERT INTO part_sale (booking_id, inventory_item_id, quantity, unit_price) VALUES ($1, $2, $3, $4)',
         [id, inventory_item_id, qty, unitPrice]
       );
+      const nextQuantity = Number(item.quantity) - qty;
       await client.query(
-        'UPDATE inventory_item SET quantity = quantity - $2, updated_at = now() WHERE id = $1',
-        [inventory_item_id, qty]
+        'UPDATE inventory_item SET quantity = $2, updated_at = now() WHERE id = $1',
+        [inventory_item_id, nextQuantity]
       );
-      await client.query(
+      const movement = await client.query(
         `INSERT INTO inventory_movement (item_id, type, quantity, amount, ref_type, ref_id)
-         VALUES ($1, 'sale', $2, $3, 'booking_completion', $4)`,
+         VALUES ($1, 'sale', $2, $3, 'booking_completion', $4)
+         RETURNING id`,
         [inventory_item_id, qty, qty * unitPrice, id]
       );
+      if (isLowStockThresholdCrossing(item.quantity, nextQuantity, item.min_quantity)) {
+        lowStockItems.push({ id: item.id, name: item.name, quantity: nextQuantity, unit: item.unit, movement_id: movement.rows[0].id });
+      }
     }
 
     const mids = Array.isArray(master_user_ids) ? master_user_ids.filter(Boolean) : [];
@@ -207,7 +215,11 @@ export async function completeBooking(id, serviceId, payload) {
     }
 
     await client.query('COMMIT');
-    return getById(id, serviceId);
+    const completedBooking = await getById(id, serviceId);
+    for (const item of lowStockItems) {
+      queuePush(() => dispatchPushEvent({ serviceId: sid, type: PUSH_EVENT_TYPES.INVENTORY_LOW, entity: item }), 'low stock');
+    }
+    return completedBooking;
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;
@@ -227,6 +239,9 @@ export async function updateCompletion(id, serviceId, payload) {
     throw new Error('Тек аяқталған жазбаның төлем мәліметін өзгертуге болады');
   }
   const sid = booking.service_id || serviceId;
+  const lowStockItems = [];
+  const originalInventoryQuantities = new Map();
+  const touchedInventoryItems = new Map();
   const {
     service_payment_amount,
     payment_type,
@@ -258,6 +273,14 @@ export async function updateCompletion(id, serviceId, payload) {
         [id]
       );
       for (const ps of oldPartSales) {
+        const { rows: existingItems } = await client.query(
+          'SELECT id, quantity FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
+          [ps.inventory_item_id, sid]
+        );
+        if (existingItems.length === 0) throw new Error('Бөлшек табылмады');
+        if (!originalInventoryQuantities.has(ps.inventory_item_id)) {
+          originalInventoryQuantities.set(ps.inventory_item_id, Number(existingItems[0].quantity));
+        }
         await client.query(
           'UPDATE inventory_item SET quantity = quantity + $2, updated_at = now() WHERE id = $1',
           [ps.inventory_item_id, Number(ps.quantity)]
@@ -277,11 +300,14 @@ export async function updateCompletion(id, serviceId, payload) {
           throw new Error('Сату бағасы жарамды сан болуы керек');
         }
         const { rows: items } = await client.query(
-          'SELECT id, sale_price_min, sale_price_max, quantity FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
+          'SELECT id, name, sale_price_min, sale_price_max, quantity, min_quantity, unit FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
           [inventory_item_id, sid]
         );
         if (items.length === 0) throw new Error(`Бөлшек табылмады: ${inventory_item_id}`);
         const item = items[0];
+        if (!originalInventoryQuantities.has(item.id)) {
+          originalInventoryQuantities.set(item.id, Number(item.quantity));
+        }
         const minP = Number(item.sale_price_min);
         const maxP = Number(item.sale_price_max);
         if (unitPrice < minP || unitPrice > maxP) {
@@ -292,15 +318,30 @@ export async function updateCompletion(id, serviceId, payload) {
           'INSERT INTO part_sale (booking_id, inventory_item_id, quantity, unit_price) VALUES ($1, $2, $3, $4)',
           [id, inventory_item_id, qty, unitPrice]
         );
+        const nextQuantity = Number(item.quantity) - qty;
         await client.query(
-          'UPDATE inventory_item SET quantity = quantity - $2, updated_at = now() WHERE id = $1',
-          [inventory_item_id, qty]
+          'UPDATE inventory_item SET quantity = $2, updated_at = now() WHERE id = $1',
+          [inventory_item_id, nextQuantity]
         );
-        await client.query(
+        const movement = await client.query(
           `INSERT INTO inventory_movement (item_id, type, quantity, amount, ref_type, ref_id)
-           VALUES ($1, 'sale', $2, $3, 'booking_completion', $4)`,
+           VALUES ($1, 'sale', $2, $3, 'booking_completion', $4)
+           RETURNING id`,
           [inventory_item_id, qty, qty * unitPrice, id]
         );
+        touchedInventoryItems.set(item.id, {
+          id: item.id,
+          name: item.name,
+          quantity: nextQuantity,
+          min_quantity: item.min_quantity,
+          unit: item.unit,
+          movement_id: movement.rows[0].id,
+        });
+      }
+      for (const item of touchedInventoryItems.values()) {
+        if (isLowStockThresholdCrossing(originalInventoryQuantities.get(item.id), item.quantity, item.min_quantity)) {
+          lowStockItems.push(item);
+        }
       }
     }
 
@@ -362,7 +403,11 @@ export async function updateCompletion(id, serviceId, payload) {
     );
 
     await client.query('COMMIT');
-    return getById(id, serviceId);
+    const updatedBooking = await getById(id, serviceId);
+    for (const item of lowStockItems) {
+      queuePush(() => dispatchPushEvent({ serviceId: sid, type: PUSH_EVENT_TYPES.INVENTORY_LOW, entity: item }), 'low stock');
+    }
+    return updatedBooking;
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;
