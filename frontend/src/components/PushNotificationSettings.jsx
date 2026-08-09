@@ -1,0 +1,137 @@
+import { useCallback, useEffect, useState } from 'react';
+import {
+  disablePushNotifications,
+  enablePushNotifications,
+  getPushDeviceStatus,
+  pushSupport,
+  sendPushTestNotification,
+} from '../lib/pushNotifications';
+
+function messageForError(error) {
+  if (error?.message === 'PUSH_PERMISSION_DENIED') {
+    return 'Хабарландыруларға рұқсат берілмеді. Оларды құрылғы параметрлерінен қосуға болады.';
+  }
+  if (error?.message === 'IOS_INSTALL_REQUIRED') return 'Алдымен қолданбаны Басты экранға қосыңыз.';
+  if (error?.message === 'PUSH_NOT_SUPPORTED') return 'Бұл құрылғы хабарландыруларды қолдамайды.';
+  return 'Хабарландыруларды қазір қосу мүмкін болмады. Кейінірек қайталап көріңіз.';
+}
+
+export default function PushNotificationSettings() {
+  const [status, setStatus] = useState(() => ({ ...pushSupport(), loading: true }));
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const refresh = useCallback(async () => {
+    const support = pushSupport();
+    if (!support.supported) {
+      setStatus({ ...support, loading: false, browserSubscribed: false, endpointActive: false });
+      return;
+    }
+    try {
+      const next = await getPushDeviceStatus();
+      setStatus({ ...next, loading: false });
+    } catch {
+      setStatus({ ...support, loading: false, browserSubscribed: false, endpointActive: false, configured: false });
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const enabled = Boolean(status.browserSubscribed && status.endpointActive);
+  const permissionDenied = typeof Notification !== 'undefined' && Notification.permission === 'denied';
+  const canEnable = status.supported && !status.needsIosInstall && status.configured !== false && !permissionDenied;
+
+  const handleEnable = async () => {
+    setBusy(true);
+    setMessage('');
+    try {
+      const next = await enablePushNotifications();
+      setStatus({ ...next, loading: false });
+      setMessage('Хабарландырулар қосылды');
+    } catch (error) {
+      setMessage(messageForError(error));
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDisable = async () => {
+    setBusy(true);
+    setMessage('');
+    try {
+      const next = await disablePushNotifications();
+      setStatus({ ...next, loading: false });
+      setMessage('Хабарландырулар өшірілді');
+    } catch {
+      setMessage('Хабарландыруларды өшіру мүмкін болмады. Кейінірек қайталап көріңіз.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleTest = async () => {
+    setBusy(true);
+    setMessage('');
+    try {
+      const result = await sendPushTestNotification();
+      setMessage(result.sent ? 'Сынақ хабарламасы жіберілді' : 'Бұл құрылғыда белсенді хабарландыру табылмады');
+    } catch {
+      setMessage('Сынақ хабарламасын жіберу мүмкін болмады. Кейінірек қайталап көріңіз.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="bg-card-bg rounded-xl border border-border-color p-4">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 shrink-0 rounded-full bg-primary/20 flex items-center justify-center">
+          <span className="material-symbols-outlined text-primary text-xl" aria-hidden>notifications</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="font-semibold text-white">Хабарландырулар</h2>
+          <p className="mt-1 text-xs leading-5 text-text-muted">Жаңа жазылу, төлем және жұмыс барысы туралы хабарлар.</p>
+        </div>
+        <span className={`shrink-0 text-xs px-2 py-1 rounded ${enabled ? 'bg-primary/20 text-primary' : 'bg-border-color text-text-muted'}`}>
+          {status.loading ? 'Тексерілуде' : enabled ? 'Қосылған' : 'Өшірулі'}
+        </span>
+      </div>
+
+      {!status.loading && !status.supported && (
+        <p className="mt-4 text-sm leading-5 text-text-muted">Бұл құрылғы хабарландыруларды қолдамайды.</p>
+      )}
+      {!status.loading && status.needsIosInstall && (
+        <p className="mt-4 text-sm leading-5 text-text-muted">iPhone құрылғысында хабарландырулар орнатылған қолданбада ғана жұмыс істейді. Safari мәзірінен «Басты экранға қосу» таңдаңыз.</p>
+      )}
+      {!status.loading && status.supported && !status.needsIosInstall && status.configured === false && (
+        <p className="mt-4 text-sm leading-5 text-text-muted">Хабарландырулар әзірге қолжетімсіз.</p>
+      )}
+      {!status.loading && permissionDenied && (
+        <p className="mt-4 text-sm leading-5 text-text-muted">Хабарландыруларға рұқсат берілмеді. Оларды құрылғы параметрлерінен қосуға болады.</p>
+      )}
+      {message && <p className="mt-4 text-sm leading-5 text-text-muted" role="status">{message}</p>}
+
+      {status.supported && !status.needsIosInstall && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {enabled ? (
+            <>
+              <button type="button" onClick={handleDisable} disabled={busy} className="px-4 py-2.5 rounded-lg border border-border-color text-sm font-medium text-white hover:bg-bg-main disabled:opacity-50">
+                {busy ? 'Күте тұрыңыз...' : 'Хабарландыруларды өшіру'}
+              </button>
+              <button type="button" onClick={handleTest} disabled={busy} className="px-4 py-2.5 rounded-lg bg-primary/20 text-primary text-sm font-medium hover:bg-primary/30 disabled:opacity-50">
+                Сынақ хабарламасы
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={handleEnable} disabled={busy || !canEnable} className="px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50">
+              {busy ? 'Қосылуда...' : 'Хабарландыруларды қосу'}
+            </button>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}

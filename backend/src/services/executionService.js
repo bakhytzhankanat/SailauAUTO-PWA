@@ -1,5 +1,6 @@
 import { pool } from '../db/pool.js';
 import { getById } from './bookingService.js';
+import { isLowStockThresholdCrossing, notifyLowStock, queuePush } from './pushService.js';
 
 /**
  * Start job: status planned|arrived → in_progress, started_at = now().
@@ -36,6 +37,7 @@ export async function completeBooking(id, serviceId, payload) {
     throw new Error('Жазбаны басталмаған күйде аяқтауға болмайды. Алдымен жұмысты бастаңыз.');
   }
   const sid = booking.service_id || serviceId;
+  const lowStockItems = [];
 
   const {
     service_payment_amount,
@@ -159,7 +161,7 @@ export async function completeBooking(id, serviceId, payload) {
         throw new Error('Сату бағасы жарамды сан болуы керек');
       }
       const { rows: items } = await client.query(
-        'SELECT id, sale_price_min, sale_price_max, quantity FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
+        'SELECT id, name, sale_price_min, sale_price_max, quantity, min_quantity, unit FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
         [inventory_item_id, sid]
       );
       if (items.length === 0) throw new Error(`Бөлшек табылмады: ${inventory_item_id}`);
@@ -174,10 +176,14 @@ export async function completeBooking(id, serviceId, payload) {
         'INSERT INTO part_sale (booking_id, inventory_item_id, quantity, unit_price) VALUES ($1, $2, $3, $4)',
         [id, inventory_item_id, qty, unitPrice]
       );
+      const nextQuantity = Number(item.quantity) - qty;
       await client.query(
-        'UPDATE inventory_item SET quantity = quantity - $2, updated_at = now() WHERE id = $1',
-        [inventory_item_id, qty]
+        'UPDATE inventory_item SET quantity = $2, updated_at = now() WHERE id = $1',
+        [inventory_item_id, nextQuantity]
       );
+      if (isLowStockThresholdCrossing(item.quantity, nextQuantity, item.min_quantity)) {
+        lowStockItems.push({ name: item.name, quantity: nextQuantity, unit: item.unit });
+      }
       await client.query(
         `INSERT INTO inventory_movement (item_id, type, quantity, amount, ref_type, ref_id)
          VALUES ($1, 'sale', $2, $3, 'booking_completion', $4)`,
@@ -207,7 +213,11 @@ export async function completeBooking(id, serviceId, payload) {
     }
 
     await client.query('COMMIT');
-    return getById(id, serviceId);
+    const completedBooking = await getById(id, serviceId);
+    for (const item of lowStockItems) {
+      queuePush(() => notifyLowStock(sid, item), 'low stock');
+    }
+    return completedBooking;
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;
@@ -227,6 +237,7 @@ export async function updateCompletion(id, serviceId, payload) {
     throw new Error('Тек аяқталған жазбаның төлем мәліметін өзгертуге болады');
   }
   const sid = booking.service_id || serviceId;
+  const lowStockItems = [];
   const {
     service_payment_amount,
     payment_type,
@@ -277,7 +288,7 @@ export async function updateCompletion(id, serviceId, payload) {
           throw new Error('Сату бағасы жарамды сан болуы керек');
         }
         const { rows: items } = await client.query(
-          'SELECT id, sale_price_min, sale_price_max, quantity FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
+          'SELECT id, name, sale_price_min, sale_price_max, quantity, min_quantity, unit FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
           [inventory_item_id, sid]
         );
         if (items.length === 0) throw new Error(`Бөлшек табылмады: ${inventory_item_id}`);
@@ -292,10 +303,14 @@ export async function updateCompletion(id, serviceId, payload) {
           'INSERT INTO part_sale (booking_id, inventory_item_id, quantity, unit_price) VALUES ($1, $2, $3, $4)',
           [id, inventory_item_id, qty, unitPrice]
         );
+        const nextQuantity = Number(item.quantity) - qty;
         await client.query(
-          'UPDATE inventory_item SET quantity = quantity - $2, updated_at = now() WHERE id = $1',
-          [inventory_item_id, qty]
+          'UPDATE inventory_item SET quantity = $2, updated_at = now() WHERE id = $1',
+          [inventory_item_id, nextQuantity]
         );
+        if (isLowStockThresholdCrossing(item.quantity, nextQuantity, item.min_quantity)) {
+          lowStockItems.push({ name: item.name, quantity: nextQuantity, unit: item.unit });
+        }
         await client.query(
           `INSERT INTO inventory_movement (item_id, type, quantity, amount, ref_type, ref_id)
            VALUES ($1, 'sale', $2, $3, 'booking_completion', $4)`,
@@ -362,7 +377,11 @@ export async function updateCompletion(id, serviceId, payload) {
     );
 
     await client.query('COMMIT');
-    return getById(id, serviceId);
+    const updatedBooking = await getById(id, serviceId);
+    for (const item of lowStockItems) {
+      queuePush(() => notifyLowStock(sid, item), 'low stock');
+    }
+    return updatedBooking;
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;

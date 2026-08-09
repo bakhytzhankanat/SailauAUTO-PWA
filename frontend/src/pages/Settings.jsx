@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
+import PushNotificationSettings from '../components/PushNotificationSettings';
 import {
   getSettings,
   updateSettings,
@@ -186,6 +187,7 @@ export default function Settings() {
         <h1 className="text-2xl font-bold text-white tracking-tight">Баптаулар</h1>
       </header>
       <main className="flex-1 overflow-y-auto p-4 pb-24 space-y-6">
+        <PushNotificationSettings />
         <section className="bg-card-bg rounded-xl border border-border-color p-4">
           <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Жылдам сілтемелер</h2>
           <div className="flex flex-col gap-3">

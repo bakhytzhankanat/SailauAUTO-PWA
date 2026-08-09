@@ -1,4 +1,5 @@
 import { pool } from '../db/pool.js';
+import { isLowStockThresholdCrossing, notifyLowStock, queuePush } from './pushService.js';
 
 /**
  * List inventory items for management. Any role. Scoped by service.
@@ -66,7 +67,7 @@ export async function createMovement(serviceId, data) {
   try {
     await client.query('BEGIN');
     const { rows: items } = await client.query(
-      'SELECT id, quantity FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
+      'SELECT id, name, quantity, min_quantity, unit FROM inventory_item WHERE id = $1 AND service_id = $2 FOR UPDATE',
       [inventory_item_id, serviceId]
     );
     if (items.length === 0) {
@@ -94,6 +95,12 @@ export async function createMovement(serviceId, data) {
       [inventory_item_id, type, qty, amount, note && note.trim() ? note.trim() : null]
     );
     await client.query('COMMIT');
+    if (isLowStockThresholdCrossing(current, newQty, items[0].min_quantity)) {
+      queuePush(
+        () => notifyLowStock(serviceId, { name: items[0].name, quantity: newQty, unit: items[0].unit }),
+        'low stock'
+      );
+    }
     return { ok: true, new_quantity: newQty };
   } catch (e) {
     await client.query('ROLLBACK').catch(() => {});

@@ -3,6 +3,7 @@ import { NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
+  { to: '/notifications', icon: 'notifications', label: 'Хабарландырулар', roles: ['manager', 'worker'] },
   { to: '/', icon: 'calendar_month', label: 'Күнтізбе', roles: ['owner', 'manager', 'worker'] },
   { to: '/booking/add', icon: 'add_box', label: 'Жазба қосу', roles: ['owner', 'manager'], seniorWorker: true },
   { to: '/clients', icon: 'group', label: 'Клиенттер', roles: ['owner', 'manager'], seniorWorker: true },

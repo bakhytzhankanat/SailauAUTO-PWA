@@ -18,6 +18,7 @@ import JobCompletedSuccess from './pages/JobCompletedSuccess';
 import ClientsList from './pages/ClientsList';
 import ClientProfile from './pages/ClientProfile';
 import Settings from './pages/Settings';
+import NotificationSettings from './pages/NotificationSettings';
 import Admin from './pages/Admin';
 import Reminders from './pages/Reminders';
 import WhatsAppInbox from './pages/WhatsAppInbox';
@@ -61,6 +62,7 @@ function AppRoutes() {
                 <Route path="/reminders" element={<Reminders />} />
                 <Route path="/whatsapp" element={<WhatsAppInbox />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/notifications" element={<NotificationSettings />} />
                 <Route path="/services-manage" element={<ServicesManage />} />
                 <Route path="/admin" element={<Admin />} />
               </Routes>
