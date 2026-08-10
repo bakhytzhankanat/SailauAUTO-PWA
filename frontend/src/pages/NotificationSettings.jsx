@@ -1,8 +1,16 @@
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import PushNotificationSettings from '../components/PushNotificationSettings';
+import { canAccessNotificationSettingsPage } from '../lib/staffNotificationsAccess';
 
 export default function NotificationSettings() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  if (!canAccessNotificationSettingsPage(user)) {
+    return <Navigate to={user?.role === 'super_admin' ? '/admin' : '/'} replace />;
+  }
+
   return (
     <div className="flex flex-col min-h-full">
       <header className="px-4 py-4 flex items-center bg-bg-main border-b border-border-color">
