@@ -123,11 +123,14 @@ export default function PushNotificationSettings() {
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="font-semibold text-white">Хабарландырулар</h2>
-          <p className="mt-1 text-xs leading-5 text-text-muted">Жаңа жазылу, төлем және жұмыс барысы туралы хабарлар.</p>
+          <p className="mt-2 text-sm leading-5 text-text-muted">
+            {status.loading
+              ? 'Тексерілуде...'
+              : enabled
+                ? 'Осы құрылғыда хабарландырулар қосылған'
+                : 'Осы құрылғыда хабарландырулар өшірулі'}
+          </p>
         </div>
-        <span className={`shrink-0 text-xs px-2 py-1 rounded ${enabled ? 'bg-primary/20 text-primary' : 'bg-border-color text-text-muted'}`}>
-          {status.loading ? 'Тексерілуде' : enabled ? 'Осы құрылғыда қосылған' : 'Осы құрылғыда өшірулі'}
-        </span>
       </div>
 
       {!status.loading && !status.supported && (
@@ -148,11 +151,11 @@ export default function PushNotificationSettings() {
         <div className="mt-4 flex flex-wrap gap-2">
           {enabled ? (
             <>
+              <button type="button" onClick={handleTest} disabled={busy} className="px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50">
+                Сынақ хабарламасы
+              </button>
               <button type="button" onClick={handleDisable} disabled={busy} className="px-4 py-2.5 rounded-lg border border-border-color text-sm font-medium text-white hover:bg-bg-main disabled:opacity-50">
                 {busy ? 'Күте тұрыңыз...' : 'Хабарландыруларды өшіру'}
-              </button>
-              <button type="button" onClick={handleTest} disabled={busy} className="px-4 py-2.5 rounded-lg bg-primary/20 text-primary text-sm font-medium hover:bg-primary/30 disabled:opacity-50">
-                Сынақ хабарламасы
               </button>
             </>
           ) : (

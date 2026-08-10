@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { canAccessStaffNotificationSettings } from '../lib/staffNotificationsAccess';
 
 const navItems = [
-  { to: '/notifications', icon: 'notifications', label: 'Хабарландырулар', roles: ['manager', 'worker'] },
   { to: '/', icon: 'calendar_month', label: 'Күнтізбе', roles: ['owner', 'manager', 'worker'] },
   { to: '/booking/add', icon: 'add_box', label: 'Жазба қосу', roles: ['owner', 'manager'], seniorWorker: true },
   { to: '/clients', icon: 'group', label: 'Клиенттер', roles: ['owner', 'manager'], seniorWorker: true },
   { to: '/inventory', icon: 'inventory_2', label: 'Қойма', roles: ['owner', 'manager', 'worker'] },
   { to: '/analytics', icon: 'analytics', label: 'Есеп', roles: ['owner'] },
-  { to: '/reminders', icon: 'notifications', label: 'Ескертпелер', roles: ['owner', 'manager', 'worker'] },
+  { to: '/reminders', icon: 'task_alt', label: 'Ескертпелер', roles: ['owner', 'manager', 'worker'] },
   { to: '/admin', icon: 'admin_panel_settings', label: 'Админка', roles: ['super_admin'] },
   { to: '/settings', icon: 'settings', label: 'Баптаулар', roles: ['owner'] },
 ];
@@ -18,16 +18,20 @@ export default function AppShell({ children }) {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [staffMenuOpen, setStaffMenuOpen] = useState(false);
+  const staffMenuRef = useRef(null);
 
   if (user?.role === 'super_admin' && location.pathname !== '/admin') {
     return <Navigate to="/admin" replace />;
   }
   const role = user?.role || '';
+  const showStaffNotifications = canAccessStaffNotificationSettings(user);
   const visibleItems = navItems.filter((item) =>
     item.roles.includes(role) || (item.seniorWorker && role === 'worker' && user?.is_senior_worker)
   );
 
   const handleLogout = () => {
+    setStaffMenuOpen(false);
     signOut();
     navigate('/login', { replace: true });
   };
@@ -52,6 +56,21 @@ export default function AppShell({ children }) {
     const interval = setInterval(checkDraft, 1000);
     return () => clearInterval(interval);
   }, [location.pathname]);
+
+  useEffect(() => {
+    setStaffMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!staffMenuOpen) return undefined;
+    const onPointerDown = (event) => {
+      if (staffMenuRef.current && !staffMenuRef.current.contains(event.target)) {
+        setStaffMenuOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [staffMenuOpen]);
 
   const handleClearDraft = () => {
     localStorage.removeItem('booking_draft');
@@ -101,7 +120,59 @@ export default function AppShell({ children }) {
               </NavLink>
             );
           })}
-          {(role === 'manager' || role === 'worker' || role === 'super_admin') && (
+          {showStaffNotifications && (
+            <div className="relative flex-1 min-w-0" ref={staffMenuRef}>
+              <button
+                type="button"
+                onClick={() => setStaffMenuOpen((open) => !open)}
+                className={`w-full flex flex-col items-center py-1 transition-colors ${
+                  staffMenuOpen || location.pathname.startsWith('/notifications')
+                    ? 'text-primary'
+                    : 'text-text-muted hover:text-white'
+                }`}
+                aria-expanded={staffMenuOpen}
+                aria-haspopup="menu"
+              >
+                <div
+                  className={`w-10 h-8 rounded-full flex items-center justify-center mb-1 ${
+                    staffMenuOpen || location.pathname.startsWith('/notifications') ? 'bg-primary/20' : ''
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-xl">more_horiz</span>
+                </div>
+                <span className="text-[10px] font-medium">Мәзір</span>
+              </button>
+              {staffMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute bottom-full right-0 mb-2 w-56 rounded-xl border border-border-color bg-card-bg shadow-lg shadow-black/40 overflow-hidden"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setStaffMenuOpen(false);
+                      navigate('/notifications');
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-white hover:bg-bg-main"
+                  >
+                    <span className="material-symbols-outlined text-primary text-xl" aria-hidden>notifications</span>
+                    <span>Хабарландырулар</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-white hover:bg-bg-main border-t border-border-color"
+                  >
+                    <span className="material-symbols-outlined text-text-muted text-xl" aria-hidden>logout</span>
+                    <span>Шығу</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          {(role === 'super_admin') && (
             <button
               type="button"
               onClick={handleLogout}
