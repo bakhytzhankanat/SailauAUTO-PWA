@@ -12,6 +12,7 @@ import {
 } from '../lib/api';
 import CarModelPicker from '../components/CarModelPicker';
 import VehiclePhoto from '../components/VehiclePhoto';
+import BrandLogo from '../components/BrandLogo';
 
 const STEP_KEYS_BASE = ['client', 'vehicle', 'plate', 'services', 'note', 'summary'];
 /** Old drafts may still hold this placeholder id for "Другое". */
@@ -613,8 +614,13 @@ function StepVehicle({ form, updateForm, vehicles }) {
             <button key={v.id} type="button" onClick={() => updateForm({ vehicle_catalog_id: v.id })} className={cardClass(isSelected)}>
               <VehiclePhoto name={v.name} className="w-full aspect-[3/2] shrink-0" />
               <div className="p-3 pt-2">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-text-muted font-semibold">{brand}</div>
-                <div className="font-semibold text-white text-sm leading-tight">{rest.join(' ') || v.name}</div>
+                <div className="flex items-center gap-2">
+                  <BrandLogo make={brand} />
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-text-muted font-semibold">{brand}</div>
+                    <div className="font-semibold text-white text-sm leading-tight">{rest.join(' ') || v.name}</div>
+                  </div>
+                </div>
                 <div className="text-xs text-text-muted mt-0.5">
                   {v.body_options?.length ? `Кузов: ${v.body_options.join(', ')}` : (v.body_type || 'Минивэн')}
                 </div>
