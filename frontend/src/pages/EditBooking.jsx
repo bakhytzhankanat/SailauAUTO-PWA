@@ -7,6 +7,7 @@ import {
   getServiceCategoriesWithServices,
   updateBooking,
 } from '../lib/api';
+import CarModelPicker from '../components/CarModelPicker';
 
 const BOX_IDS = [1, 2];
 const ALPHARD_ESTIMA_NAMES = ['Toyota Alphard', 'Toyota Estima'];
@@ -77,6 +78,7 @@ export default function EditBooking() {
         phone: data.phone ?? '',
         source: data.source ?? 'live',
         vehicle_catalog_id: data.vehicle_catalog_id ?? null,
+        vehicle_custom_name: data.vehicle_custom_name ?? '',
         body_type: data.body_type ?? '',
         plate_number: data.plate_number ?? '',
         box_id: data.box_id ?? 1,
@@ -131,6 +133,7 @@ export default function EditBooking() {
         if (v) {
           next.body_type = (v.body_options?.length > 0) ? '' : (v.body_type || v.name);
         }
+        if (!v?.is_other) next.vehicle_custom_name = '';
       }
       if (patch.start_time !== undefined || patch.duration !== undefined) {
         const start = patch.start_time ?? next.start_time;
@@ -194,6 +197,7 @@ export default function EditBooking() {
         phone: form.phone.trim(),
         source: form.source,
         vehicle_catalog_id: form.vehicle_catalog_id,
+        vehicle_custom_name: selectedVehicle?.is_other ? (form.vehicle_custom_name?.trim() || null) : null,
         body_type: form.body_type || null,
         plate_number: form.plate_number || null,
         box_id: form.box_id,
@@ -292,6 +296,14 @@ export default function EditBooking() {
                 <option key={v.id} value={v.id}>{v.name}{v.year ? ` (${v.year})` : ''}</option>
               ))}
             </select>
+            {selectedVehicle?.is_other && (
+              <div className="mt-3">
+                <CarModelPicker
+                  value={form.vehicle_custom_name || ''}
+                  onChange={(name) => updateForm({ vehicle_custom_name: name })}
+                />
+              </div>
+            )}
             {selectedVehicle?.body_options?.length > 0 && (
               <select value={form.body_type} onChange={(e) => updateForm({ body_type: e.target.value })} className="w-full mt-2 bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white">
                 <option value="">Кузов</option>

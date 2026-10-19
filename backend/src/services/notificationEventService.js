@@ -481,7 +481,7 @@ async function listSchedulerServices() {
 
 async function findUpcomingBookings(serviceId, date, time) {
   const { rows } = await pool.query(
-    `SELECT b.*, v.name AS vehicle_name
+    `SELECT b.*, COALESCE(NULLIF(to_jsonb(b)->>'vehicle_custom_name', ''), v.name) AS vehicle_name
      FROM booking b
      JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
      WHERE b.service_id = $1

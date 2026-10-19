@@ -7,11 +7,13 @@ const GUARANTEE_CATEGORY_ID = 'a0000000-0000-0000-0000-000000000004';
 
 export async function getVehicleCatalog() {
   const { rows } = await pool.query(
-    `SELECT id, name, body_type, year, body_options FROM vehicle_catalog ORDER BY name`
+    `SELECT id, name, body_type, year, body_options, to_jsonb(vehicle_catalog)->>'is_other' AS is_other
+     FROM vehicle_catalog ORDER BY name`
   );
   return rows.map((r) => ({
     ...r,
     body_options: r.body_options != null && Array.isArray(r.body_options) ? r.body_options : null,
+    is_other: r.is_other === 'true',
   }));
 }
 

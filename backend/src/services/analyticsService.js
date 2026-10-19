@@ -72,7 +72,7 @@ async function getPartSalesTotal(serviceId, date) {
  */
 async function getDayRecords(serviceId, date) {
   const { rows: bookingRows } = await pool.query(
-    `SELECT b.id, b.start_time, b.vehicle_catalog_id, v.name AS vehicle_name, b.plate_number,
+    `SELECT b.id, b.start_time, b.vehicle_catalog_id, COALESCE(NULLIF(to_jsonb(b)->>'vehicle_custom_name', ''), v.name) AS vehicle_name, b.plate_number,
             b.duration_minutes, b.service_payment_amount
      FROM booking b
      LEFT JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
@@ -346,7 +346,7 @@ export async function getSummary(serviceId, period, date, opts = {}) {
   if (opts.drill_master_user_id) {
     try {
       const { rows: drillRows } = await pool.query(
-        `SELECT b.id, b.date, b.start_time, b.end_time, b.duration_minutes, b.service_payment_amount, v.name AS vehicle_name
+        `SELECT b.id, b.date, b.start_time, b.end_time, b.duration_minutes, b.service_payment_amount, COALESCE(NULLIF(to_jsonb(b)->>'vehicle_custom_name', ''), v.name) AS vehicle_name
          FROM booking_master bm
          JOIN booking b ON b.id = bm.booking_id AND b.service_id = $1 AND b.status = 'completed' AND b.date >= $2 AND b.date <= $3 AND bm.master_user_id = $4
          LEFT JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id

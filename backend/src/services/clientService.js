@@ -129,12 +129,12 @@ export async function getById(id, serviceId) {
   const last_visit_date = toDateStr(statsRows[0]?.last_visit_date);
 
   const { rows: vehicles } = await pool.query(
-    `SELECT DISTINCT ON (b.vehicle_catalog_id, COALESCE(b.plate_number, ''))
-      v.name AS vehicle_name, v.body_type, v.year, b.plate_number
+    `SELECT DISTINCT ON (b.vehicle_catalog_id, COALESCE(b.plate_number, ''), COALESCE(to_jsonb(b)->>'vehicle_custom_name', ''))
+      COALESCE(NULLIF(to_jsonb(b)->>'vehicle_custom_name', ''), v.name) AS vehicle_name, v.body_type, v.year, b.plate_number
      FROM booking b
      JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
      WHERE b.client_id = $1
-     ORDER BY b.vehicle_catalog_id, COALESCE(b.plate_number, ''), b.date DESC`,
+     ORDER BY b.vehicle_catalog_id, COALESCE(b.plate_number, ''), COALESCE(to_jsonb(b)->>'vehicle_custom_name', ''), b.date DESC`,
     [id]
   );
 
@@ -166,7 +166,7 @@ export async function listVisits(clientId, serviceId) {
   if (!serviceId) throw new Error('service_id қажет');
   const { rows: bookings } = await pool.query(
     `SELECT b.id, b.date, b.start_time, b.end_time, b.service_payment_amount, b.payment_type, b.material_expense,
-            v.name AS vehicle_name, v.body_type, v.year, b.plate_number
+            COALESCE(NULLIF(to_jsonb(b)->>'vehicle_custom_name', ''), v.name) AS vehicle_name, v.body_type, v.year, b.plate_number
      FROM booking b
      JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
      WHERE b.client_id = $1 AND b.service_id = $2 AND b.status = 'completed'
