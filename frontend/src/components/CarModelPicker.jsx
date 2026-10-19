@@ -1,19 +1,11 @@
 import { useMemo, useState } from 'react';
 import { CAR_MAKES, CAR_MAKE_MODELS, POPULAR_MAKES } from '../data/carMakes';
+import BrandLogo from './BrandLogo';
 
 const MAX_RESULTS = 40;
 
 function norm(s) {
   return String(s || '').toLowerCase().replace(/[\s-]+/g, '');
-}
-
-function MakeBadge({ name }) {
-  const letter = name.replace(/^ВАЗ \(Lada\)$/, 'Lada').charAt(0).toUpperCase();
-  return (
-    <span className="w-7 h-7 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-bold flex items-center justify-center shrink-0">
-      {letter}
-    </span>
-  );
 }
 
 /**
@@ -83,14 +75,14 @@ export default function CarModelPicker({ value, onChange }) {
           {results.map((r) =>
             r.type === 'make' ? (
               <button key={`make-${r.make}`} type="button" onClick={() => openMake(r.make)} className={`${chip} ${chipIdle} w-full flex items-center gap-2`}>
-                <MakeBadge name={r.make} />
+                <BrandLogo make={r.make} />
                 <span className="flex-1">{r.make}</span>
                 <span className="text-text-muted text-xs">модельдер</span>
                 <span className="material-symbols-outlined text-text-muted text-lg">chevron_right</span>
               </button>
             ) : (
               <button key={`model-${r.label}`} type="button" onClick={() => choose(r.label)} className={`${chip} ${chipIdle} w-full flex items-center gap-2`}>
-                <MakeBadge name={r.make} />
+                <BrandLogo make={r.make} />
                 <span className="flex-1"><span className="text-text-muted">{r.make}</span> {r.model}</span>
               </button>
             )
@@ -111,7 +103,7 @@ export default function CarModelPicker({ value, onChange }) {
             <button type="button" onClick={() => setMake(null)} className="w-8 h-8 rounded-full bg-card-bg border border-border-color flex items-center justify-center" aria-label="Артқа">
               <span className="material-symbols-outlined text-text-muted text-lg">arrow_back</span>
             </button>
-            <MakeBadge name={currentMake.name} />
+            <BrandLogo make={currentMake.name} size="md" />
             <span className="text-white font-semibold">{currentMake.name}</span>
           </div>
           <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto">
@@ -139,18 +131,19 @@ export default function CarModelPicker({ value, onChange }) {
             <div className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mb-1.5">Танымал</div>
             <div className="grid grid-cols-3 gap-2">
               {popular.map((m) => (
-                <button key={m.name} type="button" onClick={() => openMake(m.name)} className={`${chip} ${chipIdle} flex items-center gap-2 px-2`}>
-                  <MakeBadge name={m.name} />
-                  <span className="truncate text-xs">{m.name}</span>
+                <button key={m.name} type="button" onClick={() => openMake(m.name)} className={`${chip} ${chipIdle} flex flex-col items-center gap-1.5 px-1 py-2.5`}>
+                  <BrandLogo make={m.name} size="lg" />
+                  <span className="text-[11px] leading-tight text-center">{m.name}</span>
                 </button>
               ))}
             </div>
           </div>
           <div>
             <div className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mb-1.5">Барлық маркалар ({CAR_MAKES.length})</div>
-            <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
+            <div className="flex flex-wrap gap-1.5 max-h-64 overflow-y-auto">
               {CAR_MAKES.map((m) => (
-                <button key={m.name} type="button" onClick={() => openMake(m.name)} className="px-2.5 py-1 rounded-md border border-border-color bg-card-bg text-white text-xs hover:border-primary/60">
+                <button key={m.name} type="button" onClick={() => openMake(m.name)} className="pl-1 pr-2.5 py-1 rounded-lg border border-border-color bg-card-bg text-white text-xs hover:border-primary/60 flex items-center gap-1.5">
+                  <BrandLogo make={m.name} />
                   {m.name}
                 </button>
               ))}
