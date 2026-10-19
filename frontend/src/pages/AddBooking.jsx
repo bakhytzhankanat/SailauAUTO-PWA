@@ -13,6 +13,8 @@ import {
 import CarModelPicker from '../components/CarModelPicker';
 import VehiclePhoto from '../components/VehiclePhoto';
 import BrandLogo from '../components/BrandLogo';
+import { Plate } from '../components/ui';
+import { todayIso, longDate, dayMonth, weekday } from '../lib/dates';
 
 const STEP_KEYS_BASE = ['client', 'vehicle', 'plate', 'services', 'note', 'summary'];
 /** Old drafts may still hold this placeholder id for "Другое". */
@@ -89,7 +91,7 @@ export default function AddBooking() {
       body_type: '',
       plate_number: '',
       box_id: 1,
-      date: new Date().toISOString().slice(0, 10),
+      date: todayIso(),
       start_time: '',
       duration: 60,
       end_time: '',
@@ -176,8 +178,9 @@ export default function AddBooking() {
   }, [currentStep, form.vehicle_catalog_id, form.body_type]);
 
   useEffect(() => {
-    if (stepIndex >= totalSteps && totalSteps > 0) setStepIndex(totalSteps - 1);
-  }, [totalSteps, stepIndex]);
+    // Wait for the catalogue: before it loads the body step is unknown and a saved draft would lose its last step.
+    if (vehicles.length > 0 && stepIndex >= totalSteps && totalSteps > 0) setStepIndex(totalSteps - 1);
+  }, [totalSteps, stepIndex, vehicles.length]);
 
   const canAddBooking = user?.role === 'owner' || user?.role === 'manager' || (user?.role === 'worker' && user?.is_senior_worker);
   if (user && !canAddBooking) return null;
@@ -313,40 +316,35 @@ export default function AddBooking() {
     return (h || 0) * 60 + (m || 0);
   }
 
+  const goBack = () => (stepIndex > 0 ? setStepIndex(stepIndex - 1) : navigate(-1));
+  const goToStep = (key) => {
+    const i = stepKeys.indexOf(key);
+    if (i >= 0) setStepIndex(i);
+  };
+
   return (
     <div className="flex flex-col h-full bg-bg-main">
-      <header className="px-4 py-4 flex items-center gap-3 bg-bg-main border-b border-border-color z-10 shrink-0">
-        <button
-          type="button"
-          onClick={() => (stepIndex > 0 ? setStepIndex(stepIndex - 1) : navigate(-1))}
-          className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-card-bg transition-colors"
-        >
-          <span className="material-symbols-outlined text-text-muted">arrow_back</span>
-        </button>
-        <div className="flex-1">
-          <h1 className="text-lg font-bold text-ink">Жаңа жазба</h1>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="w-2 h-2 rounded-full bg-primary" />
-            <span className="text-xs text-text-muted">{STEP_TITLES[currentStep]}</span>
+      <header className="sticky top-0 z-20 bg-bg-main/95 backdrop-blur border-b border-border-color/70 shrink-0">
+        <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+          <button type="button" onClick={goBack} className="icon-btn -ml-1" aria-label="Артқа">
+            <span className="material-symbols-outlined text-ink text-[22px]">arrow_back</span>
+          </button>
+          <div className="flex-1 min-w-0">
+            <h1 className="page-title">Жаңа жазба</h1>
+            <p className="text-xs text-text-muted">{STEP_TITLES[currentStep]}</p>
           </div>
+          <span className="text-xs font-semibold text-text-muted tabular-nums pr-1">Қадам {stepIndex + 1}/{totalSteps}</span>
         </div>
-        <div className="text-xs font-mono text-primary bg-primary/10 px-2 py-1 rounded border border-primary/20">
-          Қадам {stepIndex + 1}/{totalSteps}
+        <div className="flex gap-1 px-4 pb-3">
+          {stepKeys.map((key, i) => (
+            <span key={key} className={`h-1 flex-1 rounded-full transition-colors ${i <= stepIndex ? 'bg-primary' : 'bg-raised'}`} />
+          ))}
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="mb-6">
-          <div className="h-1 w-full bg-card-bg rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all"
-              style={{ width: `${((stepIndex + 1) / totalSteps) * 100}%` }}
-            />
-          </div>
-        </div>
-
+      <main className="flex-1 px-4 pt-5 pb-44">
         {(conflictError || submitError) && (
-          <div className="mb-4 p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">
+          <div className="mb-4 rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">
             {conflictError || submitError}
           </div>
         )}
@@ -363,18 +361,16 @@ export default function AddBooking() {
               prefillOnly={searchParams.get('prefill') === '1' && (searchParams.get('source') === 'whatsapp' || !!searchParams.get('phone') || !!searchParams.get('name'))}
             />
             {clientWarranties.length > 0 && (
-              <div className="bg-warn/20 border border-warn rounded-xl p-4 mt-4">
+              <div className="rounded-2xl border border-warn/40 bg-warn/10 p-4 mt-4">
                 <div className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-warn text-2xl">warning</span>
+                  <span className="material-symbols-outlined text-warn text-2xl">verified_user</span>
                   <div className="flex-1">
-                    <p className="text-warn font-bold text-sm mb-2">Клиенттің белсенді кепілдігі бар!</p>
+                    <p className="text-warn font-semibold text-sm mb-2">Клиенттің белсенді кепілдігі бар</p>
                     {clientWarranties.map((w) => (
-                      <div key={w.id} className="text-ink text-xs mb-2 bg-raised rounded-lg p-2">
-                        <p className="font-semibold">{w.service_name || 'Қызмет'}</p>
-                        <p className="text-text-muted mt-0.5">Мерзімі: {new Date(w.expires_at).toLocaleDateString('kk-KZ')}</p>
-                        {w.master_name && (
-                          <p className="text-primary mt-0.5">Орындаған шебер: {w.master_name}</p>
-                        )}
+                      <div key={w.id} className="text-ink text-xs mb-2 last:mb-0 bg-bg-main/60 rounded-xl p-2.5">
+                        <p className="font-semibold text-sm">{w.service_name || 'Қызмет'}</p>
+                        <p className="text-text-muted mt-0.5">Мерзімі: {longDate(String(w.expires_at).slice(0, 10))}</p>
+                        {w.master_name && <p className="text-primary mt-0.5">Орындаған шебер: {w.master_name}</p>}
                       </div>
                     ))}
                   </div>
@@ -406,20 +402,22 @@ export default function AddBooking() {
           <StepNote form={form} updateForm={updateForm} />
         )}
         {currentStep === 'summary' && (
-          <StepSummary form={form} selectedVehicle={selectedVehicle} categoriesWithServices={categoriesWithServices} />
+          <StepSummary form={form} selectedVehicle={selectedVehicle} categoriesWithServices={categoriesWithServices} onEdit={goToStep} />
         )}
       </main>
 
-      <div className="fixed bottom-20 right-4 z-40">
-        <button
-          type="button"
-          onClick={handleNext}
-          disabled={!canNext()}
-          className="bg-primary text-on-primary font-semibold px-6 py-4 rounded-full shadow-2xl shadow-primary/40 hover:opacity-90 active:scale-95 transition-all text-base flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none"
-        >
-          {currentStep === 'summary' ? (submitting ? 'Сақталуда...' : 'Жазбаны сақтау') : 'Келесі'}
-          {currentStep !== 'summary' && <span className="material-symbols-outlined text-xl">arrow_forward</span>}
-        </button>
+      <div className="fixed left-0 right-0 bottom-[76px] z-30 px-4 pt-3 pb-3 bg-gradient-to-t from-bg-main via-bg-main/95 to-bg-main/0">
+        <div className="flex gap-2">
+          {stepIndex > 0 && (
+            <button type="button" onClick={goBack} className="btn-secondary w-14 shrink-0 !px-0 py-4" aria-label="Артқа">
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+          )}
+          <button type="button" onClick={handleNext} disabled={!canNext() || submitting} className="btn-primary flex-1 text-base">
+            {currentStep === 'summary' ? (submitting ? 'Сақталуда...' : 'Жазбаны сақтау') : 'Келесі'}
+            <span className="material-symbols-outlined text-xl">{currentStep === 'summary' ? 'check' : 'arrow_forward'}</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -459,131 +457,115 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
   };
 
   return (
-    <div className="space-y-6">
-      {/* WhatsApp prefill: only name + phone, no client list */}
+    <div className="space-y-5">
       {prefillOnly ? (
-        <div className="flex items-center gap-2 py-2 text-primary text-sm font-medium">
+        <div className="flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2.5 text-primary text-sm font-medium">
           <span className="material-symbols-outlined text-lg">chat</span>
           Көзі: WhatsApp — деректер толтырылды
         </div>
       ) : null}
 
-      <section>
-        <h2 className="text-sm font-semibold text-ink flex items-center gap-2 mb-4">
-          <span className="material-symbols-outlined text-text-muted text-lg">person</span>
+      <section className="card p-4 space-y-4">
+        <h2 className="section-label flex items-center gap-2">
+          <span className="material-symbols-outlined text-lg">person</span>
           {prefillOnly ? 'Клиент' : 'Клиент (қолмен)'}
         </h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs text-text-muted mb-1">Аты</label>
-            <input
-              type="text"
-              value={form.client_name}
-              onChange={(e) => updateForm({ client_name: e.target.value, client_id: null })}
-              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-3 text-ink placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none"
-              placeholder="Клиент аты"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-text-muted mb-1">Телефон</label>
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={(e) => updateForm({ phone: e.target.value, client_id: null })}
-              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-3 text-ink placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none"
-              placeholder="+7 700 000 00 00"
-            />
-          </div>
-          {!prefillOnly && sourceLocked ? (
-            <div className="flex items-center gap-2 py-2 text-primary text-sm font-medium">
-              <span className="material-symbols-outlined text-lg">chat</span>
-              Көзі: WhatsApp
-            </div>
-          ) : null}
-          {!prefillOnly && !sourceLocked ? (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => updateForm({ source: 'live' })}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium ${
-                  form.source === 'live' ? 'bg-primary text-on-primary' : 'bg-card-bg border border-border-color text-text-muted'
-                }`}
-              >
-                Live
-              </button>
-              <button
-                type="button"
-                onClick={() => updateForm({ source: 'whatsapp' })}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium ${
-                  form.source === 'whatsapp' ? 'bg-primary text-on-primary' : 'bg-card-bg border border-border-color text-text-muted'
-                }`}
-              >
-                WhatsApp
-              </button>
-            </div>
-          ) : null}
+        <div>
+          <label className="block text-xs text-text-muted mb-1.5" htmlFor="client-name">Аты</label>
+          <input
+            id="client-name"
+            type="text"
+            value={form.client_name}
+            onChange={(e) => updateForm({ client_name: e.target.value, client_id: null })}
+            className="field"
+            placeholder="Клиент аты"
+          />
         </div>
+        <div>
+          <label className="block text-xs text-text-muted mb-1.5" htmlFor="client-phone">Телефон</label>
+          <input
+            id="client-phone"
+            type="tel"
+            inputMode="tel"
+            value={form.phone}
+            onChange={(e) => updateForm({ phone: e.target.value, client_id: null })}
+            className="field tabular-nums"
+            placeholder="+7 700 000 00 00"
+          />
+        </div>
+        {!prefillOnly && sourceLocked ? (
+          <div className="flex items-center gap-2 text-primary text-sm font-medium">
+            <span className="material-symbols-outlined text-lg">chat</span>
+            Көзі: WhatsApp
+          </div>
+        ) : null}
+        {!prefillOnly && !sourceLocked ? (
+          <div>
+            <span className="block text-xs text-text-muted mb-1.5">Көзі</span>
+            <div className="segmented">
+              <button type="button" aria-pressed={form.source === 'live'} onClick={() => updateForm({ source: 'live' })}>Live</button>
+              <button type="button" aria-pressed={form.source === 'whatsapp'} onClick={() => updateForm({ source: 'whatsapp' })}>WhatsApp</button>
+            </div>
+          </div>
+        ) : null}
       </section>
 
       {!prefillOnly ? (
-        <div className="border-t border-border-color pt-4">
+        <section className="card overflow-hidden">
           <button
             type="button"
             onClick={() => setShowClientBase((b) => !b)}
-            className="w-full flex items-center justify-between py-2 text-text-muted text-sm font-medium"
+            className="w-full flex items-center justify-between px-4 py-3.5 text-left"
           >
-            <span>Клиенттер базасы (қалауынша)</span>
-            <span className="material-symbols-outlined text-lg">{showClientBase ? 'expand_less' : 'expand_more'}</span>
+            <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+              <span className="material-symbols-outlined text-lg text-text-muted">contacts</span>
+              Клиенттер базасы (қалауынша)
+            </span>
+            <span className="material-symbols-outlined text-text-muted">{showClientBase ? 'expand_less' : 'expand_more'}</span>
           </button>
           {showClientBase ? (
-            <div className="space-y-3 mt-2">
+            <div className="px-3 pb-3 space-y-3 border-t border-border-color/70 pt-3">
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
-                  <span className="material-symbols-outlined text-lg">search</span>
-                </span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-lg pointer-events-none">search</span>
                 <input
                   type="text"
                   value={clientSearch}
                   onChange={(e) => setClientSearch(e.target.value)}
                   placeholder="Іздеу (аты, телефон немесе нөмір)"
-                  className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-ink placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none text-sm"
+                  className="field !py-2.5 pl-10 text-sm"
                 />
               </div>
-              <div className="max-h-48 overflow-y-auto space-y-2">
+              <div className="max-h-64 overflow-y-auto space-y-1.5">
                 {clients.length === 0 ? (
-                  <p className="text-text-muted text-sm">Клиенттер жоқ немесе іздеу нәтижесі бос</p>
+                  <p className="text-text-muted text-sm px-1 py-2">Клиенттер жоқ немесе іздеу нәтижесі бос</p>
                 ) : (
-                  clients.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => selectClient(c)}
-                      className={`w-full bg-card-bg border rounded-xl p-4 flex items-center justify-between text-left transition-all ${
-                        form.client_id === c.id ? 'border-primary bg-primary/10' : 'border-border-color hover:border-primary'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-raised flex items-center justify-center text-sm font-bold text-text-muted">
+                  clients.map((c) => {
+                    const on = form.client_id === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => selectClient(c)}
+                        className={`w-full rounded-xl px-3 py-2.5 flex items-center gap-3 text-left transition-colors ${on ? 'bg-primary/15 ring-1 ring-primary' : 'hover:bg-raised'}`}
+                      >
+                        <span className="w-9 h-9 rounded-full bg-raised flex items-center justify-center text-xs font-bold text-text-muted shrink-0">
                           {(c.name || '?').slice(0, 2).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-ink">{c.name}</div>
-                          <div className="text-xs text-text-muted font-mono">{c.phone}</div>
-                          {(c.last_vehicle_name || c.last_plate_number || c.last_body_type) && (
-                            <div className="text-[10px] text-text-muted mt-0.5">
-                              {[c.last_vehicle_name, c.last_body_type, c.last_plate_number].filter(Boolean).join(' • ')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      {form.client_id === c.id && <span className="material-symbols-outlined text-primary">check_circle</span>}
-                    </button>
-                  ))
+                        </span>
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-sm font-medium text-ink truncate">{c.name}</span>
+                          <span className="block text-xs text-text-muted tabular-nums truncate">
+                            {[c.phone, c.last_vehicle_name, c.last_plate_number].filter(Boolean).join(' · ')}
+                          </span>
+                        </span>
+                        {on && <span className="material-symbols-outlined icon-fill text-primary">check_circle</span>}
+                      </button>
+                    );
+                  })
                 )}
               </div>
             </div>
           ) : null}
-        </div>
+        </section>
       ) : null}
     </div>
   );
@@ -605,7 +587,7 @@ function StepVehicle({ form, updateForm, vehicles }) {
   );
   return (
     <div className="space-y-4 pb-24">
-      <h2 className="text-sm font-semibold text-text-muted mb-2">Танымал модельдер</h2>
+      <h2 className="section-label mb-2">Танымал модельдер</h2>
       <div className="grid grid-cols-2 gap-3">
         {models.map((v) => {
           const isSelected = form.vehicle_catalog_id === v.id;
@@ -634,7 +616,7 @@ function StepVehicle({ form, updateForm, vehicles }) {
           onClick={() => updateForm({ vehicle_catalog_id: otherId, body_type: otherVehicle?.body_type || 'Другое' })}
           className={cardClass(isOther)}
         >
-          <div className="w-full aspect-[3/2] shrink-0 bg-gradient-to-b from-[#2a2d31] to-[#151617] flex flex-col items-center justify-center gap-1">
+          <div className="w-full aspect-[3/2] shrink-0 photo-stage flex flex-col items-center justify-center gap-1">
             <span className="material-symbols-outlined text-4xl text-primary/80">manage_search</span>
             <span className="text-[11px] text-text-muted">Барлық маркалар</span>
           </div>
@@ -661,7 +643,7 @@ function StepBody({ form, updateForm, selectedVehicle }) {
   const preview = form.body_type || options[0];
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-semibold text-text-muted mb-3">Кузов таңдау</h2>
+      <h2 className="section-label mb-3">Кузов таңдау</h2>
       <div className="rounded-2xl overflow-hidden border border-border-color">
         <VehiclePhoto name={selectedVehicle?.name} bodyType={preview} className="w-full aspect-[3/2]" />
         <div className="px-4 py-3 bg-card-bg flex items-baseline justify-between gap-2">
@@ -690,16 +672,22 @@ function StepBody({ form, updateForm, selectedVehicle }) {
 
 function StepPlate({ form, updateForm }) {
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold text-ink text-center mb-4">Мемлекеттік нөмір</h2>
-      <p className="text-text-muted text-sm text-center mb-6">Еркін мәтін (міндетті емес)</p>
-      <input
-        type="text"
-        value={form.plate_number}
-        onChange={(e) => updateForm({ plate_number: e.target.value })}
-        className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-4 text-ink text-center text-lg placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none"
-        placeholder="KZ 123 ABC 01"
-      />
+    <div className="space-y-5">
+      <div className="text-center">
+        <h2 className="text-xl font-bold text-ink">Мемлекеттік нөмір</h2>
+        <p className="text-text-muted text-sm mt-1">Еркін мәтін (міндетті емес)</p>
+      </div>
+      <label className="mx-auto flex max-w-[300px] items-stretch overflow-hidden rounded-lg border-2 border-[#11161c] bg-white shadow-lg shadow-black/40">
+        <span className="flex w-9 flex-col items-center justify-end bg-[#00A3D9] pb-1.5 text-[10px] font-bold text-white">KZ</span>
+        <input
+          type="text"
+          value={form.plate_number}
+          onChange={(e) => updateForm({ plate_number: e.target.value.toUpperCase() })}
+          className="min-w-0 flex-1 bg-transparent px-3 py-3.5 text-center text-2xl font-bold uppercase tracking-[0.08em] text-[#0d1117] placeholder:text-[#9aa3ad] outline-none"
+          placeholder="123 ABC 01"
+          autoCapitalize="characters"
+        />
+      </label>
     </div>
   );
 }
@@ -727,6 +715,28 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
   const categoriesFiltered = categoriesWithServices.filter(
     (cat) => (cat.name === 'Қосымша қызметтер' ? showDopUslugi : true)
   );
+  const [busy, setBusy] = useState([]);
+
+  // Show which hours are already taken in the chosen box so the conflict is visible before saving.
+  useEffect(() => {
+    if (!form.date || !form.box_id) return undefined;
+    let cancelled = false;
+    getBookings(form.date, form.box_id)
+      .then((list) => { if (!cancelled) setBusy((Array.isArray(list) ? list : []).filter((b) => b.status !== 'no_show')); })
+      .catch(() => { if (!cancelled) setBusy([]); });
+    return () => { cancelled = true; };
+  }, [form.date, form.box_id]);
+
+  const slotTaken = (slot) => {
+    const [h, m] = slot.split(':').map(Number);
+    const s = h * 60 + m;
+    const e = s + (Number(form.duration) || 60);
+    return busy.some((b) => {
+      const bs = minutesOf(b.start_time);
+      const be = minutesOf(b.end_time);
+      return s < be && e > bs;
+    });
+  };
 
   const toggleService = (serviceId, quantity = 1) => {
     const next = [...(form.services || [])];
@@ -748,70 +758,58 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
     updateForm({ services: next });
   };
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
 
   const renderServiceRow = (s) => {
     const selected = form.services?.find((x) => x.service_catalog_id === s.id);
     return (
       <div
         key={s.id}
-        className={`flex flex-wrap items-center justify-between gap-2 p-4 rounded-xl border mb-2 ${
-          selected ? 'bg-primary/10 border-primary' : 'bg-card-bg border-border-color'
-        }`}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${selected ? 'bg-primary/15 ring-1 ring-primary/60' : ''}`}
       >
-        <div className="flex-1 min-w-0">
-          <span className="font-medium text-ink">{serviceDisplayName(s)}</span>
-          {selected && selected.warranty_mode && (
-            <span className="ml-2 text-xs text-status-completed">(Гарантия — 0 ₸)</span>
-          )}
-        </div>
-        {selected ? (
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => (selected.quantity || 1) <= 1 ? toggleService(s.id) : setQuantity(s.id, (selected.quantity || 1) - 1)}
-                className="w-8 h-8 rounded-lg bg-raised flex items-center justify-center text-ink hover:bg-danger/20"
-                title="Азайту немесе жою"
-              >
-                −
-              </button>
-              <span className="w-8 text-center font-bold text-ink">{selected.quantity}</span>
-              <button
-                type="button"
-                onClick={() => setQuantity(s.id, (selected.quantity || 1) + 1)}
-                className="w-8 h-8 rounded-lg bg-raised flex items-center justify-center text-ink disabled:opacity-50"
-              >
-                +
-              </button>
-            </div>
+        <button type="button" onClick={() => toggleService(s.id)} className="flex flex-1 min-w-0 items-center gap-3 text-left py-0.5">
+          <span className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${selected ? 'bg-primary border-primary text-on-primary' : 'border-faint'}`}>
+            {selected && <span className="material-symbols-outlined text-[16px]">check</span>}
+          </span>
+          <span className="text-[15px] text-ink leading-snug">
+            {serviceDisplayName(s)}
+            {selected && selected.warranty_mode && <span className="ml-1.5 text-xs text-status-completed">Гарантия — 0 ₸</span>}
+          </span>
+        </button>
+        {selected && (
+          <div className="flex items-center rounded-lg bg-bg-main/70 border border-border-color shrink-0">
+            <button
+              type="button"
+              onClick={() => (selected.quantity || 1) <= 1 ? toggleService(s.id) : setQuantity(s.id, (selected.quantity || 1) - 1)}
+              className="w-8 h-8 text-ink"
+              aria-label="Азайту немесе жою"
+            >
+              −
+            </button>
+            <span className="w-6 text-center font-semibold text-ink tabular-nums">{selected.quantity}</span>
+            <button type="button" onClick={() => setQuantity(s.id, (selected.quantity || 1) + 1)} className="w-8 h-8 text-ink" aria-label="Көбейту">+</button>
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => toggleService(s.id)}
-            className="text-primary text-sm font-medium"
-          >
-            Қосу
-          </button>
         )}
       </div>
     );
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <section>
-        <h2 className="text-sm font-semibold text-text-muted mb-3">Қызметті таңдау</h2>
-        <div className="space-y-4">
+        <div className="flex items-baseline justify-between mb-2 px-1">
+          <h2 className="section-label">Қызметті таңдау</h2>
+          {form.services?.length > 0 && <span className="text-xs text-primary font-semibold">{form.services.length} таңдалды</span>}
+        </div>
+        <div className="card p-1.5 space-y-1">
           {categoriesFiltered.map((cat) => (
-            <div key={cat.id}>
-              <div className="text-sm font-medium text-ink mb-2">{cat.name}</div>
+            <div key={cat.id} className="pb-1">
+              <div className="px-3 pt-2.5 pb-1 text-[13px] font-semibold text-text-muted">{cat.name}</div>
               {cat.name === 'Есік қызметтері' && (cat.services || []).some((s) => s.subgroup) ? (
                 <>
                   {[...new Set((cat.services || []).map((s) => s.subgroup).filter(Boolean))].map((sub) => (
-                    <div key={sub} className="mb-3">
-                      <div className="text-xs text-text-muted mb-1">{sub}</div>
+                    <div key={sub}>
+                      <div className="px-3 pt-1.5 text-[11px] text-faint">{sub}</div>
                       {(cat.services || []).filter((s) => s.subgroup === sub).map(renderServiceRow)}
                     </div>
                   ))}
@@ -826,100 +824,127 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold text-text-muted mb-3">Боксты таңдау</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {boxIds.map((boxId) => (
-            <button
-              key={boxId}
-              type="button"
-              onClick={() => updateForm({ box_id: boxId })}
-              className={`rounded-xl p-4 flex flex-col items-center gap-2 border-2 transition-all ${
-                form.box_id === boxId ? 'border-primary bg-primary/10' : 'border-border-color bg-card-bg'
-              }`}
-            >
-              <span className="material-symbols-outlined text-3xl text-text-muted">garage_home</span>
-              <span className="font-semibold text-sm">Бокс {boxId}</span>
-            </button>
-          ))}
+        <h2 className="section-label mb-2 px-1">Бокс</h2>
+        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${boxIds.length}, minmax(0, 1fr))` }}>
+          {boxIds.map((boxId) => {
+            const on = form.box_id === boxId;
+            return (
+              <button
+                key={boxId}
+                type="button"
+                onClick={() => updateForm({ box_id: boxId })}
+                className={`rounded-xl py-3 flex items-center justify-center gap-2 border transition-colors ${on ? 'border-primary bg-primary/15 text-ink' : 'border-border-color bg-card-bg text-text-muted'}`}
+              >
+                <span className={`material-symbols-outlined text-[22px] ${on ? 'text-primary' : ''}`}>garage_home</span>
+                <span className="font-semibold text-sm">Бокс {boxId}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      <section className="bg-card-bg rounded-xl p-4 border border-border-color">
-        <h2 className="text-sm font-semibold text-text-muted mb-4">Уақыт пен ұзақтық</h2>
-        <div className="mb-4">
-          <label className="text-xs text-text-muted block mb-2">Күн</label>
+      <section className="card p-4 space-y-4">
+        <div>
+          <label className="block text-xs text-text-muted mb-1.5" htmlFor="booking-date">Күн</label>
           <input
+            id="booking-date"
             type="date"
             value={form.date}
             min={today}
             onChange={(e) => updateForm({ date: e.target.value })}
-            className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink"
+            className="field !py-2.5"
           />
         </div>
-        <div className="mb-4">
-          <label className="text-xs text-text-muted block mb-2">Басталу уақыты</label>
-          <select
-            value={form.start_time}
-            onChange={(e) => updateForm({ start_time: e.target.value })}
-            className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink"
-          >
-            <option value="">Таңдаңыз</option>
-            {timeSlots.map((t) => (
-              <option key={t} value={t}>{t}</option>
+        <div>
+          <span className="block text-xs text-text-muted mb-1.5">Ұзақтығы</span>
+          <div className="grid grid-cols-4 gap-2">
+            {[60, 90, 120, 180].map((d) => (
+              <button key={d} type="button" onClick={() => updateForm({ duration: d })} className={`chip !px-0 ${Number(form.duration) === d ? 'chip-on' : ''}`}>
+                {d < 120 ? `${d} мин` : `${d / 60} сағ`}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
         <div>
-          <label className="text-xs text-text-muted block mb-2">Ұзақтығы (минут)</label>
-          <select
-            value={form.duration}
-            onChange={(e) => updateForm({ duration: Number(e.target.value) })}
-            className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink"
-          >
-            {[60, 90, 120, 180].map((d) => (
-              <option key={d} value={d}>{d} мин</option>
-            ))}
-          </select>
+          <div className="flex items-baseline justify-between mb-1.5">
+            <span className="text-xs text-text-muted">Басталу уақыты</span>
+            {form.start_time && form.end_time && <span className="text-xs text-ink tabular-nums">{form.start_time} – {form.end_time}</span>}
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {timeSlots.map((t) => {
+              const taken = slotTaken(t);
+              const on = form.start_time === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  disabled={taken && !on}
+                  onClick={() => updateForm({ start_time: t })}
+                  className={`rounded-xl py-2.5 text-sm font-semibold tabular-nums border transition-colors ${
+                    on ? 'bg-primary border-primary text-on-primary' : taken ? 'border-border-color/50 text-faint line-through bg-transparent' : 'border-border-color bg-raised/40 text-ink'
+                  }`}
+                >
+                  {t}
+                </button>
+              );
+            })}
+          </div>
+          {busy.length > 0 && <p className="text-[11px] text-faint mt-2">Сызылған уақыт — Бокс {form.box_id} бос емес.</p>}
         </div>
       </section>
     </div>
   );
 }
 
+function minutesOf(t) {
+  if (!t) return 0;
+  const [h, m] = String(t).slice(0, 5).split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
 function StepNote({ form, updateForm }) {
   return (
-    <div className="space-y-4">
-      <label className="block text-sm text-text-muted mb-2">Ескерту (міндетті емес)</label>
+    <div className="space-y-3">
+      <label className="section-label block px-1" htmlFor="booking-note">Ескерту (міндетті емес)</label>
       <textarea
+        id="booking-note"
         value={form.note}
         onChange={(e) => updateForm({ note: e.target.value })}
-        className="w-full bg-card-bg border border-border-color rounded-xl p-4 text-ink placeholder-text-muted min-h-[160px] resize-none focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+        className="field min-h-[160px] resize-none leading-relaxed"
         placeholder="Мысалы: Клиент өз майымен келеді"
       />
     </div>
   );
 }
 
-function StepSummary({ form, selectedVehicle, categoriesWithServices }) {
+function StepSummary({ form, selectedVehicle, categoriesWithServices, onEdit }) {
   const allServices = categoriesWithServices?.flatMap((c) => c.services || []) || [];
+  const Row = ({ step, label, children }) => (
+    <button type="button" onClick={() => onEdit(step)} className="w-full flex items-start gap-3 px-4 py-3.5 text-left hover:bg-raised/50">
+      <div className="flex-1 min-w-0">
+        <div className="text-xs text-text-muted mb-1">{label}</div>
+        {children}
+      </div>
+      <span className="material-symbols-outlined text-faint text-[20px] mt-3">edit</span>
+    </button>
+  );
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-bold text-ink mb-4">Жазбаны тексеру</h2>
-      <div className="bg-card-bg rounded-2xl border border-border-color overflow-hidden divide-y divide-border-color">
-        <div className="p-4">
-          <div className="text-text-muted text-xs font-semibold mb-1">Клиент</div>
-          <div className="text-ink font-bold">{form.client_name}</div>
-          <div className="text-primary text-sm">{form.phone}</div>
-        </div>
-        <div className="p-4">
-          <div className="text-text-muted text-xs font-semibold mb-1">Көлік</div>
-          <div className="text-ink font-bold">{form.vehicle_custom_name || selectedVehicle?.name || form.vehicle_name}</div>
-          <div className="text-text-muted text-sm">{form.body_type}</div>
-          {form.plate_number && <div className="font-mono text-sm mt-1">{form.plate_number}</div>}
-        </div>
-        <div className="p-4">
-          <div className="text-text-muted text-xs font-semibold mb-1">Қызметтер</div>
+    <div className="space-y-3">
+      <h2 className="text-lg font-bold text-ink px-1">Жазбаны тексеру</h2>
+      <div className="card overflow-hidden divide-y divide-border-color/70">
+        <Row step="client" label="Клиент">
+          <div className="text-ink font-semibold">{form.client_name}</div>
+          <div className="text-text-muted text-sm tabular-nums">{form.phone}</div>
+        </Row>
+        <Row step="vehicle" label="Көлік">
+          <div className="text-ink font-semibold">{form.vehicle_custom_name || selectedVehicle?.name || form.vehicle_name}</div>
+          <div className="flex items-center gap-2 mt-1">
+            {form.body_type && <span className="text-text-muted text-sm">Кузов {form.body_type}</span>}
+            <Plate number={form.plate_number} size="sm" />
+          </div>
+        </Row>
+        <Row step="services" label="Қызметтер">
           {(form.services || []).length === 0 ? (
             <div className="text-ink text-sm">—</div>
           ) : (
@@ -928,26 +953,22 @@ function StepSummary({ form, selectedVehicle, categoriesWithServices }) {
                 const service = allServices.find((x) => x.id === s.service_catalog_id);
                 const name = serviceDisplayName(service || { id: s.service_catalog_id, name: s.service_name });
                 return (
-                  <li key={s.service_catalog_id} className="flex justify-between items-center text-ink">
-                    <span>{name} ×{s.quantity}</span>
-                    <span className={s.warranty_mode ? 'text-status-completed' : ''}>
-                      {s.warranty_mode ? '0 ₸ (по гарантии)' : ''}
-                    </span>
+                  <li key={s.service_catalog_id} className="flex justify-between gap-2 text-ink">
+                    <span>{name} <span className="text-text-muted">×{s.quantity}</span></span>
+                    {s.warranty_mode && <span className="text-status-completed text-xs">0 ₸ (кепілдік)</span>}
                   </li>
                 );
               })}
             </ul>
           )}
-        </div>
-        <div className="p-4">
-          <div className="text-text-muted text-xs font-semibold mb-1">Бокс және уақыт</div>
-          <div className="text-ink">Бокс {form.box_id} • {form.date} • {form.start_time} – {form.end_time}</div>
-        </div>
+        </Row>
+        <Row step="services" label="Бокс және уақыт">
+          <div className="text-ink tabular-nums">Бокс {form.box_id} · {dayMonth(form.date)}, {weekday(form.date)} · {form.start_time}–{form.end_time}</div>
+        </Row>
         {form.note && (
-          <div className="p-4">
-            <div className="text-text-muted text-xs font-semibold mb-1">Ескерту</div>
+          <Row step="note" label="Ескерту">
             <div className="text-ink text-sm">{form.note}</div>
-          </div>
+          </Row>
         )}
       </div>
     </div>

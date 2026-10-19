@@ -191,19 +191,19 @@ export default function EditCompletion() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <header className="px-4 py-4 flex items-center bg-bg-main border-b border-border-color sticky top-0 z-10">
-        <button type="button" onClick={() => navigate(`/booking/${id}`)} className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center hover:bg-card-bg">
+      <header className="page-header">
+        <button type="button" onClick={() => navigate(`/booking/${id}`)} className="icon-btn -ml-1">
           <span className="material-symbols-outlined text-ink text-2xl">arrow_back</span>
         </button>
-        <span className="text-lg font-bold text-ink ml-2">Төлем мен бөлшектерді өңдеу</span>
+        <span className="page-title ml-1">Төлем мен бөлшектерді өңдеу</span>
       </header>
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-4 py-6 pb-32 space-y-6">
         {error && (
-          <div className="p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">{error}</div>
+          <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>
         )}
         <p className="text-text-muted text-sm">Аяқталған жазбаның төлем сомасын, төлем түрін, материал шығынын және сатылған бөлшектерді өзгертуге болады.</p>
         <div className="space-y-2">
-          <label className="text-text-muted text-xs font-semibold ml-1">Қызмет үшін төлем</label>
+          <label className="section-label">Қызмет үшін төлем</label>
           <div className="relative">
             <input
               type="number"
@@ -218,7 +218,7 @@ export default function EditCompletion() {
           </div>
         </div>
         <div className="space-y-3">
-          <label className="text-text-muted text-xs font-semibold ml-1">Төлем түрі</label>
+          <label className="section-label">Төлем түрі</label>
           <div className="grid grid-cols-2 gap-3">
             {PAYMENT_TYPES.map((pt) => (
               <label
@@ -237,11 +237,11 @@ export default function EditCompletion() {
           </div>
         </div>
         <div className="space-y-3 pt-2">
-          <label className="text-text-muted text-xs font-semibold ml-1">Қызметтер (қосу / саны / кепілдік)</label>
+          <label className="section-label">Қызметтер (қосу / саны / кепілдік)</label>
           <p className="text-text-muted text-xs">Қай қызметке кепілдік берілгенін «Кепілдік берілді» белгісімен таңдаңыз. Қызмет қосу мен кепілдік беру — бөлек.</p>
           <div className="space-y-2">
             {services.map((s) => (
-              <div key={s.service_catalog_id} className="bg-card-bg border border-border-color rounded-xl p-3 space-y-2">
+              <div key={s.service_catalog_id} className="card p-3 space-y-2">
                 <div className="flex justify-between items-center flex-wrap gap-2">
                   <div className="font-medium text-ink text-sm">{s.service_name}</div>
                   <div className="flex items-center gap-2">
@@ -256,7 +256,7 @@ export default function EditCompletion() {
                     type="checkbox"
                     checked={!!s.warranty_mode}
                     onChange={(e) => setServiceWarranty(s.service_catalog_id, e.target.checked)}
-                    className="rounded border-border-color text-primary focus:ring-primary"
+                    className="w-5 h-5 rounded accent-[rgb(var(--primary))]"
                   />
                   <span className="text-text-muted text-xs">Кепілдік берілді (осы қызметке)</span>
                 </label>
@@ -290,7 +290,7 @@ export default function EditCompletion() {
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-text-muted text-xs font-semibold ml-1">Материал шығыны</label>
+          <label className="section-label">Материал шығыны</label>
           <div className="relative">
             <input
               type="number"
@@ -305,12 +305,12 @@ export default function EditCompletion() {
           </div>
         </div>
         <div className="space-y-3 pt-2">
-          <label className="text-text-muted text-xs font-semibold ml-1">Сатылған бөлшектер</label>
+          <label className="section-label">Сатылған бөлшектер</label>
           <div className="space-y-2">
             <select
               value={addPartItemId}
               onChange={(e) => { setAddPartItemId(e.target.value); setAddPartUnitPrice(''); setAddPartPriceError(''); }}
-              className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-ink text-sm"
+              className="field !py-2.5 text-sm"
             >
               <option value="">Таңдаңыз</option>
               {items.map((i) => (
@@ -330,7 +330,7 @@ export default function EditCompletion() {
                       value={addPartUnitPrice}
                       onChange={(e) => { setAddPartUnitPrice(e.target.value); setAddPartPriceError(''); }}
                       placeholder={`${minP.toLocaleString()}–${maxP.toLocaleString()}`}
-                      className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-ink text-sm placeholder-text-muted"
+                      className="field !py-2.5 text-sm placeholder-text-muted"
                     />
                     {addPartPriceError && <p className="text-danger text-xs">{addPartPriceError}</p>}
                   </>
@@ -347,7 +347,7 @@ export default function EditCompletion() {
           </div>
           <div className="space-y-3">
             {partSales.map((p) => (
-              <div key={p.inventory_item_id} className="bg-card-bg border border-border-color rounded-xl p-4 flex justify-between items-center">
+              <div key={p.inventory_item_id} className="card p-4 flex justify-between items-center">
                 <div>
                   <div className="text-ink font-medium text-sm">{p.name}</div>
                   <div className="text-text-muted text-xs mt-0.5">{Number(p.unit_price).toLocaleString()} ₸ × {p.quantity}</div>
@@ -359,7 +359,7 @@ export default function EditCompletion() {
             ))}
           </div>
         </div>
-        <button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-primary/90 text-on-primary font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
+        <button type="submit" disabled={submitting} className="btn-primary w-full">
           {submitting ? 'Сақталуда...' : 'Өзгерістерді сақтау'}
         </button>
       </form>

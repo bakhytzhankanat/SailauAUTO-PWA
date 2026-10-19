@@ -91,13 +91,13 @@ export default function ClientProfile() {
   return (
     <div className="flex flex-col min-h-full">
       <header className="px-4 py-4 border-b border-border-color bg-bg-main sticky top-0 z-10 flex items-center gap-2">
-        <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
+        <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
           <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>
         <h1 className="text-lg font-bold text-ink">Клиент</h1>
       </header>
       <main className="flex-1 overflow-y-auto p-4 pb-24">
-        <div className="bg-card-bg rounded-xl border border-border-color p-4 mb-4">
+        <div className="card p-4 mb-4">
           <h2 className="text-xl font-bold text-ink">{client.name}</h2>
           <a href={`tel:${client.phone}`} className="text-primary font-medium text-lg mt-1 flex items-center gap-2">
             <span className="material-symbols-outlined">call</span>
@@ -108,11 +108,11 @@ export default function ClientProfile() {
           </span>
         </div>
         <div className="flex gap-4 mb-6">
-          <div className="flex-1 bg-card-bg rounded-xl border border-border-color p-3 text-center">
+          <div className="flex-1 card p-3 text-center">
             <div className="text-2xl font-bold text-primary">{stats.total_visits}</div>
             <div className="text-xs text-text-muted">келу саны</div>
           </div>
-          <div className="flex-1 bg-card-bg rounded-xl border border-border-color p-3 text-center">
+          <div className="flex-1 card p-3 text-center">
             <div className="text-lg font-bold text-ink">{stats.last_visit_date ? formatDate(stats.last_visit_date) : '—'}</div>
             <div className="text-xs text-text-muted">соңғы келу</div>
           </div>
@@ -145,7 +145,7 @@ export default function ClientProfile() {
                   key={v.id}
                   type="button"
                   onClick={() => navigate(`/booking/${v.id}`)}
-                  className="w-full bg-card-bg border border-border-color rounded-xl p-4 text-left hover:bg-raised transition-colors"
+                  className="w-full card p-4 text-left hover:bg-raised transition-colors"
                 >
                   <div className="flex justify-between items-start">
                     <span className="font-semibold text-ink">{formatDate(v.date)}</span>
@@ -173,7 +173,7 @@ export default function ClientProfile() {
               warranties.map((w) => (
                 <div
                   key={w.id}
-                  className="bg-card-bg border border-border-color rounded-xl p-4"
+                  className="card p-4"
                 >
                   <div className="flex justify-between items-start">
                     <span className="font-medium text-ink">{w.service_name}</span>

@@ -116,7 +116,7 @@ export default function PushNotificationSettings() {
   };
 
   return (
-    <section className="bg-card-bg rounded-xl border border-border-color p-4">
+    <section className="card p-4">
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 shrink-0 rounded-full bg-primary/20 flex items-center justify-center">
           <span className="material-symbols-outlined text-primary text-xl" aria-hidden>notifications</span>
@@ -178,7 +178,7 @@ export default function PushNotificationSettings() {
                   checked={Boolean(preference.enabled)}
                   disabled={busy}
                   onChange={(event) => handlePreference(preference.key, event.target.checked)}
-                  className="shrink-0 rounded border-border-color text-primary disabled:opacity-50"
+                  className="shrink-0 w-5 h-5 rounded accent-[rgb(var(--primary))] disabled:opacity-50"
                 />
               </label>
             ))}

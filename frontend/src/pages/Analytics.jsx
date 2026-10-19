@@ -316,49 +316,49 @@ export default function Analytics() {
       {!loading && data && tab === 'analytics' && (
         <main className="flex-1 px-3 py-4 overflow-y-auto space-y-4 pb-8">
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+            <div className="card p-3">
               <p className="text-text-muted text-xs">Қызмет кірісі</p>
               <p className="text-ink font-semibold">{fmt(m.service_income_total)}</p>
             </div>
-            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+            <div className="card p-3">
               <p className="text-text-muted text-xs">Бөлшек сату</p>
               <p className="text-ink font-semibold">{fmt(m.part_sales_total)}</p>
             </div>
-            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+            <div className="card p-3">
               <p className="text-text-muted text-xs">Материал шығыны</p>
               <p className="text-ink font-semibold">{fmt(m.material_expense_total)}</p>
             </div>
-            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+            <div className="card p-3">
               <p className="text-text-muted text-xs">Таза кіріс</p>
               <p className="text-ink font-semibold">{fmt(m.net_total)}</p>
             </div>
-            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+            <div className="card p-3">
               <p className="text-text-muted text-xs">Көліктер саны</p>
               <p className="text-ink font-semibold">{m.cars_count}</p>
             </div>
-            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+            <div className="card p-3">
               <p className="text-text-muted text-xs">Клиенттер (бірегей)</p>
               <p className="text-ink font-semibold">{m.unique_clients_count}</p>
             </div>
-            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+            <div className="card p-3">
               <p className="text-text-muted text-xs">Орташа чек</p>
               <p className="text-ink font-semibold">{fmt(m.avg_check)}</p>
             </div>
-            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+            <div className="card p-3">
               <p className="text-text-muted text-xs">Орташа күндық кіріс</p>
               <p className="text-ink font-semibold">{fmt(m.avg_daily_income)}</p>
             </div>
-            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+            <div className="card p-3">
               <p className="text-text-muted text-xs">Кепілдік берілді</p>
               <p className="text-ink font-semibold">{m.warranty_jobs_count ?? '—'}</p>
             </div>
-            <div className="bg-card-bg border border-border-color rounded-xl p-3">
+            <div className="card p-3">
               <p className="text-text-muted text-xs">Кепілдікпен жасалды</p>
               <p className="text-ink font-semibold">{m.warranty_used_count ?? '—'}</p>
             </div>
           </div>
 
-          <h2 className="text-xs font-bold text-primary ml-1">Өнімділік (Шеберлер)</h2>
+          <h2 className="section-label !text-primary">Өнімділік (Шеберлер)</h2>
           <div className="bg-card-bg border border-border-color rounded-xl overflow-hidden">
             {drillMasterId ? (
               <div>
@@ -427,7 +427,7 @@ export default function Analytics() {
             )}
           </div>
 
-          <h2 className="text-xs font-bold text-primary ml-1">Күндер бойынша</h2>
+          <h2 className="section-label !text-primary">Күндер бойынша</h2>
           <div className="bg-card-bg border border-border-color rounded-xl overflow-hidden">
             <table className="w-full text-xs text-left">
               <thead>
@@ -453,7 +453,7 @@ export default function Analytics() {
             </table>
           </div>
 
-          <h2 className="text-xs font-bold text-primary ml-1">Күндегі жазбалар</h2>
+          <h2 className="section-label !text-primary">Күндегі жазбалар</h2>
           <div className="bg-card-bg border border-border-color rounded-xl overflow-hidden space-y-4">
             {dailyRows.map((row) => {
               const records = row.records || [];
@@ -503,8 +503,8 @@ export default function Analytics() {
         <main className="flex-1 flex flex-col px-3 py-2 overflow-y-auto space-y-3 pb-32">
           {/* 1. Кірістер */}
           <section className="flex flex-col gap-2">
-            <h2 className="text-xs font-bold text-primary ml-1">1. Кірістер</h2>
-            <div className="bg-card-bg rounded-xl border border-border-color p-3 space-y-2">
+            <h2 className="section-label !text-primary">1. Кірістер</h2>
+            <div className="card p-3 space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-ink font-medium flex items-center gap-2">
                   <span className="material-symbols-outlined text-[16px] text-primary">payments</span>
@@ -528,8 +528,8 @@ export default function Analytics() {
 
           {/* 2. Шығындар */}
           <section className="flex flex-col gap-2">
-            <h2 className="text-xs font-bold text-primary ml-1">2. Шығындар</h2>
-            <div className="bg-card-bg rounded-xl border border-border-color p-3 space-y-2">
+            <h2 className="section-label !text-primary">2. Шығындар</h2>
+            <div className="card p-3 space-y-2">
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                 <div className="flex justify-between items-center">
                   <span className="text-text-muted">Материал</span>
@@ -569,7 +569,7 @@ export default function Analytics() {
                 <p className="text-lg font-bold text-ink leading-tight">{fmt(netBeforeCharity)}</p>
               </div>
             </div>
-            <div className="bg-card-bg rounded-xl border border-border-color p-3 flex flex-col justify-between min-h-[96px] relative overflow-hidden">
+            <div className="card p-3 flex flex-col justify-between min-h-[96px] relative overflow-hidden">
               <span className="material-symbols-outlined absolute -right-2 -bottom-2 text-primary/10 text-6xl pointer-events-none" aria-hidden>volunteer_activism</span>
               <p className="text-[10px] text-primary font-bold mb-1">4. Қайырымдылық</p>
               <div>
@@ -581,8 +581,8 @@ export default function Analytics() {
 
           {/* 5. Жалақы бөлу логикасы */}
           <section className="flex flex-col gap-2">
-            <h2 className="text-xs font-bold text-primary ml-1">5. Жалақы бөлу логикасы</h2>
-            <div className="bg-card-bg rounded-xl border border-border-color p-3 space-y-2">
+            <h2 className="section-label !text-primary">5. Жалақы бөлу логикасы</h2>
+            <div className="card p-3 space-y-2">
               <div className="flex justify-between items-center text-xs pb-1">
                 <span className="text-ink font-medium">Бөлінетін табыс (Таза есеп - Қайырымдылық)</span>
                 <span className="font-bold text-primary">{fmt(distributable)}</span>
@@ -622,7 +622,7 @@ export default function Analytics() {
 
           {/* 6. Шеберлер (үлесті бөлу) */}
           <section className="flex flex-col gap-2">
-            <h2 className="text-xs font-bold text-primary ml-1">6. Шеберлер (Үлесті бөлу)</h2>
+            <h2 className="section-label !text-primary">6. Шеберлер (Үлесті бөлу)</h2>
             <div className="bg-card-bg rounded-xl border border-border-color p-2">
               <div className="flex flex-wrap gap-2">
                 {workers.length === 0 && mastersList.length > 0 ? (
@@ -660,8 +660,8 @@ export default function Analytics() {
 
           {/* 7. Төлем кестесі */}
           <section className="flex flex-col gap-2 pb-4">
-            <h2 className="text-xs font-bold text-primary ml-1">7. Төлем кестесі</h2>
-            <div className="bg-card-bg rounded-xl border border-border-color overflow-hidden">
+            <h2 className="section-label !text-primary">7. Төлем кестесі</h2>
+            <div className="card overflow-hidden">
               <table className="w-full text-xs text-left">
                 <thead className="bg-raised text-text-muted font-medium">
                   <tr>
@@ -707,7 +707,7 @@ export default function Analytics() {
           {/* Ауысымды жабу тізімі */}
           {dayCloseList.length > 0 && (
             <section className="flex flex-col gap-2 pb-4">
-              <h2 className="text-xs font-bold text-primary ml-1">Ауысымды жабу тізімі</h2>
+              <h2 className="section-label !text-primary">Ауысымды жабу тізімі</h2>
               <ul className="space-y-2">
                 {dayCloseList.map((dc) => (
                   <li key={dc.id}>

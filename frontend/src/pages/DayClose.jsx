@@ -303,19 +303,19 @@ export default function DayClose() {
       <div className="print:hidden flex flex-col min-h-full">
       <header className="px-4 pt-4 pb-4 bg-bg-main border-b border-border-color sticky top-0 z-10 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
+          <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
             <span className="material-symbols-outlined text-text-muted">arrow_back</span>
           </button>
-          <h1 className="text-2xl font-bold text-ink tracking-tight">Ауысымды жабу</h1>
+          <h1 className="text-[22px] font-bold text-ink tracking-tight">Ауысымды жабу</h1>
         </div>
-        <button type="button" className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
+        <button type="button" className="icon-btn bg-card-bg border border-border-color">
           <span className="material-symbols-outlined text-text-muted">history</span>
         </button>
       </header>
 
       <main className="flex-1 overflow-y-auto p-4 pb-32 space-y-6">
         {error && (
-          <div className="p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">{error}</div>
+          <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>
         )}
 
         {dayClosesForDate.length > 0 && (
@@ -366,12 +366,12 @@ export default function DayClose() {
         )}
 
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
+          <h2 className="section-label flex items-center gap-2">
             <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
             Кірістер {isExtraShift ? '(қолмен)' : ''}
           </h2>
           {isExtraShift ? (
-            <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-4">
+            <div className="card p-4 space-y-4">
               <div>
                 <label className="text-xs text-text-muted block mb-1">Қызмет кірісі</label>
                 <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
@@ -395,7 +395,7 @@ export default function DayClose() {
               </div>
             </div>
           ) : (
-            <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-3">
+            <div className="card p-4 space-y-3">
               <div className="flex justify-between items-center pb-2 border-b border-border-color">
                 <span className="text-text-muted text-sm">Қызмет кассасы</span>
                 <span className="font-bold text-lg">{fmt(serviceTotal)}</span>
@@ -419,11 +419,11 @@ export default function DayClose() {
         {showForm && canCreate && (
           <>
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
+              <h2 className="section-label flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">payments</span>
                 Төлем түрі
               </h2>
-              <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-4">
+              <div className="card p-4 space-y-4">
                 <div>
                   <label className="text-xs text-text-muted block mb-2">KaspiPay *</label>
                   <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
@@ -462,11 +462,11 @@ export default function DayClose() {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
+              <h2 className="section-label flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">receipt_long</span>
                 Операциялық шығын
               </h2>
-              <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-3">
+              <div className="card p-4 space-y-3">
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-sm text-ink w-1/3">Түскі ас</span>
                   <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
@@ -493,7 +493,7 @@ export default function DayClose() {
 
             <section className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
+                <h2 className="section-label flex items-center gap-2">
                   <span className="material-symbols-outlined text-lg">groups</span>
                   Ауысымда кім болды
                 </h2>
@@ -503,13 +503,13 @@ export default function DayClose() {
                       type="checkbox"
                       checked={manualMasterDistribution}
                       onChange={(e) => setManualMasterDistribution(e.target.checked)}
-                      className="rounded border-border-color text-primary"
+                      className="w-5 h-5 rounded accent-[rgb(var(--primary))]"
                     />
                     <span className="text-xs text-text-muted">Қолмен %</span>
                   </label>
                 )}
               </div>
-              <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-3">
+              <div className="card p-4 space-y-3">
                 {workers.map((w) => (
                   <div key={w.id} className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -578,7 +578,7 @@ export default function DayClose() {
                 (editMode && !editReason.trim()) ||
                 (manualMasterDistribution && presentMasterIds.length > 0 && Math.abs(masterPercentsSum - 100) > 0.01)
               }
-              className="w-full bg-primary hover:bg-primary/90 text-on-primary font-bold py-4 rounded-xl disabled:opacity-50"
+              className="btn-primary w-full"
             >
               {submitting ? 'Сақталуда...' : editMode ? 'Өзгерістерді сақтау' : 'Ауысымды жабу'}
             </button>
@@ -588,11 +588,11 @@ export default function DayClose() {
         {snapshot && !editMode && (
           <>
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
+              <h2 className="section-label flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">volunteer_activism</span>
                 Қайырымдылық ({dc.charity_percent}%)
               </h2>
-              <div className="bg-card-bg rounded-xl border border-border-color p-4 flex justify-between items-center">
+              <div className="card p-4 flex justify-between items-center">
                 <div>
                   <span className="text-xs text-text-muted block">Есептелді</span>
                   <span className="text-sm text-ink font-medium line-through decoration-red-400">{fmt(dc.charity_raw)}</span>
@@ -610,11 +610,11 @@ export default function DayClose() {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
+              <h2 className="section-label flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">pie_chart</span>
                 Жалақы бөлу
               </h2>
-              <div className="bg-card-bg rounded-xl border border-border-color overflow-hidden">
+              <div className="card overflow-hidden">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-border-color text-text-muted font-medium">
                     <tr>
@@ -652,11 +652,11 @@ export default function DayClose() {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
+              <h2 className="section-label flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">summarize</span>
                 Қорытынды
               </h2>
-              <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-2 text-sm">
+              <div className="card p-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-text-muted">Барлық кіріс</span>
                   <span className="font-medium text-ink">{fmt(serviceTotal + partSalesTotal)}</span>

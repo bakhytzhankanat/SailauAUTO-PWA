@@ -46,7 +46,7 @@ export default function ClientsList() {
   return (
     <div className="flex flex-col min-h-full">
       <header className="px-4 py-4 border-b border-border-color bg-bg-main sticky top-0 z-10 flex items-center gap-2">
-        <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
+        <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
           <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>
         <h1 className="text-xl font-bold text-ink">Клиенттер</h1>
@@ -76,7 +76,7 @@ export default function ClientsList() {
                 key={c.id}
                 type="button"
                 onClick={() => navigate(`/clients/${c.id}`)}
-                className="w-full bg-card-bg border border-border-color rounded-xl p-4 text-left hover:bg-raised transition-colors"
+                className="w-full card p-4 text-left hover:bg-raised transition-colors"
               >
                 <div className="flex justify-between items-start">
                   <div>

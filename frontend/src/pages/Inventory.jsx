@@ -68,7 +68,7 @@ export default function Inventory() {
     <div className="flex flex-col min-h-full">
       <header className="px-4 pt-4 pb-4 flex flex-col gap-4 bg-bg-main border-b border-border-color sticky top-0 z-10">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-ink tracking-tight">Қойма</h1>
+          <h1 className="text-[22px] font-bold text-ink tracking-tight">Қойма</h1>
         </div>
         <div className="relative w-full">
           <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
@@ -85,7 +85,7 @@ export default function Inventory() {
       </header>
       <main className="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
         {error && (
-          <div className="p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">{error}</div>
+          <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>
         )}
         {loading ? (
           <p className="text-text-muted">Жүктелуде...</p>
@@ -273,7 +273,7 @@ function AddItemModal({ onClose, onSaved }) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
+              className="field !py-2.5"
               placeholder="Мысалы: Май сүзгісі"
             />
           </div>
@@ -286,7 +286,7 @@ function AddItemModal({ onClose, onSaved }) {
                 step="1"
                 value={salePriceMin}
                 onChange={(e) => setSalePriceMin(e.target.value)}
-                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
+                className="field !py-2.5"
                 placeholder="Сома"
               />
             </div>
@@ -298,7 +298,7 @@ function AddItemModal({ onClose, onSaved }) {
                 step="1"
                 value={salePriceMax}
                 onChange={(e) => setSalePriceMax(e.target.value)}
-                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
+                className="field !py-2.5"
                 placeholder="Сома"
               />
             </div>
@@ -310,7 +310,7 @@ function AddItemModal({ onClose, onSaved }) {
               min="0"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
+              className="field !py-2.5"
             />
           </div>
           <div>
@@ -320,7 +320,7 @@ function AddItemModal({ onClose, onSaved }) {
               min="0"
               value={minQuantity}
               onChange={(e) => setMinQuantity(e.target.value)}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
+              className="field !py-2.5"
               placeholder="Бос қалдыруға болады"
             />
           </div>
@@ -330,7 +330,7 @@ function AddItemModal({ onClose, onSaved }) {
               type="text"
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
+              className="field !py-2.5"
               placeholder="дана, л, кг..."
             />
           </div>
@@ -431,7 +431,7 @@ function MovementModal({ item, type, onClose, onSaved }) {
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
+              className="field !py-2.5"
               placeholder="Мысалы: Закуп, шығару себебі"
             />
           </div>

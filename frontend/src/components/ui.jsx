@@ -96,3 +96,17 @@ export function Sheet({ title, onClose, children, busy = false }) {
     </div>
   );
 }
+
+/** Full-width checkbox row with a large tap target. */
+export function CheckRow({ checked, onChange, label, icon }) {
+  return (
+    <label className={`flex items-center gap-3 px-3 py-3 rounded-xl border cursor-pointer transition-colors ${checked ? 'border-primary/60 bg-primary/10' : 'border-border-color bg-raised/30'}`}>
+      <input type="checkbox" checked={checked} onChange={onChange} className="sr-only" />
+      <span className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${checked ? 'bg-primary border-primary text-on-primary' : 'border-faint'}`}>
+        {checked && <span className="material-symbols-outlined text-[16px]">check</span>}
+      </span>
+      <span className="text-ink text-sm flex-1">{label}</span>
+      {icon && <span className={`material-symbols-outlined text-[18px] ${checked ? 'text-primary' : 'text-faint'}`}>{icon}</span>}
+    </label>
+  );
+}

@@ -95,11 +95,11 @@ export default function ServicesManage() {
 
       <main className="flex-1 overflow-y-auto px-4 py-4 pb-32 space-y-4">
         {error && (
-          <div className="p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">{error}</div>
+          <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>
         )}
 
         {categories.map((cat) => (
-          <section key={cat.id} className="bg-card-bg rounded-xl border border-border-color overflow-hidden">
+          <section key={cat.id} className="card overflow-hidden">
             <div className="px-4 py-3 border-b border-border-color">
               <h2 className="text-ink font-semibold text-sm">{cat.name}</h2>
               <span className="text-text-muted text-xs">{cat.services?.length || 0} қызмет</span>
@@ -138,7 +138,7 @@ export default function ServicesManage() {
               <select
                 value={form.category_id}
                 onChange={(e) => setForm((p) => ({ ...p, category_id: e.target.value }))}
-                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2.5 text-ink text-sm"
+                className="field !py-2.5 text-sm"
               >
                 <option value="">Таңдаңыз</option>
                 {categories.map((c) => (
@@ -153,7 +153,7 @@ export default function ServicesManage() {
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2.5 text-ink text-sm"
+                className="field !py-2.5 text-sm"
                 placeholder="Мысалы: Полировка"
               />
             </div>
@@ -164,7 +164,7 @@ export default function ServicesManage() {
                 type="text"
                 value={form.subgroup}
                 onChange={(e) => setForm((p) => ({ ...p, subgroup: e.target.value }))}
-                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2.5 text-ink text-sm"
+                className="field !py-2.5 text-sm"
                 placeholder="Мысалы: Дири"
               />
             </div>
@@ -175,7 +175,7 @@ export default function ServicesManage() {
                   type="checkbox"
                   checked={form.allVehicles}
                   onChange={(e) => setForm((p) => ({ ...p, allVehicles: e.target.checked, vehicle_ids: [] }))}
-                  className="rounded border-border-color text-primary focus:ring-primary"
+                  className="w-5 h-5 rounded accent-[rgb(var(--primary))]"
                 />
                 <span className="text-ink text-sm">Барлық көліктерге</span>
               </label>
@@ -191,7 +191,7 @@ export default function ServicesManage() {
                         type="checkbox"
                         checked={form.vehicle_ids.includes(v.id)}
                         onChange={() => toggleVehicle(v.id)}
-                        className="rounded border-border-color text-primary focus:ring-primary"
+                        className="w-5 h-5 rounded accent-[rgb(var(--primary))]"
                       />
                       <span className="text-ink truncate">{v.name}</span>
                     </label>

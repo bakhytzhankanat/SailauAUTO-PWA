@@ -76,7 +76,7 @@ export default function Admin() {
   return (
     <div className="flex flex-col min-h-full">
       <header className="px-4 py-4 border-b border-border-color bg-bg-main">
-        <h1 className="text-2xl font-bold text-ink tracking-tight">Админка</h1>
+        <h1 className="text-[22px] font-bold text-ink tracking-tight">Админка</h1>
         <p className="text-sm text-text-muted mt-1">Сервис иелерін басқару: жаңа ие қосу, деректерді көру</p>
       </header>
       <main className="flex-1 overflow-y-auto p-4 pb-24">
@@ -89,8 +89,8 @@ export default function Admin() {
             Ие (владелец) қосу
           </button>
         </div>
-        <section className="bg-card-bg rounded-xl border border-border-color p-4">
-          <h2 className="text-sm font-semibold text-text-muted mb-3">Сервис иелері</h2>
+        <section className="card p-4">
+          <h2 className="section-label mb-3">Сервис иелері</h2>
           {owners.length === 0 ? (
             <p className="text-text-muted text-sm">Иелер тізімі бос. Жаңа ие қосу батырмасын басыңыз.</p>
           ) : (
@@ -110,31 +110,31 @@ export default function Admin() {
         </section>
       </main>
       {addModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-4" onClick={() => !addSaving && setAddModal(false)}>
+        <div className="scrim sm:p-4" onClick={() => !addSaving && setAddModal(false)}>
           <div className="bg-card-bg rounded-t-2xl sm:rounded-xl border border-border-color w-full max-w-md p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-ink mb-4">Жаңа ие (владелец сервиса) қосу</h3>
             <p className="text-xs text-text-muted mb-3">Ие кіру үшін телефон, аты және құпия сөз береді. Ол өз сервисінде менеджерлер мен шеберлерді қоса алады.</p>
             <div className="space-y-3 mb-4">
               <div>
                 <label className="block text-xs text-text-muted mb-1">Телефон</label>
-                <input type="tel" value={ownerForm.phone} onChange={(e) => setOwnerForm((f) => ({ ...f, phone: e.target.value }))} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" placeholder="+7 700 000 00 00" />
+                <input type="tel" value={ownerForm.phone} onChange={(e) => setOwnerForm((f) => ({ ...f, phone: e.target.value }))} className="field !py-2.5" placeholder="+7 700 000 00 00" />
               </div>
               <div>
                 <label className="block text-xs text-text-muted mb-1">Аты</label>
-                <input type="text" value={ownerForm.display_name} onChange={(e) => setOwnerForm((f) => ({ ...f, display_name: e.target.value }))} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" placeholder="Аты-жөні" />
+                <input type="text" value={ownerForm.display_name} onChange={(e) => setOwnerForm((f) => ({ ...f, display_name: e.target.value }))} className="field !py-2.5" placeholder="Аты-жөні" />
               </div>
               <div>
                 <label className="block text-xs text-text-muted mb-1">Құпия сөз (кем дегенде 6 таңба)</label>
-                <input type="password" value={ownerForm.password} onChange={(e) => setOwnerForm((f) => ({ ...f, password: e.target.value }))} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" placeholder="••••••••" />
+                <input type="password" value={ownerForm.password} onChange={(e) => setOwnerForm((f) => ({ ...f, password: e.target.value }))} className="field !py-2.5" placeholder="••••••••" />
               </div>
               <div>
                 <label className="block text-xs text-text-muted mb-1">Сервис аты (міндетті емес)</label>
-                <input type="text" value={ownerForm.service_name} onChange={(e) => setOwnerForm((f) => ({ ...f, service_name: e.target.value }))} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" placeholder="Мысалы: Sailau AUTO" />
+                <input type="text" value={ownerForm.service_name} onChange={(e) => setOwnerForm((f) => ({ ...f, service_name: e.target.value }))} className="field !py-2.5" placeholder="Мысалы: Sailau AUTO" />
               </div>
             </div>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setAddModal(false)} disabled={addSaving} className="flex-1 py-2.5 rounded-lg border border-border-color text-text-muted text-sm font-medium">Болдырмау</button>
-              <button type="button" onClick={handleCreateOwner} disabled={addSaving} className="flex-1 py-2.5 rounded-lg bg-primary text-on-primary text-sm font-medium disabled:opacity-50">{addSaving ? '...' : 'Қосу'}</button>
+              <button type="button" onClick={() => setAddModal(false)} disabled={addSaving} className="btn-secondary flex-1 !py-2.5 text-sm">Болдырмау</button>
+              <button type="button" onClick={handleCreateOwner} disabled={addSaving} className="btn bg-primary text-on-primary flex-1 py-2.5 text-sm">{addSaving ? '...' : 'Қосу'}</button>
             </div>
           </div>
         </div>

@@ -267,20 +267,20 @@ export default function EditBooking() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <header className="px-4 py-4 flex items-center bg-bg-main border-b border-border-color sticky top-0 z-10 shrink-0">
-        <button type="button" onClick={() => navigate(`/booking/${id}`)} className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center hover:bg-card-bg">
+      <header className="page-header">
+        <button type="button" onClick={() => navigate(`/booking/${id}`)} className="icon-btn -ml-1">
           <span className="material-symbols-outlined text-ink text-2xl">arrow_back</span>
         </button>
-        <span className="text-lg font-bold text-ink ml-2">Жазбаны өңдеу</span>
+        <span className="page-title ml-1">Жазбаны өңдеу</span>
       </header>
       <main className="flex-1 overflow-y-auto px-4 py-4 pb-24">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {error && <div className="bg-danger/20 border border-danger rounded-xl p-3 text-danger text-sm">{error}</div>}
+          {error && <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>}
 
-          <section className="bg-card-bg rounded-xl border border-border-color p-4">
-            <h2 className="text-text-muted text-xs font-semibold mb-3">Клиент</h2>
-            <input type="text" value={form.client_name} onChange={(e) => updateForm({ client_name: e.target.value })} placeholder="Аты" className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink mb-2" />
-            <input type="tel" value={form.phone} onChange={(e) => updateForm({ phone: e.target.value })} placeholder="Телефон" className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink mb-2" />
+          <section className="card p-4">
+            <h2 className="section-label mb-3">Клиент</h2>
+            <input type="text" value={form.client_name} onChange={(e) => updateForm({ client_name: e.target.value })} placeholder="Аты" className="field !py-2.5 mb-2" />
+            <input type="tel" value={form.phone} onChange={(e) => updateForm({ phone: e.target.value })} placeholder="Телефон" className="field !py-2.5 mb-2" />
             <div className="flex gap-2">
               {['live', 'whatsapp'].map((src) => (
                 <button key={src} type="button" onClick={() => updateForm({ source: src })} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${form.source === src ? 'bg-primary text-on-primary' : 'bg-raised text-text-muted'}`}>{src === 'live' ? 'Live' : 'WhatsApp'}</button>
@@ -288,9 +288,9 @@ export default function EditBooking() {
             </div>
           </section>
 
-          <section className="bg-card-bg rounded-xl border border-border-color p-4">
-            <h2 className="text-text-muted text-xs font-semibold mb-3">Көлік</h2>
-            <select value={form.vehicle_catalog_id || ''} onChange={(e) => updateForm({ vehicle_catalog_id: e.target.value || null })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink">
+          <section className="card p-4">
+            <h2 className="section-label mb-3">Көлік</h2>
+            <select value={form.vehicle_catalog_id || ''} onChange={(e) => updateForm({ vehicle_catalog_id: e.target.value || null })} className="field !py-2.5">
               <option value="">Таңдаңыз</option>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>{v.name}{v.year ? ` (${v.year})` : ''}</option>
@@ -315,33 +315,33 @@ export default function EditBooking() {
             <input type="text" value={form.plate_number} onChange={(e) => updateForm({ plate_number: e.target.value })} placeholder="Нөмір белгісі" className="w-full mt-2 bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" />
           </section>
 
-          <section className="bg-card-bg rounded-xl border border-border-color p-4">
-            <h2 className="text-text-muted text-xs font-semibold mb-3">Уақыт және бокс</h2>
+          <section className="card p-4">
+            <h2 className="section-label mb-3">Уақыт және бокс</h2>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-text-muted block mb-1">Күн</label>
-                <input type="date" value={form.date} onChange={(e) => updateForm({ date: e.target.value })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" />
+                <input type="date" value={form.date} onChange={(e) => updateForm({ date: e.target.value })} className="field !py-2.5" />
               </div>
               <div>
                 <label className="text-xs text-text-muted block mb-1">Бокс</label>
-                <select value={form.box_id} onChange={(e) => updateForm({ box_id: Number(e.target.value) })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink">
+                <select value={form.box_id} onChange={(e) => updateForm({ box_id: Number(e.target.value) })} className="field !py-2.5">
                   {BOX_IDS.map((bid) => <option key={bid} value={bid}>{bid}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs text-text-muted block mb-1">Басталу</label>
-                <input type="time" value={form.start_time} onChange={(e) => updateForm({ start_time: e.target.value })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" />
+                <input type="time" value={form.start_time} onChange={(e) => updateForm({ start_time: e.target.value })} className="field !py-2.5" />
               </div>
               <div>
                 <label className="text-xs text-text-muted block mb-1">Ұзақтығы (мин)</label>
-                <input type="number" min={15} max={480} value={form.duration} onChange={(e) => updateForm({ duration: Number(e.target.value) || 60 })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" />
+                <input type="number" min={15} max={480} value={form.duration} onChange={(e) => updateForm({ duration: Number(e.target.value) || 60 })} className="field !py-2.5" />
               </div>
             </div>
             <p className="text-text-muted text-xs mt-2">Аяқталу: {form.end_time}</p>
           </section>
 
-          <section className="bg-card-bg rounded-xl border border-border-color p-4">
-            <h2 className="text-text-muted text-xs font-semibold mb-3">Қызметтер</h2>
+          <section className="card p-4">
+            <h2 className="section-label mb-3">Қызметтер</h2>
             {categoriesFiltered.map((cat) => (
               <div key={cat.id} className="mb-4">
                 <div className="text-sm font-medium text-ink mb-2">{cat.name}</div>
@@ -350,12 +350,12 @@ export default function EditBooking() {
             ))}
           </section>
 
-          <section className="bg-card-bg rounded-xl border border-border-color p-4">
-            <h2 className="text-text-muted text-xs font-semibold mb-2">Ескерту</h2>
-            <textarea value={form.note} onChange={(e) => updateForm({ note: e.target.value })} placeholder="Қосымша ақпарат" rows={2} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink resize-none" />
+          <section className="card p-4">
+            <h2 className="section-label mb-2">Ескерту</h2>
+            <textarea value={form.note} onChange={(e) => updateForm({ note: e.target.value })} placeholder="Қосымша ақпарат" rows={2} className="field !py-2.5 resize-none" />
           </section>
 
-          <button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-primary/90 text-on-primary font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
+          <button type="submit" disabled={submitting} className="btn-primary w-full">
             {submitting ? 'Сақталуда...' : 'Өзгерістерді сақтау'}
           </button>
         </form>

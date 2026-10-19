@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getBooking, getInventoryItems, completeBooking, getWorkers } from '../lib/api';
 import DoorSidePicker from '../components/DoorSidePicker';
+import { PageHeader, Loading, ErrorNote, CheckRow } from '../components/ui';
+import { clockTime, money } from '../lib/dates';
 
 const PAYMENT_TYPES = [
   { value: 'cash', label: 'Қолма-қол', icon: 'payments' },
@@ -133,9 +135,10 @@ export default function PaymentEntry() {
 
   if (loading || !booking) {
     return (
-      <div className="p-4">
-        <p className="text-text-muted">Жүктелуде...</p>
-      </div>
+      <>
+        <PageHeader title="Төлем енгізу" />
+        <Loading />
+      </>
     );
   }
   if (booking.status !== 'in_progress') {
@@ -143,207 +146,173 @@ export default function PaymentEntry() {
     return null;
   }
 
+  const partsTotal = partSales.reduce((sum, p) => sum + Number(p.unit_price) * Number(p.quantity), 0);
+  const total = (Number(servicePaymentAmount) || 0) + partsTotal;
+
   return (
     <div className="flex flex-col min-h-full">
-      <header className="px-4 py-4 flex items-center bg-bg-main border-b border-border-color sticky top-0 z-10">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center hover:bg-card-bg active:scale-95 transition-all"
-        >
-          <span className="material-symbols-outlined text-ink text-2xl">arrow_back</span>
-        </button>
-        <span className="text-lg font-bold text-ink ml-2">Төлем енгізу</span>
-      </header>
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-4 py-6 pb-32 space-y-6">
-        {error && (
-          <div className="p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">{error}</div>
-        )}
-        <div className="bg-card-bg border border-border-color rounded-xl p-4 space-y-1">
-          <div className="text-text-muted text-xs font-semibold">Уақыт</div>
-          <div className="text-ink text-sm">
-            Басталды: {booking.started_at
-              ? new Date(booking.started_at).toLocaleTimeString('kk-KZ', { hour: '2-digit', minute: '2-digit' })
-              : '—'}
-          </div>
-        </div>
-        <div className="space-y-2">
-          <label className="text-text-muted text-xs font-semibold ml-1">Қызмет үшін төлем</label>
-          <div className="relative">
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={servicePaymentAmount}
-              onChange={(e) => setServicePaymentAmount(e.target.value)}
-              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-4 text-ink text-lg placeholder-faint focus:ring-1 focus:ring-primary focus:border-primary outline-none font-medium"
-              placeholder="Мысалы: 25000"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted font-medium">₸</span>
-          </div>
-        </div>
-        <div className="space-y-3">
-          <label className="text-text-muted text-xs font-semibold ml-1">Төлем түрі</label>
-          <div className="grid grid-cols-2 gap-3">
-            {PAYMENT_TYPES.map((pt) => (
-              <label
-                key={pt.value}
-                className={`cursor-pointer rounded-xl p-4 flex flex-col items-center justify-center gap-2 border-2 transition-all ${
-                  paymentType === pt.value
-                    ? pt.accent
-                      ? 'border-danger bg-danger/10'
-                      : 'border-primary bg-primary/10'
-                    : 'border-border-color bg-card-bg hover:border-border-color'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment_type"
-                  value={pt.value}
-                  checked={paymentType === pt.value}
-                  onChange={() => setPaymentType(pt.value)}
-                  className="sr-only"
-                />
-                <span className={`material-symbols-outlined ${paymentType === pt.value ? (pt.accent ? 'text-danger' : 'text-primary') : 'text-text-muted'}`}>
-                  {pt.icon}
-                </span>
-                <span className={`text-sm font-medium ${paymentType === pt.value ? (pt.accent ? 'text-danger' : 'text-primary') : 'text-ink'}`}>
-                  {pt.label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-        <div className="space-y-2">
-          <label className="text-text-muted text-xs font-semibold ml-1">Материал шығыны (қосымша)</label>
-          <div className="relative">
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={materialExpense}
-              onChange={(e) => setMaterialExpense(e.target.value)}
-              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-4 text-ink text-lg placeholder-faint focus:ring-1 focus:ring-primary focus:border-primary outline-none font-medium"
-              placeholder="Сома"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted font-medium">₸</span>
-          </div>
-          <p className="text-faint text-xs ml-1">Жұмыс барысында қолданылған шығын материалдарының құны.</p>
-        </div>
-        <div className="space-y-3 pt-2">
-          <label className="text-text-muted text-xs font-semibold ml-1">Сатылған бөлшектер</label>
-          <div className="space-y-2">
-            <select
-              value={addPartItemId}
-              onChange={(e) => {
-                setAddPartItemId(e.target.value);
-                setAddPartUnitPrice('');
-                setAddPartPriceError('');
-              }}
-              className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-ink text-sm"
-            >
-              <option value="">Таңдаңыз</option>
-              {items.map((i) => (
-                <option key={i.id} value={i.id}>{i.name}{i.quantity != null ? ` (қалд. ${i.quantity})` : ''}</option>
-              ))}
-            </select>
-            {items.length === 0 && !loading && (
-              <p className="text-text-muted text-xs mt-1">Қоймада бөлшектер жоқ. Алдымен Қойма бөлімінен бөлшек қосыңыз.</p>
-            )}
-            {selectedItem && (
-              <div className="bg-bg-main rounded-lg p-3 space-y-2">
-                <p className="text-text-muted text-xs">
-                  Баға: {minP === maxP
-                    ? `${minP.toLocaleString()} ₸`
-                    : `${minP.toLocaleString()}–${maxP.toLocaleString()} ₸`}
-                </p>
-                {isFixedPrice ? (
-                  <p className="text-ink text-sm">Бір баға — Қосу батырмасымен қосылады</p>
-                ) : (
-                  <>
-                    <input
-                      type="number"
-                      min={minP}
-                      max={maxP}
-                      step="1"
-                      value={addPartUnitPrice}
-                      onChange={(e) => {
-                        setAddPartUnitPrice(e.target.value);
-                        setAddPartPriceError('');
-                      }}
-                      placeholder={`${minP.toLocaleString()}–${maxP.toLocaleString()}`}
-                      className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-ink text-sm placeholder-text-muted"
-                    />
-                    {addPartPriceError && <p className="text-danger text-xs">{addPartPriceError}</p>}
-                  </>
-                )}
-              </div>
-            )}
-            <div className="flex gap-2 items-center">
+      <PageHeader title="Төлем енгізу" subtitle={`${booking.vehicle_name} · басталды ${clockTime(booking.started_at)}`} />
+      <form id="payment-form" onSubmit={handleSubmit} className="flex-1 px-4 pt-4 pb-48 space-y-4">
+        <ErrorNote>{error}</ErrorNote>
+
+        <section className="card p-4 space-y-4">
+          <div>
+            <label className="section-label block mb-2" htmlFor="pay-amount">Қызмет үшін төлем</label>
+            <div className="relative">
               <input
+                id="pay-amount"
                 type="number"
-                min="1"
-                value={addPartQty}
-                onChange={(e) => setAddPartQty(Number(e.target.value) || 1)}
-                className="w-20 bg-card-bg border border-border-color rounded-lg px-2 py-2 text-ink text-center text-sm"
+                inputMode="numeric"
+                min="0"
+                step="1"
+                value={servicePaymentAmount}
+                onChange={(e) => setServicePaymentAmount(e.target.value)}
+                className="field !py-4 !text-2xl font-semibold tabular-nums pr-12"
+                placeholder="0"
               />
-              <span className="text-text-muted text-sm">дана</span>
-              <button type="button" onClick={addPartSale} className="text-primary text-sm font-semibold flex items-center gap-1">
-                <span className="material-symbols-outlined text-lg">add</span>
-                Қосу
-              </button>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xl">₸</span>
             </div>
           </div>
-          <div className="space-y-3">
-            {partSales.map((p) => (
-              <div
-                key={p.inventory_item_id}
-                className="bg-card-bg border border-border-color rounded-xl p-4 flex justify-between items-center"
-              >
-                <div>
-                  <div className="text-ink font-medium text-sm">{p.name}</div>
-                  <div className="text-text-muted text-xs mt-0.5">{Number(p.unit_price).toLocaleString()} ₸ × {p.quantity}</div>
+          <div>
+            <span className="section-label block mb-2">Төлем түрі</span>
+            <div className="grid grid-cols-3 gap-2">
+              {PAYMENT_TYPES.map((pt) => {
+                const on = paymentType === pt.value;
+                return (
+                  <label
+                    key={pt.value}
+                    className={`cursor-pointer rounded-xl py-3 flex flex-col items-center gap-1.5 border transition-colors ${
+                      on ? (pt.accent ? 'border-danger bg-danger/10 text-danger' : 'border-primary bg-primary/10 text-primary') : 'border-border-color bg-raised/40 text-text-muted'
+                    }`}
+                  >
+                    <input type="radio" name="payment_type" value={pt.value} checked={on} onChange={() => setPaymentType(pt.value)} className="sr-only" />
+                    <span className={`material-symbols-outlined ${on ? 'icon-fill' : ''}`}>{pt.icon}</span>
+                    <span className={`text-sm font-semibold ${on ? '' : 'text-ink'}`}>{pt.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <label className="section-label block mb-2" htmlFor="pay-material">Материал шығыны <span className="font-normal text-faint">(қосымша)</span></label>
+            <div className="relative">
+              <input
+                id="pay-material"
+                type="number"
+                inputMode="numeric"
+                min="0"
+                step="1"
+                value={materialExpense}
+                onChange={(e) => setMaterialExpense(e.target.value)}
+                className="field tabular-nums pr-10"
+                placeholder="0"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted">₸</span>
+            </div>
+            <p className="text-faint text-xs mt-1.5">Жұмыс барысында қолданылған шығын материалдарының құны.</p>
+          </div>
+        </section>
+
+        <section className="card p-4 space-y-3">
+          <h2 className="section-label">Сатылған бөлшектер</h2>
+          {partSales.length > 0 && (
+            <ul className="divide-y divide-border-color/70 -mx-1">
+              {partSales.map((p) => (
+                <li key={p.inventory_item_id} className="flex items-center gap-3 px-1 py-2.5">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-ink text-sm font-medium truncate">{p.name}</div>
+                    <div className="text-text-muted text-xs tabular-nums">{money(p.unit_price)} × {p.quantity}</div>
+                  </div>
+                  <span className="text-ink text-sm font-semibold tabular-nums">{money(p.unit_price * p.quantity)}</span>
+                  <button type="button" onClick={() => removePartSale(p.inventory_item_id)} className="icon-btn w-8 h-8 hover:!text-danger" aria-label="Жою">
+                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <select
+            value={addPartItemId}
+            onChange={(e) => {
+              setAddPartItemId(e.target.value);
+              setAddPartUnitPrice('');
+              setAddPartPriceError('');
+            }}
+            className="field !py-2.5 text-sm"
+          >
+            <option value="">Бөлшек таңдаңыз</option>
+            {items.map((i) => (
+              <option key={i.id} value={i.id}>{i.name}{i.quantity != null ? ` (қалд. ${i.quantity})` : ''}</option>
+            ))}
+          </select>
+          {items.length === 0 && !loading && (
+            <p className="text-text-muted text-xs">Қоймада бөлшектер жоқ. Алдымен Қойма бөлімінен бөлшек қосыңыз.</p>
+          )}
+          {selectedItem && (
+            <div className="rounded-xl bg-raised/50 p-3 space-y-2.5">
+              <p className="text-text-muted text-xs">
+                Баға: <span className="text-ink tabular-nums">{minP === maxP ? money(minP) : `${minP.toLocaleString('ru-RU')}–${maxP.toLocaleString('ru-RU')} ₸`}</span>
+              </p>
+              {!isFixedPrice && (
+                <>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={minP}
+                    max={maxP}
+                    step="1"
+                    value={addPartUnitPrice}
+                    onChange={(e) => {
+                      setAddPartUnitPrice(e.target.value);
+                      setAddPartPriceError('');
+                    }}
+                    placeholder={`${minP.toLocaleString('ru-RU')}–${maxP.toLocaleString('ru-RU')}`}
+                    className="field !py-2.5 text-sm"
+                  />
+                  {addPartPriceError && <p className="text-danger text-xs">{addPartPriceError}</p>}
+                </>
+              )}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center rounded-xl border border-border-color bg-card-bg">
+                  <button type="button" onClick={() => setAddPartQty(Math.max(1, addPartQty - 1))} className="w-10 h-10 text-ink text-lg" aria-label="Азайту">−</button>
+                  <span className="w-8 text-center text-ink font-semibold tabular-nums">{addPartQty}</span>
+                  <button type="button" onClick={() => setAddPartQty(addPartQty + 1)} className="w-10 h-10 text-ink text-lg" aria-label="Көбейту">+</button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removePartSale(p.inventory_item_id)}
-                  className="text-danger text-xs font-medium flex items-center gap-0.5"
-                >
-                  <span className="material-symbols-outlined text-sm">delete</span>
-                  Жою
+                <span className="text-text-muted text-sm">дана</span>
+                <button type="button" onClick={addPartSale} className="ml-auto btn bg-primary/15 text-primary px-4 py-2.5 text-sm">
+                  <span className="material-symbols-outlined text-lg">add</span>
+                  Қосу
                 </button>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          )}
+        </section>
+
         {booking.services?.length > 0 && (
-          <div className="space-y-3 pt-2">
-            <label className="text-text-muted text-xs font-semibold ml-1">Кепілдік (3 ай) — қызметтерді таңдаңыз</label>
+          <section className="card p-4">
+            <h2 className="section-label mb-1">Кепілдік (3 ай)</h2>
+            <p className="text-faint text-xs mb-3">Кепілдік берілетін қызметтерді белгілеңіз.</p>
             <div className="space-y-2">
               {booking.services.map((s) => (
-                <label
+                <CheckRow
                   key={s.service_catalog_id}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-border-color bg-card-bg cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={warrantyServiceIds.includes(s.service_catalog_id)}
-                    onChange={() => toggleWarranty(s.service_catalog_id)}
-                    className="rounded border-border-color text-primary focus:ring-primary"
-                  />
-                  <span className="text-ink text-sm">{s.service_name}</span>
-                </label>
+                  checked={warrantyServiceIds.includes(s.service_catalog_id)}
+                  onChange={() => toggleWarranty(s.service_catalog_id)}
+                  label={s.service_name}
+                  icon="verified_user"
+                />
               ))}
             </div>
-          </div>
+          </section>
         )}
+
         {booking.services?.some((s) => s.id) && (
-          <div className="space-y-3 pt-2">
-            <label className="text-text-muted text-xs font-semibold ml-1">Есік (қажет болса)</label>
-            <p className="text-faint text-xs ml-1">Бір жағын таңдасаңыз — 1 есік, екеуін де таңдасаңыз — екі есік.</p>
-            <div className="space-y-2">
+          <section className="card p-4">
+            <h2 className="section-label mb-1">Есік <span className="font-normal text-faint">(қажет болса)</span></h2>
+            <p className="text-faint text-xs mb-3">Бір жағын таңдасаңыз — 1 есік, екеуін де таңдасаңыз — екі есік.</p>
+            <div className="space-y-3">
               {booking.services.filter((s) => s.id).map((s) => (
-                <div key={s.id} className="p-3 rounded-xl border border-border-color bg-card-bg space-y-2">
+                <div key={s.id} className="space-y-2">
                   <div className="text-ink text-sm">{s.service_name}</div>
                   <DoorSidePicker
                     value={doorSides[s.id] ?? null}
@@ -352,39 +321,47 @@ export default function PaymentEntry() {
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
-        <div className="space-y-3 pt-2">
-          <label className="text-text-muted text-xs font-semibold ml-1">Қай шебер(лер) жұмыс жасады?</label>
-          <div className="space-y-2">
-            {workers.map((w) => (
-              <label key={w.id} className="flex items-center gap-3 p-3 rounded-xl border border-border-color bg-card-bg cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selectedMasterIds.includes(w.id)}
-                  onChange={() => {
-                    setSelectedMasterIds((prev) =>
-                      prev.includes(w.id) ? prev.filter((x) => x !== w.id) : [...prev, w.id]
-                    );
-                  }}
-                  className="rounded border-border-color text-primary focus:ring-primary"
-                />
-                <span className="text-ink text-sm">{w.display_name || w.phone}</span>
-              </label>
-            ))}
-            {workers.length === 0 && (
-              <p className="text-text-muted text-xs">Шеберлер тізімі бос</p>
-            )}
+
+        <section className="card p-4">
+          <h2 className="section-label mb-3">Қай шебер(лер) жұмыс жасады?</h2>
+          <div className="flex flex-wrap gap-2">
+            {workers.map((w) => {
+              const on = selectedMasterIds.includes(w.id);
+              return (
+                <button
+                  key={w.id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setSelectedMasterIds((prev) => (prev.includes(w.id) ? prev.filter((x) => x !== w.id) : [...prev, w.id]))}
+                  className={`chip ${on ? 'chip-on' : ''}`}
+                >
+                  <span className={`material-symbols-outlined text-[18px] ${on ? 'text-primary icon-fill' : ''}`}>{on ? 'check_circle' : 'engineering'}</span>
+                  {w.display_name || w.phone}
+                </button>
+              );
+            })}
+            {workers.length === 0 && <p className="text-text-muted text-xs">Шеберлер тізімі бос</p>}
           </div>
+        </section>
+      </form>
+
+      <div className="fixed left-0 right-0 bottom-[76px] z-20 px-4 pt-3 pb-3 bg-gradient-to-t from-bg-main via-bg-main/95 to-bg-main/0">
+        <div className="flex items-center justify-between text-sm mb-2 px-1">
+          <span className="text-text-muted">Барлығы{partsTotal > 0 ? ' (бөлшектермен)' : ''}</span>
+          <span className="text-ink font-bold text-lg tabular-nums">{money(total)}</span>
         </div>
         <button
           type="submit"
+          form="payment-form"
           disabled={submitting || (servicePaymentAmount !== '' && Number(servicePaymentAmount) < 0)}
-          className="w-full bg-primary hover:bg-primary/90 text-on-primary font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+          className="btn-primary w-full text-base"
         >
+          <span className="material-symbols-outlined">task_alt</span>
           {submitting ? 'Сақталуда...' : 'Аяқтау'}
         </button>
-      </form>
+      </div>
     </div>
   );
 }

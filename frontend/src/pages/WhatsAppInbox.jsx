@@ -61,7 +61,7 @@ export default function WhatsAppInbox() {
     <div className="flex flex-col min-h-full">
       <header className="px-4 py-4 border-b border-border-color bg-bg-main sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
+          <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
             <span className="material-symbols-outlined text-text-muted">arrow_back</span>
           </button>
           <h1 className="text-xl font-bold text-ink">WhatsApp</h1>
@@ -90,7 +90,7 @@ export default function WhatsAppInbox() {
             {list.map((item) => (
               <div
                 key={item.id}
-                className="bg-card-bg border border-border-color rounded-xl p-4"
+                className="card p-4"
               >
                 <div className="flex justify-between items-start gap-3">
                   <div className="min-w-0 flex-1">

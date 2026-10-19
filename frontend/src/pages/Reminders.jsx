@@ -118,13 +118,13 @@ export default function Reminders() {
     <div className="flex flex-col min-h-full">
       <header className="px-4 pt-4 pb-4 flex flex-col gap-4 bg-bg-main sticky top-0 z-10 border-b border-border-color">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-ink tracking-tight">Ескертпелер</h1>
+          <h1 className="text-[22px] font-bold text-ink tracking-tight">Ескертпелер</h1>
           {canClearDone && (
             <button
               type="button"
               onClick={handleClearDone}
               disabled={clearDoneLoading}
-              className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center hover:bg-raised disabled:opacity-50"
+              className="icon-btn bg-card-bg border border-border-color hover:bg-raised disabled:opacity-50"
               aria-label="Орындалғандарды тазалау"
             >
               <span className="material-symbols-outlined text-text-muted text-xl">cleaning_services</span>
@@ -305,7 +305,7 @@ function AddReminderModal({ onClose, onSaved }) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={140}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink placeholder-text-muted"
+              className="field !py-2.5 placeholder-text-muted"
               placeholder="Ескертпе мәтіні"
             />
             <p className="text-xs text-text-muted mt-1">{title.length}/140</p>
@@ -335,14 +335,14 @@ function AddReminderModal({ onClose, onSaved }) {
           </div>
           <div>
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={linkInventory} onChange={(e) => setLinkInventory(e.target.checked)} className="rounded border-border-color text-primary" />
+              <input type="checkbox" checked={linkInventory} onChange={(e) => setLinkInventory(e.target.checked)} className="w-5 h-5 rounded accent-[rgb(var(--primary))]" />
               <span className="text-sm text-ink">Қоймаға қатысты</span>
             </label>
             {linkInventory && (
               <select
                 value={inventoryItemId}
                 onChange={(e) => setInventoryItemId(e.target.value)}
-                className="mt-2 w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink"
+                className="mt-2 field !py-2.5"
               >
                 <option value="">Тауарды таңдаңыз</option>
                 {inventoryItems.map((i) => (
@@ -351,7 +351,7 @@ function AddReminderModal({ onClose, onSaved }) {
               </select>
             )}
           </div>
-          <button type="submit" disabled={submitting} className="w-full py-4 bg-primary hover:bg-primary/90 text-on-primary font-bold rounded-xl disabled:opacity-50">
+          <button type="submit" disabled={submitting} className="btn-primary w-full">
             {submitting ? 'Сақталуда...' : 'Қосу'}
           </button>
         </form>

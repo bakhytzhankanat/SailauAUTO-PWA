@@ -246,7 +246,7 @@ export default function Calendar() {
           {toastMessage}
         </div>
       )}
-      {error && <div className="mx-4 mt-3 p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">{error}</div>}
+      {error && <div className="mx-4 mt-3 rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>}
 
       <div className="flex-1 overflow-auto min-h-0">
         {viewMode === 'day' ? (
