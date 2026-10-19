@@ -2,32 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme "Цех": graphite shop floor, brand teal, status colours unchanged in meaning. */
+/* Theme "Күндіз": daylight work order. Light paper for bright workshops, a deep teal band
+   carries the brand, status colours keep their meaning but are darkened for contrast on white. */
 :root {
-  --bg: 19 22 26;
-  --surface: 28 32 37;
-  --raised: 39 44 51;
-  --line: 48 55 63;
-  --ink: 236 239 242;
-  --muted: 145 155 166;
-  --faint: 95 104 115;
-  --primary: 42 145 131;
+  --bg: 239 242 244;
+  --surface: 255 255 255;
+  --raised: 232 236 239;
+  --line: 219 224 229;
+  --ink: 17 25 33;
+  --muted: 88 99 111;
+  --faint: 146 155 166;
+  --primary: 16 112 100;
   --on-primary: 255 255 255;
-  --danger: 239 88 84;
-  --warn: 242 182 64;
-  --ok: 56 196 120;
-  --st-planned: 84 146 255;
-  --st-arrived: 255 140 66;
-  --st-progress: 242 196 61;
-  --st-done: 56 196 120;
-  --st-noshow: 124 132 142;
+  --danger: 205 44 46;
+  --warn: 180 112 0;
+  --ok: 20 140 75;
+  --st-planned: 37 99 235;
+  --st-arrived: 221 84 10;
+  --st-progress: 190 128 0;
+  --st-done: 20 140 75;
+  --st-noshow: 118 126 137;
+  --band: 12 40 41;
+  --band-2: 20 58 58;
 
-  --font-ui: 'Geologica', 'Noto Sans', system-ui, sans-serif;
-  --font-num: 'Geologica', 'Noto Sans', system-ui, sans-serif;
-  --r-md: 14px;
-  --r-lg: 18px;
+  --font-ui: 'Onest', 'Noto Sans', system-ui, sans-serif;
+  --font-num: 'Onest', 'Noto Sans', system-ui, sans-serif;
+  --r-md: 12px;
+  --r-lg: 16px;
   --nav-h: 76px;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html {
@@ -40,7 +43,6 @@ body {
   background-color: rgb(var(--bg));
   color: rgb(var(--ink));
   font-family: var(--font-ui);
-  font-feature-settings: 'tnum' 0;
   min-height: max(884px, 100dvh);
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
@@ -50,7 +52,7 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px rgb(var(--raised)) inset !important;
+  -webkit-box-shadow: 0 0 0 30px rgb(var(--surface)) inset !important;
   -webkit-text-fill-color: rgb(var(--ink)) !important;
 }
 
@@ -65,7 +67,6 @@ input:-webkit-autofill:active {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
-/* Numbers line up in tables, timers and money. */
 .font-mono,
 .tabular-nums {
   font-variant-numeric: tabular-nums;
@@ -77,51 +78,63 @@ input:-webkit-autofill:active {
   outline-offset: 2px;
 }
 
+/* Light theme: shadows are soft and cool instead of black. */
+.shadow-black\/30,
+.shadow-black\/40,
+.shadow-black\/50,
+.shadow-black\/60 {
+  --tw-shadow-color: rgb(17 25 33 / 0.10) !important;
+  --tw-shadow: var(--tw-shadow-colored) !important;
+}
+
 @layer components {
-  /* Small heading over a group of fields: sentence case, quiet. */
   .section-label {
     @apply text-[13px] font-semibold text-text-muted normal-case tracking-normal;
   }
 
+  /* Cards sit on the grey paper with a soft lift instead of an outline. */
   .card {
-    @apply bg-card-bg rounded-2xl border border-border-color/70;
+    @apply bg-card-bg rounded-2xl border border-border-color/60;
+    box-shadow: 0 1px 2px rgb(17 25 33 / 0.05), 0 2px 8px rgb(17 25 33 / 0.04);
   }
 
   .field {
-    @apply w-full bg-raised/60 border border-border-color rounded-xl px-4 py-3 text-ink placeholder-faint outline-none transition-colors;
+    @apply w-full bg-card-bg border border-border-color rounded-xl px-4 py-3 text-ink placeholder-faint outline-none transition-colors;
   }
   .field:focus {
-    @apply border-primary ring-1 ring-primary;
+    @apply border-primary ring-2 ring-primary/20;
   }
 
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
   }
   .btn-primary {
-    @apply btn bg-primary text-on-primary py-4 px-5 shadow-lg shadow-primary/20;
+    @apply btn bg-primary text-on-primary py-4 px-5;
+    box-shadow: 0 6px 16px -6px rgb(var(--primary) / 0.55);
   }
   .btn-secondary {
-    @apply btn bg-raised text-ink py-3 px-4 border border-border-color;
+    @apply btn bg-card-bg text-ink py-3 px-4 border border-border-color;
   }
   .btn-danger {
     @apply btn bg-danger/10 text-danger py-3 px-4 border border-danger/30;
   }
 
   .chip {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-border-color bg-card-bg px-3.5 py-2 text-sm font-medium text-text-muted transition-colors;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-border-color bg-card-bg px-3.5 py-2 text-sm font-medium text-muted-ink transition-colors;
   }
   .chip-on {
-    @apply border-primary bg-primary/15 text-ink;
+    @apply border-primary bg-primary/10 text-primary;
   }
 
   .segmented {
-    @apply flex rounded-xl bg-raised/70 p-1;
+    @apply flex rounded-xl bg-raised p-1;
   }
   .segmented > button {
-    @apply flex-1 rounded-[10px] py-2 text-sm font-semibold text-text-muted transition-colors;
+    @apply flex-1 rounded-[9px] py-2 text-sm font-semibold text-text-muted transition-colors;
   }
   .segmented > button[aria-pressed='true'] {
-    @apply bg-card-bg text-ink shadow-sm shadow-black/40;
+    @apply bg-card-bg text-ink;
+    box-shadow: 0 1px 3px rgb(17 25 33 / 0.12);
   }
 
   .icon-btn {
@@ -132,22 +145,40 @@ input:-webkit-autofill:active {
   }
 
   .page-header {
-    @apply sticky top-0 z-20 flex items-center gap-2 px-3 py-3 bg-bg-main/90 backdrop-blur border-b border-border-color/70;
+    @apply sticky top-0 z-20 flex items-center gap-2 px-3 py-3 bg-card-bg/95 backdrop-blur border-b border-border-color;
   }
   .page-title {
-    @apply text-[17px] font-semibold text-ink truncate;
+    @apply text-[17px] font-bold text-ink truncate;
+  }
+
+  /* Brand band used at the top of the main screens. */
+  .band {
+    background: linear-gradient(180deg, rgb(var(--band)) 0%, rgb(var(--band-2)) 100%);
+    color: white;
+  }
+  .band .icon-btn {
+    @apply text-white/80;
+  }
+  .band .icon-btn:hover {
+    @apply bg-white/10 text-white;
+  }
+  .band-input {
+    @apply w-full rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-white placeholder-white/50 outline-none;
+  }
+  .band-input:focus {
+    @apply border-white/40 bg-white/15;
   }
 
   .scrim {
-    @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-[2px];
+    @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[rgb(12_20_28/0.45)] backdrop-blur-[2px];
   }
   .sheet {
-    @apply w-full max-w-md bg-card-bg border border-border-color rounded-t-[22px] sm:rounded-2xl p-5 pb-8 max-h-[90vh] overflow-y-auto shadow-2xl shadow-black/60;
+    @apply w-full max-w-md bg-card-bg rounded-t-[22px] sm:rounded-2xl p-5 pb-8 max-h-[90vh] overflow-y-auto;
+    box-shadow: 0 -12px 40px rgb(12 20 28 / 0.18);
   }
 
-  /* Kazakhstan licence plate: white plate, black characters, flag strip. */
   .kz-plate {
-    @apply inline-flex items-stretch overflow-hidden rounded-[5px] border border-[#11161c] bg-white text-[#0d1117] leading-none shadow-sm;
+    @apply inline-flex items-stretch overflow-hidden rounded-[5px] border border-[#11161c] bg-white text-[#0d1117] leading-none;
   }
   .kz-plate-flag {
     @apply flex flex-col items-center justify-end bg-[#00A3D9] px-[3px] pb-[2px] text-[7px] font-bold text-white;
@@ -157,6 +188,43 @@ input:-webkit-autofill:active {
   }
 
   .photo-stage {
-    background: radial-gradient(ellipse at 50% 35%, rgb(var(--raised)) 0%, rgb(var(--bg)) 75%);
+    background: radial-gradient(ellipse at 50% 40%, #ffffff 0%, rgb(var(--raised)) 80%);
   }
+}
+
+@layer utilities {
+  .text-muted-ink {
+    color: rgb(var(--ink) / 0.78);
+  }
+}
+
+/* Every page header in this theme is the brand band; colours of what sits inside adapt. */
+.page-header,
+.band-header {
+  background: linear-gradient(180deg, rgb(var(--band)) 0%, rgb(var(--band-2)) 100%) !important;
+  color: #fff;
+  border-bottom-color: transparent !important;
+  --primary: 104 214 196;
+  --ink: 255 255 255;
+  --muted: 190 214 212;
+  --faint: 140 170 170;
+  --raised: 38 74 74;
+  --line: 52 92 92;
+  --surface: 30 64 64;
+}
+.page-header .field,
+.band-header .field,
+.band-header select {
+  background: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.16);
+  color: #fff;
+}
+.band-header .chip-on {
+  background: #fff;
+  color: rgb(var(--band));
+  border-color: #fff;
+}
+.band-header .segmented > button[aria-pressed='true'] {
+  background: #fff;
+  color: rgb(var(--band));
 }

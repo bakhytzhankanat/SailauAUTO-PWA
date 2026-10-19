@@ -76,7 +76,7 @@ export default function Admin() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <header className="px-4 py-4 border-b border-border-color bg-bg-main">
+      <header className="band-header px-4 py-4">
         <h1 className="text-[22px] font-bold text-ink tracking-tight">Админка</h1>
         <p className="text-sm text-text-muted mt-1">Сервис иелерін басқару: жаңа ие қосу, деректерді көру</p>
       </header>

@@ -192,7 +192,7 @@ export default function Settings() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <header className="px-4 py-4 border-b border-border-color bg-bg-main">
+      <header className="band-header px-4 py-4">
         <h1 className="text-[22px] font-bold text-ink tracking-tight">Баптаулар</h1>
       </header>
       <main className="flex-1 overflow-y-auto p-4 pb-24 space-y-6">

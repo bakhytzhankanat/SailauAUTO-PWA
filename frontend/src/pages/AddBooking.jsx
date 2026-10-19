@@ -324,7 +324,7 @@ export default function AddBooking() {
 
   return (
     <div className="flex flex-col h-full bg-bg-main">
-      <header className="sticky top-0 z-20 bg-bg-main/95 backdrop-blur border-b border-border-color/70 shrink-0">
+      <header className="band-header sticky top-0 z-20 shrink-0">
         <div className="flex items-center gap-2 px-3 pt-3 pb-2">
           <button type="button" onClick={goBack} className="icon-btn -ml-1" aria-label="Артқа">
             <span className="material-symbols-outlined text-ink text-[22px]">arrow_back</span>

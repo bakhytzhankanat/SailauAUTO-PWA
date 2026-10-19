@@ -109,22 +109,23 @@ export default function AppShell({ children }) {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border-color/80 bg-card-bg/95 backdrop-blur pb-safe">
-        <div className="flex items-stretch justify-around px-1 pt-1.5 pb-2">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border-color bg-card-bg pb-safe shadow-[0_-4px_16px_rgb(17_25_33/0.06)]">
+        <div className="flex items-end justify-around px-1 pb-2">
           {tabs.map((item) => {
             const active = isActivePath(location.pathname, item.to);
             return (
-              <NavLink key={item.to} to={item.to} className="flex-1 min-w-0 flex flex-col items-center gap-1 py-1">
+              <NavLink key={item.to} to={item.to} className="relative flex-1 min-w-0 flex flex-col items-center gap-1 pt-2 pb-1">
+                {active && !item.accent && <span className="absolute top-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-b-full bg-primary" />}
                 {item.accent ? (
-                  <span className={`w-11 h-8 rounded-[11px] flex items-center justify-center bg-primary text-on-primary shadow-md shadow-primary/30 ${active ? 'ring-2 ring-primary/40 ring-offset-2 ring-offset-card-bg' : ''}`}>
-                    <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+                  <span className="-mt-6 mb-0.5 w-[52px] h-[52px] rounded-full flex items-center justify-center bg-primary text-on-primary ring-4 ring-card-bg shadow-lg shadow-primary/40">
+                    <span className="material-symbols-outlined text-[28px]">{item.icon}</span>
                   </span>
                 ) : (
-                  <span className={`w-11 h-8 rounded-full flex items-center justify-center transition-colors ${active ? 'bg-primary/15 text-primary' : 'text-text-muted'}`}>
-                    <span className={`material-symbols-outlined text-[22px] ${active ? 'icon-fill' : ''}`}>{item.icon}</span>
+                  <span className={`h-7 flex items-center justify-center ${active ? 'text-primary' : 'text-text-muted'}`}>
+                    <span className={`material-symbols-outlined text-[24px] ${active ? 'icon-fill' : ''}`}>{item.icon}</span>
                   </span>
                 )}
-                <span className={`text-[10px] leading-none font-medium whitespace-nowrap tracking-[-0.01em] ${active ? 'text-ink' : 'text-text-muted'}`}>{item.label}</span>
+                <span className={`text-[10px] leading-none whitespace-nowrap tracking-[-0.01em] ${active ? 'text-primary font-semibold' : 'text-text-muted font-medium'}`}>{item.label}</span>
               </NavLink>
             );
           })}
@@ -133,14 +134,15 @@ export default function AppShell({ children }) {
               <button
                 type="button"
                 onClick={() => setMenuOpen((open) => !open)}
-                className="w-full flex flex-col items-center gap-1 py-1"
+                className="relative w-full flex flex-col items-center gap-1 pt-2 pb-1"
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
               >
-                <span className={`w-11 h-8 rounded-full flex items-center justify-center transition-colors ${menuOpen || menuActive ? 'bg-primary/15 text-primary' : 'text-text-muted'}`}>
-                  <span className="material-symbols-outlined text-[22px]">menu</span>
+                {(menuOpen || menuActive) && <span className="absolute top-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-b-full bg-primary" />}
+                <span className={`h-7 flex items-center justify-center ${menuOpen || menuActive ? 'text-primary' : 'text-text-muted'}`}>
+                  <span className="material-symbols-outlined text-[24px]">menu</span>
                 </span>
-                <span className={`text-[10px] leading-none font-medium ${menuOpen || menuActive ? 'text-ink' : 'text-text-muted'}`}>Мәзір</span>
+                <span className={`text-[10px] leading-none ${menuOpen || menuActive ? 'text-primary font-semibold' : 'text-text-muted font-medium'}`}>Мәзір</span>
               </button>
               {menuOpen && (
                 <div role="menu" className="absolute bottom-full right-1 mb-3 w-64 rounded-2xl border border-border-color bg-card-bg shadow-2xl shadow-black/60 overflow-hidden py-1.5">

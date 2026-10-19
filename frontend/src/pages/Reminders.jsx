@@ -117,7 +117,7 @@ export default function Reminders() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <header className="px-4 pt-4 pb-4 flex flex-col gap-4 bg-bg-main sticky top-0 z-10 border-b border-border-color">
+      <header className="band-header px-4 pt-4 pb-4 flex flex-col gap-4 sticky top-0 z-10">
         <div className="flex justify-between items-center">
           <h1 className="text-[22px] font-bold text-ink tracking-tight">Ескертпелер</h1>
           {canClearDone && (

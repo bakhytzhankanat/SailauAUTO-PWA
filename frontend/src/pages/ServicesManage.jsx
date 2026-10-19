@@ -86,7 +86,7 @@ export default function ServicesManage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <header className="px-4 py-4 flex items-center gap-3 bg-bg-main border-b border-border-color sticky top-0 z-10">
+      <header className="band-header px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
         <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-card-bg">
           <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>

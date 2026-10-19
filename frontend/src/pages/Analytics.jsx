@@ -226,7 +226,7 @@ export default function Analytics() {
         aria-hidden
       />
       <div className="print:hidden flex flex-col min-h-[100dvh] bg-bg-main text-ink overflow-hidden max-w-2xl mx-auto">
-      <header className="px-4 py-2 flex items-center gap-3 bg-bg-main z-10 border-b border-border-color shrink-0">
+      <header className="band-header px-4 py-2 flex items-center gap-3 z-10 shrink-0">
         <button
           type="button"
           onClick={() => navigate(-1)}

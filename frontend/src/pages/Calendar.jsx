@@ -66,7 +66,7 @@ export default function Calendar() {
     let cancelled = false;
     setLoading(true);
     setError('');
-    if (viewMode === 'day') {
+    if (viewMode !== 'week') {
       getBookings(date)
         .then((data) => {
           if (!cancelled) setBookings(Array.isArray(data) ? data : []);
@@ -106,7 +106,7 @@ export default function Calendar() {
     setDeletingId(booking.id);
     try {
       await deleteBooking(booking.id);
-      if (viewMode === 'day') {
+      if (viewMode !== 'week') {
         const data = await getBookings(date);
         setBookings(Array.isArray(data) ? data : []);
       } else {
@@ -155,44 +155,43 @@ export default function Calendar() {
 
   return (
     <div className="flex flex-col h-full bg-bg-main">
-      <header className="sticky top-0 z-20 bg-bg-main/95 backdrop-blur border-b border-border-color/70 shrink-0">
-        <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-3">
+      <header className="band sticky top-0 z-20 shrink-0 shadow-lg shadow-black/30">
+        <div className="px-4 pt-4 pb-2 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            {viewMode === 'day' ? (
+            {viewMode !== 'week' ? (
               <>
-                <h1 className="text-[26px] leading-tight font-bold text-ink tracking-tight">{dayMonth(date)}</h1>
-                <p className="text-sm text-text-muted mt-0.5 flex items-center gap-2">
+                <p className="text-[13px] text-white/60 flex items-center gap-2">
                   <span className="capitalize">{weekday(date)}</span>
                   {isToday ? (
-                    <span className="text-primary font-semibold">Бүгін</span>
+                    <span className="rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold text-white">Бүгін</span>
                   ) : (
-                    <button type="button" onClick={() => setDate(todayIso())} className="text-primary font-semibold">
-                      Бүгінге оралу
-                    </button>
+                    <button type="button" onClick={() => setDate(todayIso())} className="rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold text-white">Бүгінге оралу</button>
                   )}
                 </p>
+                <h1 className="text-[28px] leading-tight font-bold tracking-tight">{dayMonth(date)}</h1>
               </>
             ) : (
               <>
-                <h1 className="text-[22px] leading-tight font-bold text-ink tracking-tight">{weekLabel}</h1>
-                <p className="text-sm text-text-muted mt-0.5">Апта</p>
+                <p className="text-[13px] text-white/60">Апта</p>
+                <h1 className="text-[24px] leading-tight font-bold tracking-tight">{weekLabel}</h1>
               </>
             )}
           </div>
-          <div className="flex items-center gap-1.5 shrink-0 pt-1">
+          <div className="flex items-center gap-1 shrink-0 pt-1">
             {canDayClose && (
-              <button type="button" onClick={() => navigate(`/day-close?date=${date}`)} className="icon-btn bg-card-bg border border-border-color" title="Ауысымды жабу" aria-label="Ауысымды жабу">
-                <span className="material-symbols-outlined text-[22px]">point_of_sale</span>
+              <button type="button" onClick={() => navigate(`/day-close?date=${date}`)} className="icon-btn" title="Ауысымды жабу" aria-label="Ауысымды жабу">
+                <span className="material-symbols-outlined text-[24px]">point_of_sale</span>
               </button>
             )}
             {canWhatsApp && (
-              <button type="button" onClick={() => navigate('/whatsapp')} className="icon-btn bg-card-bg border border-border-color" title="WhatsApp" aria-label="WhatsApp">
-                <span className="material-symbols-outlined text-[22px]">chat</span>
+              <button type="button" onClick={() => navigate('/whatsapp')} className="icon-btn" title="WhatsApp" aria-label="WhatsApp">
+                <span className="material-symbols-outlined text-[24px]">chat</span>
               </button>
             )}
             {canAddBooking && (
-              <button type="button" onClick={() => navigate('/booking/add')} className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition" aria-label="Жазба қосу">
-                <span className="material-symbols-outlined text-2xl">add</span>
+              <button type="button" onClick={() => navigate('/booking/add')} className="ml-1 h-10 px-3.5 rounded-full bg-white text-[rgb(var(--band))] flex items-center gap-1 font-semibold text-sm active:scale-95 transition" aria-label="Жазба қосу">
+                <span className="material-symbols-outlined text-[20px]">add</span>
+                Жазба
               </button>
             )}
           </div>
@@ -204,19 +203,18 @@ export default function Calendar() {
           </button>
           <div className="flex-1 grid grid-cols-7 gap-1">
             {weekDates.map((d) => {
-              const selected = viewMode === 'day' && d === date;
+              const selected = viewMode !== 'week' && d === date;
               const today = isTodayIso(d);
               return (
                 <button
                   key={d}
                   type="button"
-                  onClick={() => { setDate(d); setViewMode('day'); }}
-                  className={`flex flex-col items-center rounded-xl py-1.5 transition-colors ${
-                    selected ? 'bg-primary text-on-primary' : today ? 'bg-primary/10 text-ink' : 'text-text-muted hover:bg-card-bg'
-                  }`}
+                  onClick={() => { setDate(d); if (viewMode === 'week') setViewMode('day'); }}
+                  className={`relative flex flex-col items-center rounded-xl py-1.5 transition-colors ${selected ? 'bg-white text-[rgb(var(--band))]' : 'text-white/75 hover:bg-white/10'}`}
                 >
-                  <span className={`text-[10px] font-medium ${selected ? 'text-on-primary/80' : ''}`}>{weekdayShort(d)}</span>
-                  <span className={`text-[15px] font-semibold tabular-nums ${selected ? '' : today ? 'text-primary' : 'text-ink'}`}>{parseDay(d).getDate()}</span>
+                  <span className={`text-[10px] font-medium ${selected ? 'opacity-70' : 'opacity-60'}`}>{weekdayShort(d)}</span>
+                  <span className="text-[16px] font-bold tabular-nums">{parseDay(d).getDate()}</span>
+                  {today && <span className={`absolute bottom-0.5 w-1 h-1 rounded-full ${selected ? 'bg-primary' : 'bg-white'}`} />}
                 </button>
               );
             })}
@@ -227,15 +225,22 @@ export default function Calendar() {
         </div>
 
         <div className="px-4 pb-3 flex items-center gap-3">
-          <div className="segmented w-40 shrink-0">
-            <button type="button" aria-pressed={viewMode === 'day'} onClick={() => setViewMode('day')}>Күн</button>
-            <button type="button" aria-pressed={viewMode === 'week'} onClick={() => setViewMode('week')}>Апта</button>
+          <div className="flex rounded-xl bg-white/10 p-1 w-[210px] shrink-0">
+            {[['day', 'Күн'], ['list', 'Тізім'], ['week', 'Апта']].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={viewMode === key}
+                onClick={() => setViewMode(key)}
+                className={`flex-1 rounded-[9px] py-1.5 text-sm font-semibold transition-colors ${viewMode === key ? 'bg-white text-[rgb(var(--band))]' : 'text-white/70'}`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
-          {viewMode === 'day' && !loading && dayStats.total > 0 && (
-            <div className="flex-1 min-w-0 flex items-center justify-end gap-3 text-xs text-text-muted">
-              <span><b className="text-ink font-semibold tabular-nums">{dayStats.total}</b> жазба</span>
-              {dayStats.working > 0 && <span className="flex items-center gap-1"><i className="w-1.5 h-1.5 rounded-full bg-status-progress" />{dayStats.working}</span>}
-              <span className="flex items-center gap-1"><i className="w-1.5 h-1.5 rounded-full bg-status-completed" />{dayStats.done}</span>
+          {viewMode !== 'week' && !loading && dayStats.total > 0 && (
+            <div className="flex-1 min-w-0 text-right text-xs text-white/70">
+              <b className="text-white font-semibold tabular-nums">{dayStats.done}</b>/{dayStats.total} аяқталды
             </div>
           )}
         </div>
@@ -249,7 +254,9 @@ export default function Calendar() {
       {error && <div className="mx-4 mt-3 rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>}
 
       <div className="flex-1 overflow-auto min-h-0">
-        {viewMode === 'day' ? (
+        {viewMode === 'list' ? (
+          <AgendaList bookings={bookings} loading={loading} canAddBooking={canAddBooking} onOpen={(b) => navigate(`/booking/${b.id}`)} onAdd={() => navigate('/booking/add')} />
+        ) : viewMode === 'day' ? (
           <>
             <div className="flex sticky top-0 z-10 ml-12 bg-bg-main shrink-0">
               {boxes.map((id) => (
@@ -355,6 +362,61 @@ export default function Calendar() {
   );
 }
 
+function AgendaList({ bookings, loading, canAddBooking, onOpen, onAdd }) {
+  if (loading) return <div className="flex items-center justify-center py-16 text-text-muted text-sm">Жүктелуде...</div>;
+  const sorted = [...bookings].sort((a, b) => timeToMinutes(a.start_time) - timeToMinutes(b.start_time));
+  if (sorted.length === 0) {
+    return (
+      <div className="flex flex-col items-center text-center gap-2 py-16">
+        <span className="material-symbols-outlined text-[36px] text-faint">event_available</span>
+        <p className="text-ink font-semibold">Бұл күнде жазбалар жоқ</p>
+        {canAddBooking && (
+          <button type="button" onClick={onAdd} className="btn-secondary mt-1 text-sm">
+            <span className="material-symbols-outlined text-lg">add</span>Жазба қосу
+          </button>
+        )}
+      </div>
+    );
+  }
+  return (
+    <ol className="px-4 py-4 space-y-2.5">
+      {sorted.map((b) => {
+        const s = STATUS[b.status] || STATUS.no_show;
+        return (
+          <li key={b.id}>
+            <button type="button" onClick={() => onOpen(b)} className="card w-full text-left flex overflow-hidden active:scale-[0.99] transition">
+              <div className="w-[68px] shrink-0 flex flex-col items-center justify-center gap-0.5 border-r border-border-color/70 bg-raised/40 py-3">
+                <span className="text-[15px] font-bold text-ink tabular-nums">{formatTime(b.start_time)}</span>
+                <span className="text-[11px] text-text-muted tabular-nums">{formatTime(b.end_time)}</span>
+                <span className="mt-1 text-[10px] font-semibold text-text-muted">Бокс {b.box_id}</span>
+              </div>
+              <div className="flex-1 min-w-0 px-3.5 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[15px] font-semibold text-ink truncate">{b.vehicle_name}</span>
+                  <StatusPill status={b.status} />
+                </div>
+                <div className="mt-0.5 text-sm text-text-muted truncate">{b.client_name}</div>
+                <div className="mt-2 flex items-center gap-2 min-w-0">
+                  <Plate number={b.plate_number} size="sm" />
+                  {b.assigned_master_name && (
+                    <span className="text-xs text-text-muted truncate flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">engineering</span>{b.assigned_master_name}
+                    </span>
+                  )}
+                </div>
+                {b.services?.length > 0 && (
+                  <div className="mt-2 text-xs text-muted-ink line-clamp-1">{b.services.map((x) => x.service_name).join(', ')}</div>
+                )}
+              </div>
+              <span className={`w-1 shrink-0 ${s.bar}`} />
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 function HourLines({ hours, rowH }) {
   return (
     <div className="absolute inset-0 pointer-events-none">
@@ -404,9 +466,8 @@ function BookingCard({ booking, startHour = 10, onClick, compact, onDelete, dele
       className={`absolute left-1 right-1 z-10 overflow-hidden rounded-xl border border-border-color/70 bg-card-bg text-left shadow-md shadow-black/30 active:scale-[0.99] transition cursor-pointer ${dim ? 'opacity-80' : ''}`}
       style={{ top: top + 2, height: height - 4 }}
     >
-      <span className={`absolute left-0 top-0 bottom-0 w-1 ${s.bar}`} />
-      <span className={`absolute inset-0 ${s.soft} opacity-60`} />
-      <div className={`relative h-full flex flex-col ${compact ? 'pl-2.5 pr-1.5 py-1' : 'pl-3.5 pr-2.5 py-2.5'}`}>
+      <span className={`absolute left-0 right-0 top-0 h-[3px] ${s.bar}`} />
+      <div className={`relative h-full flex flex-col ${compact ? 'px-2 pt-1.5 pb-1' : 'px-3 pt-3 pb-2.5'}`}>
         {compact ? (
           <>
             <div className="text-[11px] font-semibold text-ink truncate">{booking.vehicle_name}</div>

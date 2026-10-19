@@ -46,7 +46,7 @@ export default function ClientsList() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <header className="px-4 py-4 border-b border-border-color bg-bg-main sticky top-0 z-10 flex items-center gap-2">
+      <header className="band-header px-4 py-4 sticky top-0 z-10 flex items-center gap-2">
         <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
           <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>

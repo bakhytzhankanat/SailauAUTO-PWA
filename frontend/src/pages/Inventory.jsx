@@ -71,7 +71,7 @@ export default function Inventory() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <header className="sticky top-0 z-20 bg-bg-main/95 backdrop-blur border-b border-border-color/70 px-4 pt-4 pb-3 space-y-3">
+      <header className="band-header sticky top-0 z-20 px-4 pt-4 pb-3 space-y-3">
         <div>
           <h1 className="text-[26px] leading-tight font-bold text-ink tracking-tight">Қойма</h1>
           {!loading && <p className="text-sm text-text-muted">{items.length} тауар{lowCount > 0 ? ` · ${lowCount} аз қалды` : ''}</p>}

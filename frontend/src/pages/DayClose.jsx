@@ -301,7 +301,7 @@ export default function DayClose() {
         aria-hidden
       />
       <div className="print:hidden flex flex-col min-h-full">
-      <header className="px-4 pt-4 pb-4 bg-bg-main border-b border-border-color sticky top-0 z-10 flex justify-between items-center">
+      <header className="band-header px-4 pt-4 pb-4 sticky top-0 z-10 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
             <span className="material-symbols-outlined text-text-muted">arrow_back</span>
