@@ -11,7 +11,7 @@ import {
   getClientWarranties,
 } from '../lib/api';
 import CarModelPicker from '../components/CarModelPicker';
-import VehicleArt from '../components/VehicleArt';
+import VehiclePhoto from '../components/VehiclePhoto';
 
 const STEP_KEYS_BASE = ['client', 'vehicle', 'plate', 'services', 'note', 'summary'];
 /** Old drafts may still hold this placeholder id for "Другое". */
@@ -611,7 +611,7 @@ function StepVehicle({ form, updateForm, vehicles }) {
           const [brand, ...rest] = v.name.split(' ');
           return (
             <button key={v.id} type="button" onClick={() => updateForm({ vehicle_catalog_id: v.id })} className={cardClass(isSelected)}>
-              <VehicleArt name={v.name} className="block w-full aspect-[8/5] shrink-0" />
+              <VehiclePhoto name={v.name} className="w-full aspect-[3/2] shrink-0" />
               <div className="p-3 pt-2">
                 <div className="text-[10px] uppercase tracking-[0.18em] text-text-muted font-semibold">{brand}</div>
                 <div className="font-semibold text-white text-sm leading-tight">{rest.join(' ') || v.name}</div>
@@ -628,7 +628,7 @@ function StepVehicle({ form, updateForm, vehicles }) {
           onClick={() => updateForm({ vehicle_catalog_id: otherId, body_type: otherVehicle?.body_type || 'Другое' })}
           className={cardClass(isOther)}
         >
-          <div className="w-full aspect-[8/5] shrink-0 bg-gradient-to-b from-[#2a2d31] to-[#151617] flex flex-col items-center justify-center gap-1">
+          <div className="w-full aspect-[3/2] shrink-0 bg-gradient-to-b from-[#2a2d31] to-[#151617] flex flex-col items-center justify-center gap-1">
             <span className="material-symbols-outlined text-4xl text-primary/80">manage_search</span>
             <span className="text-[11px] text-text-muted">Барлық маркалар</span>
           </div>
@@ -652,17 +652,24 @@ function StepVehicle({ form, updateForm, vehicles }) {
 
 function StepBody({ form, updateForm, selectedVehicle }) {
   const options = selectedVehicle?.body_options || [];
+  const preview = form.body_type || options[0];
   return (
     <div className="space-y-4">
       <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Кузов таңдау</h2>
-      <p className="text-white text-sm mb-2">{selectedVehicle?.name}</p>
-      <div className="grid gap-3">
+      <div className="rounded-2xl overflow-hidden border border-border-color">
+        <VehiclePhoto name={selectedVehicle?.name} bodyType={preview} className="w-full aspect-[3/2]" />
+        <div className="px-4 py-3 bg-card-bg flex items-baseline justify-between gap-2">
+          <span className="text-white font-semibold">{selectedVehicle?.name}</span>
+          {form.body_type && <span className="text-primary text-sm font-medium">Кузов {form.body_type}</span>}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         {options.map((opt) => (
           <button
             key={opt}
             type="button"
             onClick={() => updateForm({ body_type: opt })}
-            className={`w-full bg-card-bg border rounded-xl p-4 flex items-center justify-between text-left ${
+            className={`w-full bg-card-bg border rounded-xl px-4 py-3 flex items-center justify-between text-left ${
               form.body_type === opt ? 'border-primary bg-primary/10' : 'border-border-color'
             }`}
           >
