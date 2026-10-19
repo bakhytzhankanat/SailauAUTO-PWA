@@ -562,7 +562,7 @@ export default function Analytics() {
 
           {/* 3. Таза есеп & 4. Қайырымдылық */}
           <section className="grid grid-cols-2 gap-2">
-            <div className="bg-gradient-to-br from-card-bg to-[#252525] rounded-xl border border-primary/50 p-3 relative overflow-hidden flex flex-col justify-between min-h-[96px]">
+            <div className="bg-gradient-to-br from-card-bg to-raised rounded-xl border border-primary/50 p-3 relative overflow-hidden flex flex-col justify-between min-h-[96px]">
               <div className="absolute right-0 top-0 bottom-0 w-1 bg-primary" aria-hidden />
               <p className="text-[10px] text-primary font-bold mb-1">3. Таза есеп</p>
               <div>
