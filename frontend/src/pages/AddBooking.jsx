@@ -582,7 +582,7 @@ function StepVehicle({ form, updateForm, vehicles }) {
     }`;
   const check = (
     <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md">
-      <span className="material-symbols-outlined text-ink text-base">check</span>
+      <span className="material-symbols-outlined text-on-primary text-base">check</span>
     </div>
   );
   return (
