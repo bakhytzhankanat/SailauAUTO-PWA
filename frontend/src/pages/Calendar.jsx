@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { getBookings, deleteBooking } from '../lib/api';
-import { todayIso, addDays, dayMonth, weekday, weekdayShort, weekOf, parseDay, isTodayIso } from '../lib/dates';
+import { todayIso, addDays, dayMonth, weekday, weekOf, isTodayIso } from '../lib/dates';
 import { STATUS, StatusPill, Plate } from '../components/ui';
 
 function parseHourStart(str) {
@@ -66,7 +66,7 @@ export default function Calendar() {
     let cancelled = false;
     setLoading(true);
     setError('');
-    if (viewMode === 'day') {
+    if (viewMode !== 'week') {
       getBookings(date)
         .then((data) => {
           if (!cancelled) setBookings(Array.isArray(data) ? data : []);
@@ -106,7 +106,7 @@ export default function Calendar() {
     setDeletingId(booking.id);
     try {
       await deleteBooking(booking.id);
-      if (viewMode === 'day') {
+      if (viewMode !== 'week') {
         const data = await getBookings(date);
         setBookings(Array.isArray(data) ? data : []);
       } else {
@@ -151,17 +151,20 @@ export default function Calendar() {
   }, [bookings]);
 
   const isToday = isTodayIso(date);
-  const weekLabel = `${dayMonth(weekDates[0])} – ${dayMonth(weekDates[6])}`;
+  const [wStartDay, wStartMonth] = dayMonth(weekDates[0]).split(' ');
+  const weekLabel = wStartMonth === dayMonth(weekDates[6]).split(' ')[1]
+    ? `${wStartDay}–${dayMonth(weekDates[6])}`
+    : `${dayMonth(weekDates[0])} – ${dayMonth(weekDates[6])}`;
 
   return (
     <div className="flex flex-col h-full bg-bg-main">
       <header className="sticky top-0 z-20 bg-bg-main/95 backdrop-blur border-b border-border-color/70 shrink-0">
-        <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-3">
+        <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
-            {viewMode === 'day' ? (
+            {viewMode !== 'week' ? (
               <>
-                <h1 className="text-[26px] leading-tight font-bold text-ink tracking-tight">{dayMonth(date)}</h1>
-                <p className="text-sm text-text-muted mt-0.5 flex items-center gap-2">
+                <h1 className="text-[26px] leading-tight font-bold text-ink tracking-tight whitespace-nowrap">{dayMonth(date)}</h1>
+                <p className="text-sm text-text-muted mt-0.5 flex items-center gap-2 whitespace-nowrap">
                   <span className="capitalize">{weekday(date)}</span>
                   {isToday ? (
                     <span className="text-primary font-semibold">Бүгін</span>
@@ -174,12 +177,18 @@ export default function Calendar() {
               </>
             ) : (
               <>
-                <h1 className="text-[22px] leading-tight font-bold text-ink tracking-tight">{weekLabel}</h1>
+                <h1 className="text-[20px] leading-tight font-bold text-ink tracking-tight">{weekLabel}</h1>
                 <p className="text-sm text-text-muted mt-0.5">Апта</p>
               </>
             )}
           </div>
-          <div className="flex items-center gap-1.5 shrink-0 pt-1">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button type="button" onClick={() => step(-1)} className="icon-btn bg-card-bg border border-border-color" aria-label="Алдыңғы">
+              <span className="material-symbols-outlined text-[24px]">chevron_left</span>
+            </button>
+            <button type="button" onClick={() => step(1)} className="icon-btn bg-card-bg border border-border-color" aria-label="Келесі">
+              <span className="material-symbols-outlined text-[24px]">chevron_right</span>
+            </button>
             {canDayClose && (
               <button type="button" onClick={() => navigate(`/day-close?date=${date}`)} className="icon-btn bg-card-bg border border-border-color" title="Ауысымды жабу" aria-label="Ауысымды жабу">
                 <span className="material-symbols-outlined text-[22px]">point_of_sale</span>
@@ -191,47 +200,20 @@ export default function Calendar() {
               </button>
             )}
             {canAddBooking && (
-              <button type="button" onClick={() => navigate('/booking/add')} className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition" aria-label="Жазба қосу">
+              <button type="button" onClick={() => navigate('/booking/add')} className="w-10 h-10 shrink-0 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition" aria-label="Жазба қосу">
                 <span className="material-symbols-outlined text-2xl">add</span>
               </button>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-1 px-2 pb-3">
-          <button type="button" onClick={() => step(-1)} className="icon-btn w-9" aria-label="Алдыңғы">
-            <span className="material-symbols-outlined">chevron_left</span>
-          </button>
-          <div className="flex-1 grid grid-cols-7 gap-1">
-            {weekDates.map((d) => {
-              const selected = viewMode === 'day' && d === date;
-              const today = isTodayIso(d);
-              return (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => { setDate(d); setViewMode('day'); }}
-                  className={`flex flex-col items-center rounded-xl py-1.5 transition-colors ${
-                    selected ? 'bg-primary text-on-primary' : today ? 'bg-primary/10 text-ink' : 'text-text-muted hover:bg-card-bg'
-                  }`}
-                >
-                  <span className={`text-[10px] font-medium ${selected ? 'text-on-primary/80' : ''}`}>{weekdayShort(d)}</span>
-                  <span className={`text-[15px] font-semibold tabular-nums ${selected ? '' : today ? 'text-primary' : 'text-ink'}`}>{parseDay(d).getDate()}</span>
-                </button>
-              );
-            })}
-          </div>
-          <button type="button" onClick={() => step(1)} className="icon-btn w-9" aria-label="Келесі">
-            <span className="material-symbols-outlined">chevron_right</span>
-          </button>
-        </div>
-
         <div className="px-4 pb-3 flex items-center gap-3">
-          <div className="segmented w-40 shrink-0">
+          <div className="segmented w-[210px] shrink-0">
             <button type="button" aria-pressed={viewMode === 'day'} onClick={() => setViewMode('day')}>Күн</button>
+            <button type="button" aria-pressed={viewMode === 'list'} onClick={() => setViewMode('list')}>Тізім</button>
             <button type="button" aria-pressed={viewMode === 'week'} onClick={() => setViewMode('week')}>Апта</button>
           </div>
-          {viewMode === 'day' && !loading && dayStats.total > 0 && (
+          {viewMode !== 'week' && !loading && dayStats.total > 0 && (
             <div className="flex-1 min-w-0 flex items-center justify-end gap-3 text-xs text-text-muted">
               <span><b className="text-ink font-semibold tabular-nums">{dayStats.total}</b> жазба</span>
               {dayStats.working > 0 && <span className="flex items-center gap-1"><i className="w-1.5 h-1.5 rounded-full bg-status-progress" />{dayStats.working}</span>}
@@ -249,7 +231,9 @@ export default function Calendar() {
       {error && <div className="mx-4 mt-3 rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>}
 
       <div className="flex-1 overflow-auto min-h-0">
-        {viewMode === 'day' ? (
+        {viewMode === 'list' ? (
+          <AgendaList bookings={bookings} loading={loading} canAddBooking={canAddBooking} onOpen={(b) => navigate(`/booking/${b.id}`)} onAdd={() => navigate('/booking/add')} />
+        ) : viewMode === 'day' ? (
           <>
             <div className="flex sticky top-0 z-10 ml-12 bg-bg-main shrink-0">
               {boxes.map((id) => (
@@ -352,6 +336,61 @@ export default function Calendar() {
         )}
       </div>
     </div>
+  );
+}
+
+function AgendaList({ bookings, loading, canAddBooking, onOpen, onAdd }) {
+  if (loading) return <div className="flex items-center justify-center py-16 text-text-muted text-sm">Жүктелуде...</div>;
+  const sorted = [...bookings].sort((a, b) => timeToMinutes(a.start_time) - timeToMinutes(b.start_time));
+  if (sorted.length === 0) {
+    return (
+      <div className="flex flex-col items-center text-center gap-2 py-16">
+        <span className="material-symbols-outlined text-[36px] text-faint">event_available</span>
+        <p className="text-ink font-semibold">Бұл күнде жазбалар жоқ</p>
+        {canAddBooking && (
+          <button type="button" onClick={onAdd} className="btn-secondary mt-1 text-sm">
+            <span className="material-symbols-outlined text-lg">add</span>Жазба қосу
+          </button>
+        )}
+      </div>
+    );
+  }
+  return (
+    <ol className="px-4 py-4 space-y-2.5">
+      {sorted.map((b) => {
+        const s = STATUS[b.status] || STATUS.no_show;
+        return (
+          <li key={b.id}>
+            <button type="button" onClick={() => onOpen(b)} className="card w-full text-left flex overflow-hidden active:scale-[0.99] transition">
+              <div className="w-[68px] shrink-0 flex flex-col items-center justify-center gap-0.5 border-r border-border-color/70 bg-raised/40 py-3">
+                <span className="text-[15px] font-bold text-ink tabular-nums">{formatTime(b.start_time)}</span>
+                <span className="text-[11px] text-text-muted tabular-nums">{formatTime(b.end_time)}</span>
+                <span className="mt-1 text-[10px] font-semibold text-text-muted">Бокс {b.box_id}</span>
+              </div>
+              <div className="flex-1 min-w-0 px-3.5 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[15px] font-semibold text-ink truncate">{b.vehicle_name}</span>
+                  <StatusPill status={b.status} />
+                </div>
+                <div className="mt-0.5 text-sm text-text-muted truncate">{b.client_name}</div>
+                <div className="mt-2 flex items-center gap-2 min-w-0">
+                  <Plate number={b.plate_number} size="sm" />
+                  {b.assigned_master_name && (
+                    <span className="text-xs text-text-muted truncate flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">engineering</span>{b.assigned_master_name}
+                    </span>
+                  )}
+                </div>
+                {b.services?.length > 0 && (
+                  <div className="mt-2 text-xs text-muted-ink line-clamp-1">{b.services.map((x) => x.service_name).join(', ')}</div>
+                )}
+              </div>
+              <span className={`w-1 shrink-0 ${s.bar}`} />
+            </button>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 

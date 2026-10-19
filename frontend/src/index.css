@@ -160,3 +160,17 @@ input:-webkit-autofill:active {
     background: radial-gradient(ellipse at 50% 35%, rgb(var(--raised)) 0%, rgb(var(--bg)) 75%);
   }
 }
+
+@layer utilities {
+  .text-muted-ink {
+    color: rgb(var(--ink) / 0.78);
+  }
+}
+
+/* Brand band (login): graphite with a teal glow, in this theme's colours. */
+.band {
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgb(var(--primary) / 0.28) 0%, rgb(var(--primary) / 0) 70%),
+    linear-gradient(180deg, rgb(var(--raised)) 0%, rgb(var(--bg)) 100%);
+  color: #fff;
+}

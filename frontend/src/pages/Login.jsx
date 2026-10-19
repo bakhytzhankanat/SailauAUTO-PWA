@@ -31,21 +31,23 @@ export default function Login() {
   }
 
   return (
-    <div className="relative min-h-[100dvh] flex flex-col px-5 overflow-hidden">
-      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[520px] h-[520px] rounded-full bg-primary/20 blur-[110px]" />
-      <div className="relative flex-1 flex flex-col justify-center w-full max-w-sm mx-auto py-10">
-        <div className="mb-10 flex flex-col items-center text-center">
-          <img src="/logoW.png" alt="Sailau Auto" className="w-full max-w-[220px] h-auto object-contain" />
-          <p className="text-text-muted text-sm mt-4">Автосервис басқару жүйесі</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-[100dvh] flex flex-col bg-bg-main">
+      <div className="band relative overflow-hidden px-6 pt-16 pb-24 flex flex-col items-center text-center">
+        <div className="pointer-events-none absolute -bottom-24 -right-16 w-72 h-72 rounded-full border-[28px] border-white/[0.04]" />
+        <div className="pointer-events-none absolute -top-20 -left-24 w-72 h-72 rounded-full border-[28px] border-white/[0.04]" />
+        <img src="/logoW.png" alt="Sailau Auto" className="relative w-full max-w-[220px] h-auto object-contain" />
+        <p className="relative text-white/65 text-sm mt-4">Автосервис басқару жүйесі</p>
+      </div>
+      <div className="flex-1 px-4 -mt-14">
+        <form onSubmit={handleSubmit} className="card relative mx-auto w-full max-w-sm p-5 space-y-4">
+          <h1 className="text-xl font-bold text-ink">Жүйеге кіру</h1>
           <ErrorNote>{error}</ErrorNote>
           <div>
-            <label className="block text-sm font-medium text-ink mb-1.5" htmlFor="phone">Телефон</label>
+            <label className="block text-sm font-medium text-muted-ink mb-1.5" htmlFor="phone">Телефон</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">smartphone</span>
               <input
-                className="field !py-4 pl-12 text-base tabular-nums"
+                className="field !py-3.5 pl-12 text-base tabular-nums"
                 id="phone"
                 type="tel"
                 inputMode="tel"
@@ -58,11 +60,11 @@ export default function Login() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-ink mb-1.5" htmlFor="password">Құпия сөз</label>
+            <label className="block text-sm font-medium text-muted-ink mb-1.5" htmlFor="password">Құпия сөз</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">lock</span>
               <input
-                className="field !py-4 pl-12 pr-12 text-base"
+                className="field !py-3.5 pl-12 pr-12 text-base"
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
@@ -81,12 +83,12 @@ export default function Login() {
               </button>
             </div>
           </div>
-          <button type="submit" disabled={submitting} className="btn-primary w-full text-lg !mt-6">
+          <button type="submit" disabled={submitting} className="btn-primary w-full text-base !mt-5">
             {submitting ? '...' : 'Кіру'}
           </button>
         </form>
+        <p className="text-center text-xs text-faint py-6">Sailau Auto жүйесіне қош келдіңіз</p>
       </div>
-      <p className="relative text-center text-xs text-faint pb-6">Sailau Auto жүйесіне қош келдіңіз</p>
     </div>
   );
 }
