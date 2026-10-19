@@ -109,7 +109,7 @@ export default function AppShell({ children }) {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border-color bg-card-bg pb-safe shadow-[0_-4px_16px_rgb(17_25_33/0.06)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border-color bg-card-bg pb-safe shadow-[0_-6px_20px_rgb(0_0_0/0.45)]">
         <div className="flex items-end justify-around px-1 pb-2">
           {tabs.map((item) => {
             const active = isActivePath(location.pathname, item.to);

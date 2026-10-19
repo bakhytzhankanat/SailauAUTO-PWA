@@ -226,85 +226,34 @@ export default function Analytics() {
         aria-hidden
       />
       <div className="print:hidden flex flex-col min-h-[100dvh] bg-bg-main text-ink overflow-hidden max-w-2xl mx-auto">
-      <header className="band-header px-4 py-2 flex items-center gap-3 z-10 shrink-0">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-card-bg transition-colors"
-          aria-label="Артқа"
-        >
-          <span className="material-symbols-outlined text-ink text-xl">arrow_back</span>
-        </button>
-        <h1 className="text-base font-bold text-ink flex-1 text-center pr-8">Есеп</h1>
-      </header>
-
-      <div className="px-3 pt-2 shrink-0 flex flex-wrap items-center gap-2">
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-          className="bg-card-bg border border-border-color rounded-lg px-3 py-1.5 text-ink text-xs font-medium"
-        >
+      <header className="band-header sticky top-0 z-10 shrink-0 px-3 pt-3 pb-3 space-y-3">
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => navigate(-1)} className="icon-btn -ml-1" aria-label="Артқа">
+            <span className="material-symbols-outlined text-[22px]">arrow_back</span>
+          </button>
+          <h1 className="text-xl font-bold text-ink flex-1">Есеп</h1>
+          <div className="segmented !p-0.5 w-[200px]">
+            <button type="button" aria-pressed={tab === 'analytics'} onClick={() => setTab('analytics')} className="!py-1.5 !text-xs">Жалпы шолу</button>
+            <button type="button" aria-pressed={tab === 'accounting'} onClick={() => setTab('accounting')} className="!py-1.5 !text-xs">Бухгалтерия</button>
+          </div>
+        </div>
+        <div className="grid grid-cols-4 gap-1.5">
           {PERIODS.map((p) => (
-            <option key={p.value} value={p.value}>{p.label}</option>
+            <button key={p.value} type="button" onClick={() => setPeriod(p.value)} className={`chip !px-0 !py-1.5 ${period === p.value ? 'chip-on' : ''}`}>
+              {p.label}
+            </button>
           ))}
-        </select>
+        </div>
         {isRange ? (
-          <div className="flex items-center gap-1.5 flex-1 min-w-[240px]">
-            <label className="flex-1 min-w-0">
-              <span className="block text-[10px] text-text-muted mb-0.5 ml-1">Бастап</span>
-              <input
-                type="date"
-                value={rangeStart}
-                max={rangeEnd || undefined}
-                onChange={(e) => setRangeStart(e.target.value)}
-                className="w-full bg-card-bg border border-border-color rounded-lg px-2 py-1.5 text-ink text-xs"
-              />
-            </label>
-            <span className="text-text-muted text-xs mt-4">—</span>
-            <label className="flex-1 min-w-0">
-              <span className="block text-[10px] text-text-muted mb-0.5 ml-1">Дейін</span>
-              <input
-                type="date"
-                value={rangeEnd}
-                min={rangeStart || undefined}
-                onChange={(e) => setRangeEnd(e.target.value)}
-                className="w-full bg-card-bg border border-border-color rounded-lg px-2 py-1.5 text-ink text-xs"
-              />
-            </label>
+          <div className="flex items-center gap-2">
+            <input type="date" value={rangeStart} max={rangeEnd || undefined} onChange={(e) => setRangeStart(e.target.value)} className="field !py-2 text-sm" aria-label="Бастап" />
+            <span className="text-text-muted">—</span>
+            <input type="date" value={rangeEnd} min={rangeStart || undefined} onChange={(e) => setRangeEnd(e.target.value)} className="field !py-2 text-sm" aria-label="Дейін" />
           </div>
         ) : (
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="bg-card-bg border border-border-color rounded-lg px-3 py-1.5 text-ink text-xs flex-1 min-w-[120px]"
-          />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="field !py-2 text-sm" />
         )}
-      </div>
-      {data && period !== 'day' && (
-        <p className="px-3 pt-1.5 text-[11px] text-text-muted shrink-0">
-          {dayMonth(data.start_date)} — {longDate(data.end_date)} · {data.days_count} күн
-        </p>
-      )}
-
-      <div className="px-3 pt-2 shrink-0">
-        <div className="flex p-1 bg-card-bg rounded-lg border border-border-color">
-          <button
-            type="button"
-            onClick={() => setTab('analytics')}
-            className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${tab === 'analytics' ? 'bg-primary text-on-primary shadow-sm' : 'text-text-muted hover:text-ink'}`}
-          >
-            Жалпы шолу
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('accounting')}
-            className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${tab === 'accounting' ? 'bg-primary text-on-primary shadow-sm' : 'text-text-muted hover:text-ink'}`}
-          >
-            Бухгалтерия
-          </button>
-        </div>
-      </div>
+      </header>
 
       {error && (
         <p className="px-3 pt-2 text-danger text-sm">{error}</p>
@@ -316,48 +265,45 @@ export default function Analytics() {
 
       {!loading && data && tab === 'analytics' && (
         <main className="flex-1 px-3 py-4 overflow-y-auto space-y-4 pb-8">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="card p-3">
-              <p className="text-text-muted text-xs">Қызмет кірісі</p>
-              <p className="text-ink font-semibold">{fmt(m.service_income_total)}</p>
+          <section className="card p-4 relative overflow-hidden">
+            <span className="pointer-events-none absolute -right-10 -top-10 w-40 h-40 rounded-full bg-primary/10" />
+            <p className="text-sm text-text-muted">Таза кіріс</p>
+            <p className="text-[34px] leading-tight font-bold text-ink tabular-nums">{fmt(m.net_total)}</p>
+            <p className="text-xs text-text-muted mt-1">
+              {period === 'day' ? longDate(date) : data ? `${dayMonth(data.start_date)} — ${longDate(data.end_date)} · ${data.days_count} күн` : ''}
+            </p>
+            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl bg-bg-main/60 py-2.5">
+                <p className="text-[15px] font-semibold text-ink tabular-nums">{m.cars_count}</p>
+                <p className="text-[11px] text-text-muted">көлік</p>
+              </div>
+              <div className="rounded-xl bg-bg-main/60 py-2.5">
+                <p className="text-[15px] font-semibold text-ink tabular-nums">{m.unique_clients_count}</p>
+                <p className="text-[11px] text-text-muted">клиент</p>
+              </div>
+              <div className="rounded-xl bg-bg-main/60 py-2.5">
+                <p className="text-[15px] font-semibold text-ink tabular-nums">{fmt(m.avg_check)}</p>
+                <p className="text-[11px] text-text-muted">орташа чек</p>
+              </div>
             </div>
-            <div className="card p-3">
-              <p className="text-text-muted text-xs">Бөлшек сату</p>
-              <p className="text-ink font-semibold">{fmt(m.part_sales_total)}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-text-muted text-xs">Материал шығыны</p>
-              <p className="text-ink font-semibold">{fmt(m.material_expense_total)}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-text-muted text-xs">Таза кіріс</p>
-              <p className="text-ink font-semibold">{fmt(m.net_total)}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-text-muted text-xs">Көліктер саны</p>
-              <p className="text-ink font-semibold">{m.cars_count}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-text-muted text-xs">Клиенттер (бірегей)</p>
-              <p className="text-ink font-semibold">{m.unique_clients_count}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-text-muted text-xs">Орташа чек</p>
-              <p className="text-ink font-semibold">{fmt(m.avg_check)}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-text-muted text-xs">Орташа күндық кіріс</p>
-              <p className="text-ink font-semibold">{fmt(m.avg_daily_income)}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-text-muted text-xs">Кепілдік берілді</p>
-              <p className="text-ink font-semibold">{m.warranty_jobs_count ?? '—'}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-text-muted text-xs">Кепілдікпен жасалды</p>
-              <p className="text-ink font-semibold">{m.warranty_used_count ?? '—'}</p>
-            </div>
-          </div>
+          </section>
+
+          <section className="card divide-y divide-border-color/60">
+            {[
+              ['payments', 'Қызмет кірісі', fmt(m.service_income_total), 'text-ink'],
+              ['inventory_2', 'Бөлшек сату', fmt(m.part_sales_total), 'text-ink'],
+              ['construction', 'Материал шығыны', `− ${fmt(m.material_expense_total)}`, 'text-danger'],
+              ['calendar_today', 'Орташа күндық кіріс', fmt(m.avg_daily_income), 'text-ink'],
+              ['verified_user', 'Кепілдік берілді', m.warranty_jobs_count ?? '—', 'text-ink'],
+              ['history', 'Кепілдікпен жасалды', m.warranty_used_count ?? '—', 'text-ink'],
+            ].map(([icon, label, value, color]) => (
+              <div key={label} className="flex items-center gap-3 px-4 py-3">
+                <span className="material-symbols-outlined text-[20px] text-text-muted">{icon}</span>
+                <span className="flex-1 text-sm text-text-muted">{label}</span>
+                <span className={`text-[15px] font-semibold tabular-nums ${color}`}>{value}</span>
+              </div>
+            ))}
+          </section>
 
           <h2 className="section-label !text-primary">Өнімділік (Шеберлер)</h2>
           <div className="bg-card-bg border border-border-color rounded-xl overflow-hidden">

@@ -2,35 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme "Күндіз": daylight work order. Light paper for bright workshops, a deep teal band
-   carries the brand, status colours keep their meaning but are darkened for contrast on white. */
+/* Theme "Түнгі ауысым": deep petrol night shift. Dark like the current app, but cooler and
+   deeper than variant A; a lighter teal band carries the brand across every header. */
 :root {
-  --bg: 239 242 244;
-  --surface: 255 255 255;
-  --raised: 232 236 239;
-  --line: 219 224 229;
-  --ink: 17 25 33;
-  --muted: 88 99 111;
-  --faint: 146 155 166;
-  --primary: 16 112 100;
+  --bg: 10 21 24;
+  --surface: 18 33 37;
+  --raised: 27 46 51;
+  --line: 36 58 63;
+  --ink: 233 242 241;
+  --muted: 139 163 166;
+  --faint: 88 112 116;
+  --primary: 38 166 146;
   --on-primary: 255 255 255;
-  --danger: 205 44 46;
-  --warn: 180 112 0;
-  --ok: 20 140 75;
-  --st-planned: 37 99 235;
-  --st-arrived: 221 84 10;
-  --st-progress: 190 128 0;
-  --st-done: 20 140 75;
-  --st-noshow: 118 126 137;
-  --band: 12 40 41;
-  --band-2: 20 58 58;
+  --danger: 240 92 86;
+  --warn: 245 184 66;
+  --ok: 58 200 125;
+  --st-planned: 92 152 255;
+  --st-arrived: 255 146 74;
+  --st-progress: 244 199 64;
+  --st-done: 58 200 125;
+  --st-noshow: 120 140 145;
+  --band: 16 52 54;
+  --band-2: 13 38 41;
 
   --font-ui: 'Onest', 'Noto Sans', system-ui, sans-serif;
   --font-num: 'Onest', 'Noto Sans', system-ui, sans-serif;
   --r-md: 12px;
   --r-lg: 16px;
   --nav-h: 76px;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html {
@@ -78,24 +78,15 @@ input:-webkit-autofill:active {
   outline-offset: 2px;
 }
 
-/* Light theme: shadows are soft and cool instead of black. */
-.shadow-black\/30,
-.shadow-black\/40,
-.shadow-black\/50,
-.shadow-black\/60 {
-  --tw-shadow-color: rgb(17 25 33 / 0.10) !important;
-  --tw-shadow: var(--tw-shadow-colored) !important;
-}
 
 @layer components {
   .section-label {
     @apply text-[13px] font-semibold text-text-muted normal-case tracking-normal;
   }
 
-  /* Cards sit on the grey paper with a soft lift instead of an outline. */
   .card {
-    @apply bg-card-bg rounded-2xl border border-border-color/60;
-    box-shadow: 0 1px 2px rgb(17 25 33 / 0.05), 0 2px 8px rgb(17 25 33 / 0.04);
+    @apply bg-card-bg rounded-2xl border border-border-color/50;
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 8px 24px -12px rgb(0 0 0 / 0.6);
   }
 
   .field {
@@ -133,8 +124,7 @@ input:-webkit-autofill:active {
     @apply flex-1 rounded-[9px] py-2 text-sm font-semibold text-text-muted transition-colors;
   }
   .segmented > button[aria-pressed='true'] {
-    @apply bg-card-bg text-ink;
-    box-shadow: 0 1px 3px rgb(17 25 33 / 0.12);
+    @apply bg-primary text-on-primary;
   }
 
   .icon-btn {
@@ -155,6 +145,7 @@ input:-webkit-autofill:active {
   .band {
     background: linear-gradient(180deg, rgb(var(--band)) 0%, rgb(var(--band-2)) 100%);
     color: white;
+    border-bottom: 1px solid rgb(var(--primary) / 0.25);
   }
   .band .icon-btn {
     @apply text-white/80;
@@ -170,11 +161,11 @@ input:-webkit-autofill:active {
   }
 
   .scrim {
-    @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[rgb(12_20_28/0.45)] backdrop-blur-[2px];
+    @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-[2px];
   }
   .sheet {
     @apply w-full max-w-md bg-card-bg rounded-t-[22px] sm:rounded-2xl p-5 pb-8 max-h-[90vh] overflow-y-auto;
-    box-shadow: 0 -12px 40px rgb(12 20 28 / 0.18);
+    box-shadow: 0 -12px 40px rgb(0 0 0 / 0.55);
   }
 
   .kz-plate {
@@ -188,7 +179,7 @@ input:-webkit-autofill:active {
   }
 
   .photo-stage {
-    background: radial-gradient(ellipse at 50% 40%, #ffffff 0%, rgb(var(--raised)) 80%);
+    background: radial-gradient(ellipse at 50% 40%, rgb(var(--line)) 0%, rgb(var(--surface)) 78%);
   }
 }
 
@@ -203,14 +194,14 @@ input:-webkit-autofill:active {
 .band-header {
   background: linear-gradient(180deg, rgb(var(--band)) 0%, rgb(var(--band-2)) 100%) !important;
   color: #fff;
-  border-bottom-color: transparent !important;
+  border-bottom: 1px solid rgb(var(--primary) / 0.25) !important;
   --primary: 104 214 196;
   --ink: 255 255 255;
   --muted: 190 214 212;
   --faint: 140 170 170;
-  --raised: 38 74 74;
-  --line: 52 92 92;
-  --surface: 30 64 64;
+  --raised: 30 70 72;
+  --line: 48 90 92;
+  --surface: 24 62 64;
 }
 .page-header .field,
 .band-header .field,

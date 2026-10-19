@@ -94,23 +94,25 @@ export default function Inventory() {
           </button>
         </div>
       </header>
-      <main className="flex-1 p-4 pb-28 space-y-2.5">
+      <main className="flex-1 p-3 pb-28 space-y-2.5">
         <ErrorNote>{error}</ErrorNote>
         {loading ? (
           <Loading />
         ) : shown.length === 0 ? (
           <EmptyState icon="inventory_2" title={onlyLow ? 'Аз қалған тауар жоқ' : 'Тауарлар тізімі бос'} hint={editable && !onlyLow ? 'Жаңа тауарды + батырмасымен қосыңыз.' : null} />
         ) : (
-          shown.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              canEdit={editable}
-              onAdd={() => openMovement(item, 'in')}
-              onOut={() => openMovement(item, 'out')}
-              onDelete={() => handleDeleteItem(item)}
-            />
-          ))
+          <ul className="card divide-y divide-border-color/60 overflow-hidden">
+            {shown.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                canEdit={editable}
+                onAdd={() => openMovement(item, 'in')}
+                onOut={() => openMovement(item, 'out')}
+                onDelete={() => handleDeleteItem(item)}
+              />
+            ))}
+          </ul>
         )}
       </main>
       {editable && (
@@ -151,46 +153,40 @@ function ItemCard({ item, canEdit, onAdd, onOut, onDelete }) {
   const lowStock = item.low_stock === true;
   const qty = Number(item.quantity) || 0;
   const min = item.min_quantity != null ? Number(item.min_quantity) : null;
-  const fill = min ? Math.min(100, (qty / (min * 3)) * 100) : 100;
   const price = `${Number(item.sale_price_min).toLocaleString('ru-RU')}${item.sale_price_min !== item.sale_price_max ? `–${Number(item.sale_price_max).toLocaleString('ru-RU')}` : ''} ₸`;
 
   return (
-    <div className={`card p-4 ${lowStock ? '!border-danger/40' : ''}`}>
-      <div className="flex items-start gap-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[15px] font-semibold text-ink leading-snug">{item.name}</h3>
-          {item.sku && <p className="text-[11px] text-text-muted">Артикул: {item.sku}</p>}
-          <p className="text-sm text-text-muted mt-0.5 tabular-nums">{price} <span className="text-faint">/ {item.unit || 'дана'}</span></p>
-        </div>
-        <div className="text-right shrink-0">
-          <div className={`text-2xl leading-none font-bold tabular-nums ${lowStock ? 'text-danger' : 'text-ink'}`}>{qty}</div>
-          <div className="text-[11px] text-text-muted mt-1">қалды</div>
-        </div>
+    <li className={`flex items-center gap-3 px-3.5 py-3 ${lowStock ? 'bg-danger/[0.06]' : ''}`}>
+      <span className={`w-1 self-stretch rounded-full ${lowStock ? 'bg-danger' : 'bg-transparent'}`} />
+      <div className="flex-1 min-w-0">
+        <h3 className="text-[15px] font-medium text-ink leading-snug truncate">{item.name}</h3>
+        <p className="text-xs text-text-muted tabular-nums truncate">
+          {price}
+          {min != null && <span className={lowStock ? 'text-danger font-semibold' : 'text-faint'}> · мин {min}</span>}
+          {item.sku && <span className="text-faint"> · {item.sku}</span>}
+        </p>
       </div>
-      <div className="mt-3 flex items-center gap-2">
-        <div className="h-1.5 flex-1 rounded-full bg-raised overflow-hidden">
-          <div className={`h-full rounded-full ${lowStock ? 'bg-danger' : 'bg-primary'}`} style={{ width: `${Math.max(4, fill)}%` }} />
-        </div>
-        {min != null && <span className={`text-[11px] tabular-nums ${lowStock ? 'text-danger font-semibold' : 'text-faint'}`}>{lowStock ? 'Аз қалды · ' : ''}мин {min}</span>}
-      </div>
-      {canEdit && (
-        <div className="flex gap-2 mt-3.5">
-          <button type="button" onClick={onOut} className="btn flex-1 py-2.5 text-sm bg-raised text-ink border border-border-color">
-            <span className="material-symbols-outlined text-[18px] text-danger">remove</span>
-            Шығару
+      {canEdit ? (
+        <div className="flex items-center rounded-xl border border-border-color bg-bg-main/60 shrink-0">
+          <button type="button" onClick={onOut} className="w-10 h-10 flex items-center justify-center text-text-muted active:text-danger" title="Шығару">
+            <span className="material-symbols-outlined text-[20px]">remove</span>
+            <span className="sr-only">Шығару</span>
           </button>
-          <button type="button" onClick={onAdd} className="btn flex-1 py-2.5 text-sm bg-primary/15 text-primary border border-primary/30">
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            Қосу
+          <span className={`min-w-[34px] text-center text-[17px] font-bold tabular-nums ${lowStock ? 'text-danger' : 'text-ink'}`}>{qty}</span>
+          <button type="button" onClick={onAdd} className="w-10 h-10 flex items-center justify-center text-primary" title="Қосу">
+            <span className="material-symbols-outlined text-[20px]">add</span>
+            <span className="sr-only">Қосу</span>
           </button>
-          {onDelete && (
-            <button type="button" onClick={onDelete} className="icon-btn w-11 h-auto rounded-xl border border-border-color hover:!text-danger" title="Тауарды жою" aria-label="Тауарды жою">
-              <span className="material-symbols-outlined text-[18px]">delete</span>
-            </button>
-          )}
         </div>
+      ) : (
+        <span className={`text-[17px] font-bold tabular-nums shrink-0 ${lowStock ? 'text-danger' : 'text-ink'}`}>{qty}</span>
       )}
-    </div>
+      {canEdit && onDelete && (
+        <button type="button" onClick={onDelete} className="icon-btn w-8 h-8 -mr-1 text-faint hover:!text-danger" title="Тауарды жою" aria-label="Тауарды жою">
+          <span className="material-symbols-outlined text-[18px]">delete</span>
+        </button>
+      )}
+    </li>
   );
 }
 
