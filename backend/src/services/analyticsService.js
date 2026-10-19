@@ -122,8 +122,36 @@ async function getDayRecords(serviceId, date) {
   }));
 }
 
+const MAX_RANGE_DAYS = 366;
+
+function isIsoDate(value) {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value + 'T12:00:00Z'));
+}
+
+/** Inclusive list of YYYY-MM-DD dates from start to end. */
+export function getRangeDates(startDate, endDate) {
+  if (!isIsoDate(startDate) || !isIsoDate(endDate)) {
+    throw new Error('Жарамды күн форматы: YYYY-MM-DD');
+  }
+  if (startDate > endDate) {
+    throw new Error('Басталу күні аяқталу күнінен кейін болмауы керек');
+  }
+  const dates = [];
+  const cur = new Date(startDate + 'T12:00:00Z');
+  const end = new Date(endDate + 'T12:00:00Z');
+  while (cur <= end) {
+    if (dates.length >= MAX_RANGE_DAYS) {
+      throw new Error(`Аралық ${MAX_RANGE_DAYS} күннен аспауы керек`);
+    }
+    dates.push(cur.toISOString().slice(0, 10));
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return dates;
+}
+
 /**
- * GET /api/analytics/summary?period=day|week|month&date=YYYY-MM-DD
+ * GET /api/analytics/summary?period=day|week|month|range&date=YYYY-MM-DD[&end_date=YYYY-MM-DD]
+ * For period=range, `date` is the first day and opts.end_date the last day (inclusive).
  * Owner only. Returns period boundaries, aggregated metrics, daily rows, wages breakdown, day_close list.
  */
 export async function getSummary(serviceId, period, date, opts = {}) {
@@ -139,8 +167,10 @@ export async function getSummary(serviceId, period, date, opts = {}) {
     dates = getWeekDates(date);
   } else if (periodType === 'month') {
     dates = getMonthDates(date);
+  } else if (periodType === 'range') {
+    dates = getRangeDates(date, opts.end_date);
   } else {
-    throw new Error('period: day, week немесе month');
+    throw new Error('period: day, week, month немесе range');
   }
 
   const start_date = dates[0];

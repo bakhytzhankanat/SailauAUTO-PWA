@@ -283,9 +283,10 @@ export async function getWhatsappInbound(q = '') {
   return api(`/whatsapp-inbound${query}`);
 }
 
-export async function getAnalyticsSummary(period = 'day', date, drillMasterId = null) {
+export async function getAnalyticsSummary(period = 'day', date, drillMasterId = null, endDate = null) {
   const params = new URLSearchParams({ period });
   if (date) params.set('date', date);
+  if (endDate) params.set('end_date', endDate);
   if (drillMasterId) params.set('drill', drillMasterId);
   return api(`/analytics/summary?${params}`);
 }

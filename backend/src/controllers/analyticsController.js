@@ -4,8 +4,9 @@ export async function getSummary(req, res) {
   const serviceId = req.user?.service_id;
   if (!serviceId) return res.status(403).json({ error: 'Рұқсат жоқ' });
   try {
-    const { period = 'day', date, drill } = req.query;
-    const opts = drill ? { drill_master_user_id: drill } : {};
+    const { period = 'day', date, end_date, drill } = req.query;
+    const opts = { end_date };
+    if (drill) opts.drill_master_user_id = drill;
     const result = await analyticsService.getSummary(serviceId, period, date, opts);
     return res.json(result);
   } catch (e) {
