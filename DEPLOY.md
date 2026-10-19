@@ -29,7 +29,7 @@ git push render main
    - **Root Directory:** **`backend`** (обязательно).
    - **Runtime:** `Node`
    - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
+   - **Start Command:** `npm start` (перед стартом автоматически выполняются новые миграции — `prestart`)
 4. **Environment Variables:**
    - `NODE_VERSION` = `20` (или 18)
    - `DB_URL` = connection string Supabase (PostgreSQL).
