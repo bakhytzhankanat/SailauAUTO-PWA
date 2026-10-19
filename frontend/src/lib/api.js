@@ -23,6 +23,8 @@ export function clearAuth() {
   localStorage.removeItem('sailau_user');
 }
 
+export const UNAUTHORIZED_EVENT = 'sailau:unauthorized';
+
 export async function api(path, options = {}) {
   const token = getToken();
   const headers = {
@@ -36,8 +38,20 @@ export async function api(path, options = {}) {
   } catch (err) {
     throw new Error(err.message === 'Failed to fetch' ? NETWORK_ERROR_MSG : (err.message || NETWORK_ERROR_MSG));
   }
+  // Sliding session: the server re-issues the token while the app is in use.
+  const refreshedToken = res.headers.get('X-Refresh-Token');
+  if (refreshedToken && token && getToken() === token) {
+    localStorage.setItem('sailau_token', refreshedToken);
+  }
   const data = res.ok ? await res.json().catch(() => ({})) : await res.json().catch(() => ({ error: res.statusText }));
-  if (!res.ok) throw new Error(data.error || res.statusText);
+  if (!res.ok) {
+    if (res.status === 401 && token) {
+      window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+    }
+    const error = new Error(data.error || res.statusText);
+    error.status = res.status;
+    throw error;
+  }
   return data;
 }
 

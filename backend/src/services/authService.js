@@ -1,9 +1,6 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { pool } from '../db/pool.js';
-import { JWT_SECRET } from '../middleware/auth.js';
-
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+import { signToken } from '../middleware/auth.js';
 
 /**
  * Normalize phone for lookup (strip spaces, keep digits and +).
@@ -37,11 +34,7 @@ export async function login(phone, password) {
   if (!ok) {
     return { error: 'Телефон немесе құпия сөз дұрыс емес' };
   }
-  const token = jwt.sign(
-    { userId: user.id },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  );
+  const token = signToken(user.id);
   const { password_hash, ...safe } = user;
   return {
     token,
