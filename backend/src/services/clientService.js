@@ -8,26 +8,68 @@ function toDateStr(d) {
   return m ? m[0] : s;
 }
 
+// Cyrillic letters that look like Latin ones on Kazakhstan plates (А→A, В→B, ...).
+const PLATE_CYRILLIC = 'АВЕКМНОРСТУХ';
+const PLATE_LATIN = 'ABEKMHOPCTYX';
+
 /**
- * Search clients by phone (LIKE) or name (ILIKE). Owner/Manager only.
+ * Normalize a plate number for matching: uppercase, only letters/digits, Cyrillic look-alikes → Latin.
+ * "123 abc 02", "123-АВС-02" and "123ABC02" all become "123ABC02".
+ */
+export function normalizePlate(value) {
+  if (!value) return '';
+  let out = '';
+  for (const ch of String(value).toUpperCase()) {
+    const i = PLATE_CYRILLIC.indexOf(ch);
+    out += i >= 0 ? PLATE_LATIN[i] : ch;
+  }
+  return out.replace(/[^0-9A-ZА-ЯӘҒҚҢӨҰҮҺІЁ]/g, '');
+}
+
+/** SQL counterpart of normalizePlate for column `expr`. */
+function plateSql(expr) {
+  return `translate(regexp_replace(upper(COALESCE(${expr}, '')), '[^0-9A-ZА-ЯӘҒҚҢӨҰҮҺІЁ]', '', 'g'), '${PLATE_CYRILLIC}', '${PLATE_LATIN}')`;
+}
+
+/**
+ * Search clients by phone (LIKE), name (ILIKE) or plate number (partial, e.g. first digits).
+ * Plate matches the client's last plate or any plate from their bookings. Owner/Manager only.
  */
 export async function search(serviceId, opts = {}) {
   if (!serviceId) throw new Error('service_id қажет');
   const q = (opts.q || '').trim();
+  const plateQ = normalizePlate(q);
 
   const buildSql = (includeBody) => {
-    let sql = `
-      SELECT c.id, c.name, c.phone, c.source, c.created_at, c.last_vehicle_name, c.last_plate_number${includeBody ? ', c.last_body_type' : ''},
-             (SELECT MAX(b.date) FROM booking b WHERE b.client_id = c.id AND b.status = 'completed') AS last_visit_date
-      FROM client c
-      WHERE c.service_id = $1
-    `;
     const params = [serviceId];
+    let matchedPlateSelect = '';
+    let where = '';
+    let order = 'c.name';
     if (q) {
       params.push(`%${q}%`);
-      sql += ` AND (c.phone LIKE $2 OR c.name ILIKE $2)`;
+      const conditions = ['c.phone LIKE $2', 'c.name ILIKE $2'];
+      if (plateQ) {
+        params.push(`%${plateQ}%`, `${plateQ}%`);
+        conditions.push(
+          `${plateSql('c.last_plate_number')} LIKE $3`,
+          `EXISTS (SELECT 1 FROM booking pb WHERE pb.client_id = c.id AND ${plateSql('pb.plate_number')} LIKE $3)`
+        );
+        matchedPlateSelect = `,
+             (SELECT pb.plate_number FROM booking pb
+              WHERE pb.client_id = c.id AND ${plateSql('pb.plate_number')} LIKE $3
+              ORDER BY pb.date DESC LIMIT 1) AS matched_plate`;
+        // Plates that start with the typed characters come first.
+        order = `(${plateSql('c.last_plate_number')} LIKE $4) DESC, c.name`;
+      }
+      where = ` AND (${conditions.join(' OR ')})`;
     }
-    sql += ' ORDER BY c.name';
+    const sql = `
+      SELECT c.id, c.name, c.phone, c.source, c.created_at, c.last_vehicle_name, c.last_plate_number${includeBody ? ', c.last_body_type' : ''},
+             (SELECT MAX(b.date) FROM booking b WHERE b.client_id = c.id AND b.status = 'completed') AS last_visit_date${matchedPlateSelect}
+      FROM client c
+      WHERE c.service_id = $1${where}
+      ORDER BY ${order}
+    `;
     return { sql, params };
   };
 
@@ -52,6 +94,7 @@ export async function search(serviceId, opts = {}) {
     last_plate_number: r.last_plate_number ?? null,
     last_body_type: r.last_body_type ?? null,
     last_visit_date: toDateStr(r.last_visit_date),
+    matched_plate: r.matched_plate ?? null,
   }));
 }
 

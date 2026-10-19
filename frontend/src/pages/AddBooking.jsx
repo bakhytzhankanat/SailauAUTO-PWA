@@ -521,7 +521,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
                   type="text"
                   value={clientSearch}
                   onChange={(e) => setClientSearch(e.target.value)}
-                  placeholder="Іздеу (аты немесе телефон)"
+                  placeholder="Іздеу (аты, телефон немесе нөмір)"
                   className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none text-sm"
                 />
               </div>

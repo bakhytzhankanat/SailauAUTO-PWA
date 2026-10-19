@@ -21,19 +21,25 @@ export default function ClientsList() {
     }
   }, [isWorker, navigate]);
 
-  const load = useCallback(async () => {
+  const load = useCallback((q, isCancelled) => {
     setLoading(true);
     setError('');
-    getClients(search)
-      .then((data) => setList(Array.isArray(data) ? data : []))
-      .catch((e) => setError(e.message || 'Жүктеу сәтсіз'))
-      .finally(() => setLoading(false));
-  }, [search]);
+    getClients(q)
+      .then((data) => { if (!isCancelled()) setList(Array.isArray(data) ? data : []); })
+      .catch((e) => { if (!isCancelled()) setError(e.message || 'Жүктеу сәтсіз'); })
+      .finally(() => { if (!isCancelled()) setLoading(false); });
+  }, []);
 
   useEffect(() => {
-    if (isWorker) return;
-    load();
-  }, [load, isWorker]);
+    if (isWorker) return undefined;
+    // Wait for a pause in typing; drop answers to older queries so results never jump back.
+    let cancelled = false;
+    const timer = setTimeout(() => load(search.trim(), () => cancelled), search ? 300 : 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [load, search, isWorker]);
 
   if (isWorker) return null;
 
@@ -54,7 +60,7 @@ export default function ClientsList() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Телефон немесе аты бойынша іздеу"
+            placeholder="Аты, телефон немесе мемлекеттік нөмір"
             className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:ring-1 focus:ring-primary"
           />
         </div>
@@ -62,7 +68,7 @@ export default function ClientsList() {
         {loading ? (
           <p className="text-text-muted">Жүктелуде...</p>
         ) : list.length === 0 ? (
-          <p className="text-text-muted">Клиенттер тізімі бос</p>
+          <p className="text-text-muted">{search.trim() ? 'Ештеңе табылмады' : 'Клиенттер тізімі бос'}</p>
         ) : (
           <div className="space-y-3">
             {list.map((c) => (
@@ -81,6 +87,16 @@ export default function ClientsList() {
                     {SOURCE_LABEL[c.source] || c.source}
                   </span>
                 </div>
+                {(c.matched_plate || c.last_plate_number || c.last_vehicle_name) && (
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    {(c.matched_plate || c.last_plate_number) && (
+                      <span className="font-mono text-xs font-semibold tracking-wider px-2 py-0.5 rounded border border-white/20 bg-white/5 text-white">
+                        {c.matched_plate || c.last_plate_number}
+                      </span>
+                    )}
+                    {c.last_vehicle_name && <span className="text-text-muted text-xs">{c.last_vehicle_name}</span>}
+                  </div>
+                )}
                 {c.last_visit_date && (
                   <div className="text-text-muted text-xs mt-2">Соңғы келу: {c.last_visit_date}</div>
                 )}
