@@ -324,7 +324,7 @@ export default function AddBooking() {
           <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>
         <div className="flex-1">
-          <h1 className="text-lg font-bold text-white">Жаңа жазба</h1>
+          <h1 className="text-lg font-bold text-ink">Жаңа жазба</h1>
           <div className="flex items-center gap-2 mt-0.5">
             <span className="w-2 h-2 rounded-full bg-primary" />
             <span className="text-xs text-text-muted">{STEP_TITLES[currentStep]}</span>
@@ -346,7 +346,7 @@ export default function AddBooking() {
         </div>
 
         {(conflictError || submitError) && (
-          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+          <div className="mb-4 p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">
             {conflictError || submitError}
           </div>
         )}
@@ -363,13 +363,13 @@ export default function AddBooking() {
               prefillOnly={searchParams.get('prefill') === '1' && (searchParams.get('source') === 'whatsapp' || !!searchParams.get('phone') || !!searchParams.get('name'))}
             />
             {clientWarranties.length > 0 && (
-              <div className="bg-amber-500/20 border border-amber-500 rounded-xl p-4 mt-4">
+              <div className="bg-warn/20 border border-warn rounded-xl p-4 mt-4">
                 <div className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-amber-500 text-2xl">warning</span>
+                  <span className="material-symbols-outlined text-warn text-2xl">warning</span>
                   <div className="flex-1">
-                    <p className="text-amber-400 font-bold text-sm mb-2">Клиенттің белсенді кепілдігі бар!</p>
+                    <p className="text-warn font-bold text-sm mb-2">Клиенттің белсенді кепілдігі бар!</p>
                     {clientWarranties.map((w) => (
-                      <div key={w.id} className="text-white text-xs mb-2 bg-[#2A2A2A] rounded-lg p-2">
+                      <div key={w.id} className="text-ink text-xs mb-2 bg-raised rounded-lg p-2">
                         <p className="font-semibold">{w.service_name || 'Қызмет'}</p>
                         <p className="text-text-muted mt-0.5">Мерзімі: {new Date(w.expires_at).toLocaleDateString('kk-KZ')}</p>
                         {w.master_name && (
@@ -415,7 +415,7 @@ export default function AddBooking() {
           type="button"
           onClick={handleNext}
           disabled={!canNext()}
-          className="bg-primary text-white font-semibold px-6 py-4 rounded-full shadow-2xl shadow-primary/40 hover:opacity-90 active:scale-95 transition-all text-base flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none"
+          className="bg-primary text-on-primary font-semibold px-6 py-4 rounded-full shadow-2xl shadow-primary/40 hover:opacity-90 active:scale-95 transition-all text-base flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none"
         >
           {currentStep === 'summary' ? (submitting ? 'Сақталуда...' : 'Жазбаны сақтау') : 'Келесі'}
           {currentStep !== 'summary' && <span className="material-symbols-outlined text-xl">arrow_forward</span>}
@@ -469,7 +469,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
       ) : null}
 
       <section>
-        <h2 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+        <h2 className="text-sm font-semibold text-ink flex items-center gap-2 mb-4">
           <span className="material-symbols-outlined text-text-muted text-lg">person</span>
           {prefillOnly ? 'Клиент' : 'Клиент (қолмен)'}
         </h2>
@@ -480,7 +480,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
               type="text"
               value={form.client_name}
               onChange={(e) => updateForm({ client_name: e.target.value, client_id: null })}
-              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-3 text-white placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-3 text-ink placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none"
               placeholder="Клиент аты"
             />
           </div>
@@ -490,7 +490,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
               type="tel"
               value={form.phone}
               onChange={(e) => updateForm({ phone: e.target.value, client_id: null })}
-              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-3 text-white placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-3 text-ink placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none"
               placeholder="+7 700 000 00 00"
             />
           </div>
@@ -506,7 +506,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
                 type="button"
                 onClick={() => updateForm({ source: 'live' })}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium ${
-                  form.source === 'live' ? 'bg-primary text-white' : 'bg-card-bg border border-border-color text-text-muted'
+                  form.source === 'live' ? 'bg-primary text-on-primary' : 'bg-card-bg border border-border-color text-text-muted'
                 }`}
               >
                 Live
@@ -515,7 +515,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
                 type="button"
                 onClick={() => updateForm({ source: 'whatsapp' })}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium ${
-                  form.source === 'whatsapp' ? 'bg-primary text-white' : 'bg-card-bg border border-border-color text-text-muted'
+                  form.source === 'whatsapp' ? 'bg-primary text-on-primary' : 'bg-card-bg border border-border-color text-text-muted'
                 }`}
               >
                 WhatsApp
@@ -546,7 +546,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
                   value={clientSearch}
                   onChange={(e) => setClientSearch(e.target.value)}
                   placeholder="Іздеу (аты, телефон немесе нөмір)"
-                  className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none text-sm"
+                  className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-ink placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none text-sm"
                 />
               </div>
               <div className="max-h-48 overflow-y-auto space-y-2">
@@ -563,11 +563,11 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center text-sm font-bold text-text-muted">
+                        <div className="w-10 h-10 rounded-full bg-raised flex items-center justify-center text-sm font-bold text-text-muted">
                           {(c.name || '?').slice(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-white">{c.name}</div>
+                          <div className="text-sm font-medium text-ink">{c.name}</div>
                           <div className="text-xs text-text-muted font-mono">{c.phone}</div>
                           {(c.last_vehicle_name || c.last_plate_number || c.last_body_type) && (
                             <div className="text-[10px] text-text-muted mt-0.5">
@@ -600,12 +600,12 @@ function StepVehicle({ form, updateForm, vehicles }) {
     }`;
   const check = (
     <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md">
-      <span className="material-symbols-outlined text-white text-base">check</span>
+      <span className="material-symbols-outlined text-ink text-base">check</span>
     </div>
   );
   return (
     <div className="space-y-4 pb-24">
-      <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2">Танымал модельдер</h2>
+      <h2 className="text-sm font-semibold text-text-muted mb-2">Танымал модельдер</h2>
       <div className="grid grid-cols-2 gap-3">
         {models.map((v) => {
           const isSelected = form.vehicle_catalog_id === v.id;
@@ -618,7 +618,7 @@ function StepVehicle({ form, updateForm, vehicles }) {
                   <BrandLogo make={brand} />
                   <div className="min-w-0">
                     <div className="text-[10px] uppercase tracking-[0.18em] text-text-muted font-semibold">{brand}</div>
-                    <div className="font-semibold text-white text-sm leading-tight">{rest.join(' ') || v.name}</div>
+                    <div className="font-semibold text-ink text-sm leading-tight">{rest.join(' ') || v.name}</div>
                   </div>
                 </div>
                 <div className="text-xs text-text-muted mt-0.5">
@@ -640,7 +640,7 @@ function StepVehicle({ form, updateForm, vehicles }) {
           </div>
           <div className="p-3 pt-2">
             <div className="text-[10px] uppercase tracking-[0.18em] text-text-muted font-semibold">Басқа</div>
-            <div className="font-semibold text-white text-sm leading-tight truncate">{isOther && form.vehicle_custom_name ? form.vehicle_custom_name : 'Другое'}</div>
+            <div className="font-semibold text-ink text-sm leading-tight truncate">{isOther && form.vehicle_custom_name ? form.vehicle_custom_name : 'Другое'}</div>
             <div className="text-xs text-text-muted mt-0.5">Марка мен модельді таңдау</div>
           </div>
           {isOther && check}
@@ -661,11 +661,11 @@ function StepBody({ form, updateForm, selectedVehicle }) {
   const preview = form.body_type || options[0];
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Кузов таңдау</h2>
+      <h2 className="text-sm font-semibold text-text-muted mb-3">Кузов таңдау</h2>
       <div className="rounded-2xl overflow-hidden border border-border-color">
         <VehiclePhoto name={selectedVehicle?.name} bodyType={preview} className="w-full aspect-[3/2]" />
         <div className="px-4 py-3 bg-card-bg flex items-baseline justify-between gap-2">
-          <span className="text-white font-semibold">{selectedVehicle?.name}</span>
+          <span className="text-ink font-semibold">{selectedVehicle?.name}</span>
           {form.body_type && <span className="text-primary text-sm font-medium">Кузов {form.body_type}</span>}
         </div>
       </div>
@@ -679,7 +679,7 @@ function StepBody({ form, updateForm, selectedVehicle }) {
               form.body_type === opt ? 'border-primary bg-primary/10' : 'border-border-color'
             }`}
           >
-            <span className="font-medium text-white">{opt}</span>
+            <span className="font-medium text-ink">{opt}</span>
             {form.body_type === opt && <span className="material-symbols-outlined text-primary">check</span>}
           </button>
         ))}
@@ -691,13 +691,13 @@ function StepBody({ form, updateForm, selectedVehicle }) {
 function StepPlate({ form, updateForm }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-white text-center mb-4">Мемлекеттік нөмір</h2>
+      <h2 className="text-xl font-bold text-ink text-center mb-4">Мемлекеттік нөмір</h2>
       <p className="text-text-muted text-sm text-center mb-6">Еркін мәтін (міндетті емес)</p>
       <input
         type="text"
         value={form.plate_number}
         onChange={(e) => updateForm({ plate_number: e.target.value })}
-        className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-4 text-white text-center text-lg placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+        className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-4 text-ink text-center text-lg placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none"
         placeholder="KZ 123 ABC 01"
       />
     </div>
@@ -760,7 +760,7 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
         }`}
       >
         <div className="flex-1 min-w-0">
-          <span className="font-medium text-white">{serviceDisplayName(s)}</span>
+          <span className="font-medium text-ink">{serviceDisplayName(s)}</span>
           {selected && selected.warranty_mode && (
             <span className="ml-2 text-xs text-status-completed">(Гарантия — 0 ₸)</span>
           )}
@@ -771,16 +771,16 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
               <button
                 type="button"
                 onClick={() => (selected.quantity || 1) <= 1 ? toggleService(s.id) : setQuantity(s.id, (selected.quantity || 1) - 1)}
-                className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white hover:bg-red-500/20"
+                className="w-8 h-8 rounded-lg bg-raised flex items-center justify-center text-ink hover:bg-danger/20"
                 title="Азайту немесе жою"
               >
                 −
               </button>
-              <span className="w-8 text-center font-bold text-white">{selected.quantity}</span>
+              <span className="w-8 text-center font-bold text-ink">{selected.quantity}</span>
               <button
                 type="button"
                 onClick={() => setQuantity(s.id, (selected.quantity || 1) + 1)}
-                className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white disabled:opacity-50"
+                className="w-8 h-8 rounded-lg bg-raised flex items-center justify-center text-ink disabled:opacity-50"
               >
                 +
               </button>
@@ -802,11 +802,11 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
   return (
     <div className="space-y-6">
       <section>
-        <h2 className="text-sm font-semibold text-text-muted mb-3 uppercase tracking-wider">Қызметті таңдау</h2>
+        <h2 className="text-sm font-semibold text-text-muted mb-3">Қызметті таңдау</h2>
         <div className="space-y-4">
           {categoriesFiltered.map((cat) => (
             <div key={cat.id}>
-              <div className="text-sm font-medium text-white mb-2">{cat.name}</div>
+              <div className="text-sm font-medium text-ink mb-2">{cat.name}</div>
               {cat.name === 'Есік қызметтері' && (cat.services || []).some((s) => s.subgroup) ? (
                 <>
                   {[...new Set((cat.services || []).map((s) => s.subgroup).filter(Boolean))].map((sub) => (
@@ -826,7 +826,7 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold text-text-muted mb-3 uppercase tracking-wider">Боксты таңдау</h2>
+        <h2 className="text-sm font-semibold text-text-muted mb-3">Боксты таңдау</h2>
         <div className="grid grid-cols-2 gap-3">
           {boxIds.map((boxId) => (
             <button
@@ -845,7 +845,7 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
       </section>
 
       <section className="bg-card-bg rounded-xl p-4 border border-border-color">
-        <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4">Уақыт пен ұзақтық</h2>
+        <h2 className="text-sm font-semibold text-text-muted mb-4">Уақыт пен ұзақтық</h2>
         <div className="mb-4">
           <label className="text-xs text-text-muted block mb-2">Күн</label>
           <input
@@ -853,7 +853,7 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
             value={form.date}
             min={today}
             onChange={(e) => updateForm({ date: e.target.value })}
-            className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white"
+            className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink"
           />
         </div>
         <div className="mb-4">
@@ -861,7 +861,7 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
           <select
             value={form.start_time}
             onChange={(e) => updateForm({ start_time: e.target.value })}
-            className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white"
+            className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink"
           >
             <option value="">Таңдаңыз</option>
             {timeSlots.map((t) => (
@@ -874,7 +874,7 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
           <select
             value={form.duration}
             onChange={(e) => updateForm({ duration: Number(e.target.value) })}
-            className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white"
+            className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink"
           >
             {[60, 90, 120, 180].map((d) => (
               <option key={d} value={d}>{d} мин</option>
@@ -893,7 +893,7 @@ function StepNote({ form, updateForm }) {
       <textarea
         value={form.note}
         onChange={(e) => updateForm({ note: e.target.value })}
-        className="w-full bg-card-bg border border-border-color rounded-xl p-4 text-white placeholder-text-muted min-h-[160px] resize-none focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+        className="w-full bg-card-bg border border-border-color rounded-xl p-4 text-ink placeholder-text-muted min-h-[160px] resize-none focus:ring-1 focus:ring-primary focus:border-primary outline-none"
         placeholder="Мысалы: Клиент өз майымен келеді"
       />
     </div>
@@ -905,30 +905,30 @@ function StepSummary({ form, selectedVehicle, categoriesWithServices }) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-bold text-white mb-4">Жазбаны тексеру</h2>
+      <h2 className="text-lg font-bold text-ink mb-4">Жазбаны тексеру</h2>
       <div className="bg-card-bg rounded-2xl border border-border-color overflow-hidden divide-y divide-border-color">
         <div className="p-4">
-          <div className="text-text-muted text-xs uppercase font-semibold mb-1">Клиент</div>
-          <div className="text-white font-bold">{form.client_name}</div>
+          <div className="text-text-muted text-xs font-semibold mb-1">Клиент</div>
+          <div className="text-ink font-bold">{form.client_name}</div>
           <div className="text-primary text-sm">{form.phone}</div>
         </div>
         <div className="p-4">
-          <div className="text-text-muted text-xs uppercase font-semibold mb-1">Көлік</div>
-          <div className="text-white font-bold">{form.vehicle_custom_name || selectedVehicle?.name || form.vehicle_name}</div>
+          <div className="text-text-muted text-xs font-semibold mb-1">Көлік</div>
+          <div className="text-ink font-bold">{form.vehicle_custom_name || selectedVehicle?.name || form.vehicle_name}</div>
           <div className="text-text-muted text-sm">{form.body_type}</div>
           {form.plate_number && <div className="font-mono text-sm mt-1">{form.plate_number}</div>}
         </div>
         <div className="p-4">
-          <div className="text-text-muted text-xs uppercase font-semibold mb-1">Қызметтер</div>
+          <div className="text-text-muted text-xs font-semibold mb-1">Қызметтер</div>
           {(form.services || []).length === 0 ? (
-            <div className="text-white text-sm">—</div>
+            <div className="text-ink text-sm">—</div>
           ) : (
             <ul className="space-y-1 text-sm">
               {(form.services || []).map((s) => {
                 const service = allServices.find((x) => x.id === s.service_catalog_id);
                 const name = serviceDisplayName(service || { id: s.service_catalog_id, name: s.service_name });
                 return (
-                  <li key={s.service_catalog_id} className="flex justify-between items-center text-white">
+                  <li key={s.service_catalog_id} className="flex justify-between items-center text-ink">
                     <span>{name} ×{s.quantity}</span>
                     <span className={s.warranty_mode ? 'text-status-completed' : ''}>
                       {s.warranty_mode ? '0 ₸ (по гарантии)' : ''}
@@ -940,13 +940,13 @@ function StepSummary({ form, selectedVehicle, categoriesWithServices }) {
           )}
         </div>
         <div className="p-4">
-          <div className="text-text-muted text-xs uppercase font-semibold mb-1">Бокс және уақыт</div>
-          <div className="text-white">Бокс {form.box_id} • {form.date} • {form.start_time} – {form.end_time}</div>
+          <div className="text-text-muted text-xs font-semibold mb-1">Бокс және уақыт</div>
+          <div className="text-ink">Бокс {form.box_id} • {form.date} • {form.start_time} – {form.end_time}</div>
         </div>
         {form.note && (
           <div className="p-4">
-            <div className="text-text-muted text-xs uppercase font-semibold mb-1">Ескерту</div>
-            <div className="text-white text-sm">{form.note}</div>
+            <div className="text-text-muted text-xs font-semibold mb-1">Ескерту</div>
+            <div className="text-ink text-sm">{form.note}</div>
           </div>
         )}
       </div>

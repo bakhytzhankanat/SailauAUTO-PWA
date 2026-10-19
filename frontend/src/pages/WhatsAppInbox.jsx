@@ -64,7 +64,7 @@ export default function WhatsAppInbox() {
           <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
             <span className="material-symbols-outlined text-text-muted">arrow_back</span>
           </button>
-          <h1 className="text-xl font-bold text-white">WhatsApp</h1>
+          <h1 className="text-xl font-bold text-ink">WhatsApp</h1>
         </div>
         <div className="relative mt-3">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
@@ -75,12 +75,12 @@ export default function WhatsAppInbox() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Телефон немесе аты бойынша іздеу"
-            className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:ring-1 focus:ring-primary"
+            className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-ink placeholder-text-muted focus:ring-1 focus:ring-primary"
           />
         </div>
       </header>
       <main className="flex-1 overflow-y-auto p-4 pb-24">
-        {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+        {error && <p className="text-danger text-sm mb-4">{error}</p>}
         {loading ? (
           <p className="text-text-muted">Жүктелуде...</p>
         ) : list.length === 0 ? (
@@ -94,7 +94,7 @@ export default function WhatsAppInbox() {
               >
                 <div className="flex justify-between items-start gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="font-semibold text-white truncate">{item.name?.trim() || 'Белгісіз'}</div>
+                    <div className="font-semibold text-ink truncate">{item.name?.trim() || 'Белгісіз'}</div>
                     <div className="text-primary text-sm mt-0.5">{item.phone}</div>
                     {item.last_message && (
                       <p className="text-text-muted text-sm mt-1 line-clamp-1">{item.last_message}</p>
@@ -105,7 +105,7 @@ export default function WhatsAppInbox() {
                     <button
                       type="button"
                       onClick={() => handleAddBooking(item)}
-                      className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-medium"
+                      className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-on-primary text-sm font-medium"
                     >
                       Жазба қосу
                     </button>

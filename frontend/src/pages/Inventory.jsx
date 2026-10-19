@@ -68,7 +68,7 @@ export default function Inventory() {
     <div className="flex flex-col min-h-full">
       <header className="px-4 pt-4 pb-4 flex flex-col gap-4 bg-bg-main border-b border-border-color sticky top-0 z-10">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white tracking-tight">Қойма</h1>
+          <h1 className="text-2xl font-bold text-ink tracking-tight">Қойма</h1>
         </div>
         <div className="relative w-full">
           <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
@@ -79,13 +79,13 @@ export default function Inventory() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Іздеу (атауы бойынша)"
-            className="block w-full pl-10 pr-3 py-2.5 border border-border-color rounded-lg bg-card-bg text-white placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+            className="block w-full pl-10 pr-3 py-2.5 border border-border-color rounded-lg bg-card-bg text-ink placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
           />
         </div>
       </header>
       <main className="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
         {error && (
-          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>
+          <div className="p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">{error}</div>
         )}
         {loading ? (
           <p className="text-text-muted">Жүктелуде...</p>
@@ -111,7 +111,7 @@ export default function Inventory() {
           onClick={() => setAddModalOpen(true)}
           className="fixed bottom-24 right-4 w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center z-20 hover:scale-105 active:scale-95 transition-transform"
         >
-          <span className="material-symbols-outlined text-white text-3xl">add</span>
+          <span className="material-symbols-outlined text-ink text-3xl">add</span>
         </button>
       )}
       {addModalOpen && (
@@ -155,13 +155,13 @@ function ItemCard({ item, canEdit, onAdd, onOut, onDelete }) {
       )}
       <div className="flex justify-between items-start mb-2 pr-20">
         <div>
-          <h3 className="text-base font-semibold text-white mb-0.5">{item.name}</h3>
+          <h3 className="text-base font-semibold text-ink mb-0.5">{item.name}</h3>
           {item.sku && <p className="text-[11px] text-text-muted font-mono">Артикул: {item.sku}</p>}
         </div>
       </div>
       <div className="flex items-end justify-between mb-4">
         <div>
-          <span className="block text-lg font-bold text-white">
+          <span className="block text-lg font-bold text-ink">
             {Number(item.sale_price_min).toLocaleString()}
             {item.sale_price_min !== item.sale_price_max ? `–${Number(item.sale_price_max).toLocaleString()}` : ''} ₸
           </span>
@@ -179,7 +179,7 @@ function ItemCard({ item, canEdit, onAdd, onOut, onDelete }) {
           <button
             type="button"
             onClick={onOut}
-            className="flex-1 min-w-[80px] py-3 px-3 bg-status-danger hover:bg-red-600 rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2"
+            className="flex-1 min-w-[80px] py-3 px-3 bg-status-danger hover:bg-danger rounded-lg text-xs font-bold text-on-primary flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">remove</span>
             Шығару
@@ -187,7 +187,7 @@ function ItemCard({ item, canEdit, onAdd, onOut, onDelete }) {
           <button
             type="button"
             onClick={onAdd}
-            className="flex-1 min-w-[80px] py-3 px-3 bg-primary hover:bg-primary/90 rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2"
+            className="flex-1 min-w-[80px] py-3 px-3 bg-primary hover:bg-primary/90 rounded-lg text-xs font-bold text-on-primary flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">add</span>
             Қосу
@@ -196,7 +196,7 @@ function ItemCard({ item, canEdit, onAdd, onOut, onDelete }) {
             <button
               type="button"
               onClick={onDelete}
-              className="py-3 px-3 rounded-lg text-xs font-bold text-text-muted border border-border-color hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 flex items-center justify-center gap-1"
+              className="py-3 px-3 rounded-lg text-xs font-bold text-text-muted border border-border-color hover:bg-danger/10 hover:text-danger hover:border-danger/30 flex items-center justify-center gap-1"
               title="Тауарды жою"
             >
               <span className="material-symbols-outlined text-sm">delete</span>
@@ -260,12 +260,12 @@ function AddItemModal({ onClose, onSaved }) {
       <div className="bg-card-bg w-full sm:w-[400px] rounded-t-2xl sm:rounded-2xl border-t sm:border border-border-color shadow-2xl relative z-10 p-6 pb-safe">
         <div className="w-12 h-1 bg-border-color rounded-full mx-auto mb-6" />
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-white">Тауар қосу</h2>
-          <button type="button" onClick={onClose} className="p-2 text-text-muted hover:text-white bg-border-color rounded-full">
+          <h2 className="text-xl font-bold text-ink">Тауар қосу</h2>
+          <button type="button" onClick={onClose} className="p-2 text-text-muted hover:text-ink bg-border-color rounded-full">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
-        {err && <div className="mb-4 p-2 rounded-lg bg-red-500/10 text-red-400 text-sm">{err}</div>}
+        {err && <div className="mb-4 p-2 rounded-lg bg-danger/10 text-danger text-sm">{err}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-text-muted mb-1">Атауы *</label>
@@ -273,7 +273,7 @@ function AddItemModal({ onClose, onSaved }) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-primary"
+              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
               placeholder="Мысалы: Май сүзгісі"
             />
           </div>
@@ -286,7 +286,7 @@ function AddItemModal({ onClose, onSaved }) {
                 step="1"
                 value={salePriceMin}
                 onChange={(e) => setSalePriceMin(e.target.value)}
-                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-primary"
+                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
                 placeholder="Сома"
               />
             </div>
@@ -298,7 +298,7 @@ function AddItemModal({ onClose, onSaved }) {
                 step="1"
                 value={salePriceMax}
                 onChange={(e) => setSalePriceMax(e.target.value)}
-                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-primary"
+                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
                 placeholder="Сома"
               />
             </div>
@@ -310,7 +310,7 @@ function AddItemModal({ onClose, onSaved }) {
               min="0"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-primary"
+              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
             />
           </div>
           <div>
@@ -320,7 +320,7 @@ function AddItemModal({ onClose, onSaved }) {
               min="0"
               value={minQuantity}
               onChange={(e) => setMinQuantity(e.target.value)}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-primary"
+              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
               placeholder="Бос қалдыруға болады"
             />
           </div>
@@ -330,14 +330,14 @@ function AddItemModal({ onClose, onSaved }) {
               type="text"
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-primary"
+              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
               placeholder="дана, л, кг..."
             />
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 bg-primary hover:bg-primary/90 rounded-xl text-base font-bold text-white disabled:opacity-50"
+            className="w-full py-4 bg-primary hover:bg-primary/90 rounded-xl text-base font-bold text-on-primary disabled:opacity-50"
           >
             {submitting ? 'Сақталуда...' : 'Қосу'}
           </button>
@@ -388,15 +388,15 @@ function MovementModal({ item, type, onClose, onSaved }) {
       <div className={`bg-card-bg w-full sm:w-[400px] rounded-t-2xl sm:rounded-2xl border-t sm:border border-border-color shadow-2xl relative z-10 p-6 pb-safe ${isIn ? '' : 'border-status-danger/30'}`}>
         <div className="w-12 h-1 bg-border-color rounded-full mx-auto mb-6" />
         <div className="flex justify-between items-center mb-6">
-          <h2 className={`text-xl font-bold ${isIn ? 'text-white' : 'text-status-danger'}`}>
+          <h2 className={`text-xl font-bold ${isIn ? 'text-ink' : 'text-status-danger'}`}>
             {isIn ? 'Қоймаға қосу' : 'Шығару'}
           </h2>
-          <button type="button" onClick={onClose} className="p-2 text-text-muted hover:text-white bg-border-color rounded-full">
+          <button type="button" onClick={onClose} className="p-2 text-text-muted hover:text-ink bg-border-color rounded-full">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
         <p className="text-text-muted text-sm mb-4">{item.name}</p>
-        {err && <div className="mb-4 p-2 rounded-lg bg-red-500/10 text-red-400 text-sm">{err}</div>}
+        {err && <div className="mb-4 p-2 rounded-lg bg-danger/10 text-danger text-sm">{err}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-text-muted mb-4 text-center">Саны</label>
@@ -404,7 +404,7 @@ function MovementModal({ item, type, onClose, onSaved }) {
               <button
                 type="button"
                 onClick={() => setQuantity((q) => Math.max(1, (q || 1) - 1))}
-                className="w-14 h-14 rounded-xl bg-border-color text-white hover:bg-[#333] flex items-center justify-center border border-[#333]"
+                className="w-14 h-14 rounded-xl bg-border-color text-ink hover:bg-raised flex items-center justify-center border border-border-color"
               >
                 <span className="material-symbols-outlined text-2xl">remove</span>
               </button>
@@ -414,12 +414,12 @@ function MovementModal({ item, type, onClose, onSaved }) {
                 max={isIn ? undefined : item.quantity}
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                className={`w-24 text-center bg-transparent border-b-2 p-2 text-3xl font-bold text-white focus:outline-none ${isIn ? 'border-primary focus:border-primary' : 'border-status-danger focus:border-status-danger'}`}
+                className={`w-24 text-center bg-transparent border-b-2 p-2 text-3xl font-bold text-ink focus:outline-none ${isIn ? 'border-primary focus:border-primary' : 'border-status-danger focus:border-status-danger'}`}
               />
               <button
                 type="button"
                 onClick={() => setQuantity((q) => (q || 0) + 1)}
-                className="w-14 h-14 rounded-xl bg-border-color text-white hover:bg-[#333] flex items-center justify-center border border-[#333]"
+                className="w-14 h-14 rounded-xl bg-border-color text-ink hover:bg-raised flex items-center justify-center border border-border-color"
               >
                 <span className="material-symbols-outlined text-2xl">add</span>
               </button>
@@ -431,14 +431,14 @@ function MovementModal({ item, type, onClose, onSaved }) {
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-primary"
+              className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink focus:ring-1 focus:ring-primary"
               placeholder="Мысалы: Закуп, шығару себебі"
             />
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className={`w-full py-4 rounded-xl text-base font-bold text-white disabled:opacity-50 ${isIn ? 'bg-primary hover:bg-primary/90' : 'bg-status-danger hover:bg-red-600'}`}
+            className={`w-full py-4 rounded-xl text-base font-bold text-ink disabled:opacity-50 ${isIn ? 'bg-primary hover:bg-primary/90' : 'bg-status-danger hover:bg-danger'}`}
           >
             {submitting ? 'Жіберілуде...' : isIn ? 'Қосу' : 'Шығару'}
           </button>

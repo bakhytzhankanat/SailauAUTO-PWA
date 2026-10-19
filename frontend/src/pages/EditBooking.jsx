@@ -230,7 +230,7 @@ export default function EditBooking() {
   if (error && !booking) {
     return (
       <div className="p-4">
-        <p className="text-red-400">{error}</p>
+        <p className="text-danger">{error}</p>
         <button type="button" onClick={() => navigate(-1)} className="mt-2 text-primary font-medium">Артқа</button>
       </div>
     );
@@ -238,7 +238,7 @@ export default function EditBooking() {
   if (booking && !allowedStatuses.includes(booking.status)) {
     return (
       <div className="p-4">
-        <p className="text-amber-400">{error || 'Бұл жазбаны өңдеуге болмайды'}</p>
+        <p className="text-warn">{error || 'Бұл жазбаны өңдеуге болмайды'}</p>
         <button type="button" onClick={() => navigate(`/booking/${id}`)} className="mt-2 text-primary font-medium">Жазбаға оралу</button>
       </div>
     );
@@ -251,12 +251,12 @@ export default function EditBooking() {
         key={s.id}
         className={`flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl border mb-2 ${selected ? 'bg-primary/10 border-primary' : 'bg-card-bg border-border-color'}`}
       >
-        <span className="font-medium text-white">{s.name}</span>
+        <span className="font-medium text-ink">{s.name}</span>
         {selected ? (
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => (selected.quantity <= 1 ? toggleService(s.id) : setQuantity(s.id, selected.quantity - 1))} className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white">−</button>
-            <span className="w-8 text-center font-bold text-white">{selected.quantity}</span>
-            <button type="button" onClick={() => setQuantity(s.id, (selected.quantity || 1) + 1)} className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center text-white">+</button>
+            <button type="button" onClick={() => (selected.quantity <= 1 ? toggleService(s.id) : setQuantity(s.id, selected.quantity - 1))} className="w-8 h-8 rounded-lg bg-raised flex items-center justify-center text-ink">−</button>
+            <span className="w-8 text-center font-bold text-ink">{selected.quantity}</span>
+            <button type="button" onClick={() => setQuantity(s.id, (selected.quantity || 1) + 1)} className="w-8 h-8 rounded-lg bg-raised flex items-center justify-center text-ink">+</button>
           </div>
         ) : (
           <button type="button" onClick={() => toggleService(s.id)} className="text-primary text-sm font-medium">Қосу</button>
@@ -269,28 +269,28 @@ export default function EditBooking() {
     <div className="flex flex-col min-h-full">
       <header className="px-4 py-4 flex items-center bg-bg-main border-b border-border-color sticky top-0 z-10 shrink-0">
         <button type="button" onClick={() => navigate(`/booking/${id}`)} className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center hover:bg-card-bg">
-          <span className="material-symbols-outlined text-white text-2xl">arrow_back</span>
+          <span className="material-symbols-outlined text-ink text-2xl">arrow_back</span>
         </button>
-        <span className="text-lg font-bold text-white ml-2">Жазбаны өңдеу</span>
+        <span className="text-lg font-bold text-ink ml-2">Жазбаны өңдеу</span>
       </header>
       <main className="flex-1 overflow-y-auto px-4 py-4 pb-24">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {error && <div className="bg-red-500/20 border border-red-500 rounded-xl p-3 text-red-400 text-sm">{error}</div>}
+          {error && <div className="bg-danger/20 border border-danger rounded-xl p-3 text-danger text-sm">{error}</div>}
 
           <section className="bg-card-bg rounded-xl border border-border-color p-4">
-            <h2 className="text-text-muted text-xs uppercase font-semibold mb-3">Клиент</h2>
-            <input type="text" value={form.client_name} onChange={(e) => updateForm({ client_name: e.target.value })} placeholder="Аты" className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white mb-2" />
-            <input type="tel" value={form.phone} onChange={(e) => updateForm({ phone: e.target.value })} placeholder="Телефон" className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white mb-2" />
+            <h2 className="text-text-muted text-xs font-semibold mb-3">Клиент</h2>
+            <input type="text" value={form.client_name} onChange={(e) => updateForm({ client_name: e.target.value })} placeholder="Аты" className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink mb-2" />
+            <input type="tel" value={form.phone} onChange={(e) => updateForm({ phone: e.target.value })} placeholder="Телефон" className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink mb-2" />
             <div className="flex gap-2">
               {['live', 'whatsapp'].map((src) => (
-                <button key={src} type="button" onClick={() => updateForm({ source: src })} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${form.source === src ? 'bg-primary text-white' : 'bg-[#2A2A2A] text-text-muted'}`}>{src === 'live' ? 'Live' : 'WhatsApp'}</button>
+                <button key={src} type="button" onClick={() => updateForm({ source: src })} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${form.source === src ? 'bg-primary text-on-primary' : 'bg-raised text-text-muted'}`}>{src === 'live' ? 'Live' : 'WhatsApp'}</button>
               ))}
             </div>
           </section>
 
           <section className="bg-card-bg rounded-xl border border-border-color p-4">
-            <h2 className="text-text-muted text-xs uppercase font-semibold mb-3">Көлік</h2>
-            <select value={form.vehicle_catalog_id || ''} onChange={(e) => updateForm({ vehicle_catalog_id: e.target.value || null })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white">
+            <h2 className="text-text-muted text-xs font-semibold mb-3">Көлік</h2>
+            <select value={form.vehicle_catalog_id || ''} onChange={(e) => updateForm({ vehicle_catalog_id: e.target.value || null })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink">
               <option value="">Таңдаңыз</option>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>{v.name}{v.year ? ` (${v.year})` : ''}</option>
@@ -305,57 +305,57 @@ export default function EditBooking() {
               </div>
             )}
             {selectedVehicle?.body_options?.length > 0 && (
-              <select value={form.body_type} onChange={(e) => updateForm({ body_type: e.target.value })} className="w-full mt-2 bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white">
+              <select value={form.body_type} onChange={(e) => updateForm({ body_type: e.target.value })} className="w-full mt-2 bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink">
                 <option value="">Кузов</option>
                 {selectedVehicle.body_options.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
             )}
-            <input type="text" value={form.plate_number} onChange={(e) => updateForm({ plate_number: e.target.value })} placeholder="Нөмір белгісі" className="w-full mt-2 bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white" />
+            <input type="text" value={form.plate_number} onChange={(e) => updateForm({ plate_number: e.target.value })} placeholder="Нөмір белгісі" className="w-full mt-2 bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" />
           </section>
 
           <section className="bg-card-bg rounded-xl border border-border-color p-4">
-            <h2 className="text-text-muted text-xs uppercase font-semibold mb-3">Уақыт және бокс</h2>
+            <h2 className="text-text-muted text-xs font-semibold mb-3">Уақыт және бокс</h2>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-text-muted block mb-1">Күн</label>
-                <input type="date" value={form.date} onChange={(e) => updateForm({ date: e.target.value })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white" />
+                <input type="date" value={form.date} onChange={(e) => updateForm({ date: e.target.value })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" />
               </div>
               <div>
                 <label className="text-xs text-text-muted block mb-1">Бокс</label>
-                <select value={form.box_id} onChange={(e) => updateForm({ box_id: Number(e.target.value) })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white">
+                <select value={form.box_id} onChange={(e) => updateForm({ box_id: Number(e.target.value) })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink">
                   {BOX_IDS.map((bid) => <option key={bid} value={bid}>{bid}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs text-text-muted block mb-1">Басталу</label>
-                <input type="time" value={form.start_time} onChange={(e) => updateForm({ start_time: e.target.value })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white" />
+                <input type="time" value={form.start_time} onChange={(e) => updateForm({ start_time: e.target.value })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" />
               </div>
               <div>
                 <label className="text-xs text-text-muted block mb-1">Ұзақтығы (мин)</label>
-                <input type="number" min={15} max={480} value={form.duration} onChange={(e) => updateForm({ duration: Number(e.target.value) || 60 })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white" />
+                <input type="number" min={15} max={480} value={form.duration} onChange={(e) => updateForm({ duration: Number(e.target.value) || 60 })} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" />
               </div>
             </div>
             <p className="text-text-muted text-xs mt-2">Аяқталу: {form.end_time}</p>
           </section>
 
           <section className="bg-card-bg rounded-xl border border-border-color p-4">
-            <h2 className="text-text-muted text-xs uppercase font-semibold mb-3">Қызметтер</h2>
+            <h2 className="text-text-muted text-xs font-semibold mb-3">Қызметтер</h2>
             {categoriesFiltered.map((cat) => (
               <div key={cat.id} className="mb-4">
-                <div className="text-sm font-medium text-white mb-2">{cat.name}</div>
+                <div className="text-sm font-medium text-ink mb-2">{cat.name}</div>
                 {(cat.services || []).map(renderServiceRow)}
               </div>
             ))}
           </section>
 
           <section className="bg-card-bg rounded-xl border border-border-color p-4">
-            <h2 className="text-text-muted text-xs uppercase font-semibold mb-2">Ескерту</h2>
-            <textarea value={form.note} onChange={(e) => updateForm({ note: e.target.value })} placeholder="Қосымша ақпарат" rows={2} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-white resize-none" />
+            <h2 className="text-text-muted text-xs font-semibold mb-2">Ескерту</h2>
+            <textarea value={form.note} onChange={(e) => updateForm({ note: e.target.value })} placeholder="Қосымша ақпарат" rows={2} className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink resize-none" />
           </section>
 
-          <button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
+          <button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-primary/90 text-on-primary font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
             {submitting ? 'Сақталуда...' : 'Өзгерістерді сақтау'}
           </button>
         </form>

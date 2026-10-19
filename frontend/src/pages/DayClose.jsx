@@ -306,7 +306,7 @@ export default function DayClose() {
           <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
             <span className="material-symbols-outlined text-text-muted">arrow_back</span>
           </button>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Ауысымды жабу</h1>
+          <h1 className="text-2xl font-bold text-ink tracking-tight">Ауысымды жабу</h1>
         </div>
         <button type="button" className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
           <span className="material-symbols-outlined text-text-muted">history</span>
@@ -315,12 +315,12 @@ export default function DayClose() {
 
       <main className="flex-1 overflow-y-auto p-4 pb-32 space-y-6">
         {error && (
-          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>
+          <div className="p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">{error}</div>
         )}
 
         {dayClosesForDate.length > 0 && (
           <section className="space-y-2">
-            <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Сменалар</h2>
+            <h2 className="text-xs font-semibold text-text-muted">Сменалар</h2>
             <div className="flex flex-wrap gap-2">
               {dayClosesForDate.map((s) => (
                 <button
@@ -329,8 +329,8 @@ export default function DayClose() {
                   onClick={() => { setShowNewShiftForm(false); setSelectedShiftIndex(s.shift_index); load(); }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
                     !showNewShiftForm && snapshot?.shift_index === s.shift_index
-                      ? 'bg-primary text-white border-primary'
-                      : 'bg-card-bg border-border-color text-white hover:border-primary'
+                      ? 'bg-primary text-on-primary border-primary'
+                      : 'bg-card-bg border-border-color text-ink hover:border-primary'
                   }`}
                 >
                   {(() => { const d = new Date(date + 'T00:00:00'); const day = d.getDate(); const months = ['ЯНВ','ФЕВ','МАР','АПР','МАЙ','ИЮН','ИЮЛ','АВГ','СЕН','ОКТ','НОЯ','ДЕК']; return `${day}${months[d.getMonth()]}(${s.shift_index + 1})`; })()}
@@ -352,12 +352,12 @@ export default function DayClose() {
         )}
 
         {isExtraShift && (
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+          <div className="bg-warn/10 border border-warn/30 rounded-xl p-4">
             <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-yellow-400 text-xl">info</span>
+              <span className="material-symbols-outlined text-warn text-xl">info</span>
               <div>
-                <div className="font-semibold text-yellow-400 text-sm">Қосымша смена</div>
-                <div className="text-yellow-400/80 text-xs mt-1">
+                <div className="font-semibold text-warn text-sm">Қосымша смена</div>
+                <div className="text-warn/80 text-xs mt-1">
                   Бұл смена бірінші сменаға тәуелсіз. Кірістер мен шығындарды қолмен енгізіңіз.
                 </div>
               </div>
@@ -366,7 +366,7 @@ export default function DayClose() {
         )}
 
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
             <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
             Кірістер {isExtraShift ? '(қолмен)' : ''}
           </h2>
@@ -375,21 +375,21 @@ export default function DayClose() {
               <div>
                 <label className="text-xs text-text-muted block mb-1">Қызмет кірісі</label>
                 <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
-                  <input type="number" min="0" value={manualServiceIncome} onChange={(e) => setManualServiceIncome(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-white font-medium text-right" placeholder="0" />
+                  <input type="number" min="0" value={manualServiceIncome} onChange={(e) => setManualServiceIncome(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
                   <span className="text-text-muted ml-2">₸</span>
                 </div>
               </div>
               <div>
                 <label className="text-xs text-text-muted block mb-1">Бөлшек сатылымы</label>
                 <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
-                  <input type="number" min="0" value={manualPartSales} onChange={(e) => setManualPartSales(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-white font-medium text-right" placeholder="0" />
+                  <input type="number" min="0" value={manualPartSales} onChange={(e) => setManualPartSales(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
                   <span className="text-text-muted ml-2">₸</span>
                 </div>
               </div>
               <div>
                 <label className="text-xs text-text-muted block mb-1">Материал шығыны</label>
                 <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
-                  <input type="number" min="0" value={manualMaterialExpense} onChange={(e) => setManualMaterialExpense(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-white font-medium text-right" placeholder="0" />
+                  <input type="number" min="0" value={manualMaterialExpense} onChange={(e) => setManualMaterialExpense(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
                   <span className="text-text-muted ml-2">₸</span>
                 </div>
               </div>
@@ -406,7 +406,7 @@ export default function DayClose() {
               </div>
               <div className="flex justify-between items-center pt-1">
                 <span className="text-text-muted text-sm">Материал шығыны</span>
-                <span className="font-bold text-lg text-red-400">- {fmt(materialTotal)}</span>
+                <span className="font-bold text-lg text-danger">- {fmt(materialTotal)}</span>
               </div>
             </div>
           )}
@@ -419,7 +419,7 @@ export default function DayClose() {
         {showForm && canCreate && (
           <>
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">payments</span>
                 Төлем түрі
               </h2>
@@ -432,7 +432,7 @@ export default function DayClose() {
                       min="0"
                       value={kaspiAmount}
                       onChange={(e) => setKaspiAmount(e.target.value)}
-                      className="w-full bg-transparent p-0 border-none focus:ring-0 text-white font-medium text-right"
+                      className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right"
                       placeholder="Сома"
                     />
                     <span className="text-text-muted ml-2">₸</span>
@@ -446,7 +446,7 @@ export default function DayClose() {
                       min="0"
                       value={cashAmount}
                       onChange={(e) => setCashAmount(e.target.value)}
-                      className="w-full bg-transparent p-0 border-none focus:ring-0 text-white font-medium text-right"
+                      className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right"
                       placeholder="Автоматты есептеледі"
                     />
                     <span className="text-text-muted ml-2">₸</span>
@@ -454,7 +454,7 @@ export default function DayClose() {
                 </div>
                 <div className="pt-2 flex justify-between items-center">
                   <span className="text-xs text-text-muted">Салық ({kaspiTaxPercent}% тек Kaspi Pay)</span>
-                  <span className="text-sm font-bold text-red-400">
+                  <span className="text-sm font-bold text-danger">
                     - {fmt((Number(kaspiAmount) || 0) * (kaspiTaxPercent / 100))}
                   </span>
                 </div>
@@ -462,29 +462,29 @@ export default function DayClose() {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">receipt_long</span>
                 Операциялық шығын
               </h2>
               <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-3">
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-white w-1/3">Түскі ас</span>
+                  <span className="text-sm text-ink w-1/3">Түскі ас</span>
                   <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
-                    <input type="number" min="0" value={opexLunch} onChange={(e) => setOpexLunch(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-white text-right font-medium" />
+                    <input type="number" min="0" value={opexLunch} onChange={(e) => setOpexLunch(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
                     <span className="text-text-muted ml-2">₸</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-white w-1/3">Транспорт</span>
+                  <span className="text-sm text-ink w-1/3">Транспорт</span>
                   <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
-                    <input type="number" min="0" value={opexTransport} onChange={(e) => setOpexTransport(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-white text-right font-medium" />
+                    <input type="number" min="0" value={opexTransport} onChange={(e) => setOpexTransport(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
                     <span className="text-text-muted ml-2">₸</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-white w-1/3">Аренда</span>
+                  <span className="text-sm text-ink w-1/3">Аренда</span>
                   <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
-                    <input type="number" min="0" value={opexRent} onChange={(e) => setOpexRent(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-white text-right font-medium" />
+                    <input type="number" min="0" value={opexRent} onChange={(e) => setOpexRent(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
                     <span className="text-text-muted ml-2">₸</span>
                   </div>
                 </div>
@@ -493,7 +493,7 @@ export default function DayClose() {
 
             <section className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
                   <span className="material-symbols-outlined text-lg">groups</span>
                   Ауысымда кім болды
                 </h2>
@@ -516,7 +516,7 @@ export default function DayClose() {
                       <div className="w-8 h-8 rounded-full bg-border-color flex items-center justify-center text-xs font-bold text-text-muted shrink-0">
                         {(w.display_name || '?').slice(0, 2).toUpperCase()}
                       </div>
-                      <span className="text-sm text-white truncate">{w.display_name}</span>
+                      <span className="text-sm text-ink truncate">{w.display_name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {manualMasterDistribution && presentMasterIds.includes(w.id) && (
@@ -528,7 +528,7 @@ export default function DayClose() {
                             step="0.5"
                             value={masterPercents[w.id] ?? ''}
                             onChange={(e) => setMasterPercent(w.id, e.target.value)}
-                            className="w-16 bg-bg-main border border-border-color rounded-lg px-2 py-1.5 text-white text-sm text-right"
+                            className="w-16 bg-bg-main border border-border-color rounded-lg px-2 py-1.5 text-ink text-sm text-right"
                           />
                           <span className="text-text-muted text-xs">%</span>
                         </div>
@@ -549,7 +549,7 @@ export default function DayClose() {
                 {manualMasterDistribution && presentMasterIds.length > 0 && (
                   <div className="pt-2 border-t border-border-color flex justify-between text-sm">
                     <span className="text-text-muted">Қосынды</span>
-                    <span className={Math.abs(masterPercentsSum - 100) < 0.01 ? 'text-status-completed font-medium' : 'text-red-400 font-medium'}>
+                    <span className={Math.abs(masterPercentsSum - 100) < 0.01 ? 'text-status-completed font-medium' : 'text-danger font-medium'}>
                       {masterPercentsSum.toFixed(1)}% {Math.abs(masterPercentsSum - 100) < 0.01 ? '' : '(100% болуы керек)'}
                     </span>
                   </div>
@@ -564,7 +564,7 @@ export default function DayClose() {
                   type="text"
                   value={editReason}
                   onChange={(e) => setEditReason(e.target.value)}
-                  className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-white"
+                  className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-ink"
                   placeholder="Мысалы: Касса түзету"
                 />
               </section>
@@ -578,7 +578,7 @@ export default function DayClose() {
                 (editMode && !editReason.trim()) ||
                 (manualMasterDistribution && presentMasterIds.length > 0 && Math.abs(masterPercentsSum - 100) > 0.01)
               }
-              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl disabled:opacity-50"
+              className="w-full bg-primary hover:bg-primary/90 text-on-primary font-bold py-4 rounded-xl disabled:opacity-50"
             >
               {submitting ? 'Сақталуда...' : editMode ? 'Өзгерістерді сақтау' : 'Ауысымды жабу'}
             </button>
@@ -588,14 +588,14 @@ export default function DayClose() {
         {snapshot && !editMode && (
           <>
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">volunteer_activism</span>
                 Қайырымдылық ({dc.charity_percent}%)
               </h2>
               <div className="bg-card-bg rounded-xl border border-border-color p-4 flex justify-between items-center">
                 <div>
                   <span className="text-xs text-text-muted block">Есептелді</span>
-                  <span className="text-sm text-white font-medium line-through decoration-red-400">{fmt(dc.charity_raw)}</span>
+                  <span className="text-sm text-ink font-medium line-through decoration-red-400">{fmt(dc.charity_raw)}</span>
                 </div>
                 <div className="text-right">
                   <span className="text-xs text-text-muted block">Дөңгелектелді</span>
@@ -605,12 +605,12 @@ export default function DayClose() {
             </section>
 
             <section className="bg-gradient-to-r from-primary/20 to-primary/5 rounded-xl border border-primary/30 p-4 flex justify-between items-center">
-              <span className="text-sm font-bold text-primary uppercase tracking-wide">Бөлінетін табыс</span>
-              <span className="text-2xl font-bold text-white">{fmt(dc.distributable_after_charity)}</span>
+              <span className="text-sm font-bold text-primary">Бөлінетін табыс</span>
+              <span className="text-2xl font-bold text-ink">{fmt(dc.distributable_after_charity)}</span>
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">pie_chart</span>
                 Жалақы бөлу
               </h2>
@@ -652,47 +652,47 @@ export default function DayClose() {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-text-muted flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">summarize</span>
                 Қорытынды
               </h2>
               <div className="bg-card-bg rounded-xl border border-border-color p-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-text-muted">Барлық кіріс</span>
-                  <span className="font-medium text-white">{fmt(serviceTotal + partSalesTotal)}</span>
+                  <span className="font-medium text-ink">{fmt(serviceTotal + partSalesTotal)}</span>
                 </div>
                 <div className="pt-1 space-y-1">
                   <div className="flex justify-between text-text-muted">
                     <span className="pl-2">Материал</span>
-                    <span className="text-red-400">− {fmt(materialTotal)}</span>
+                    <span className="text-danger">− {fmt(materialTotal)}</span>
                   </div>
                   <div className="flex justify-between text-text-muted">
                     <span className="pl-2">Түскі ас</span>
-                    <span className="text-red-400">− {fmt(dc.opex_lunch)}</span>
+                    <span className="text-danger">− {fmt(dc.opex_lunch)}</span>
                   </div>
                   <div className="flex justify-between text-text-muted">
                     <span className="pl-2">Транспорт</span>
-                    <span className="text-red-400">− {fmt(dc.opex_transport)}</span>
+                    <span className="text-danger">− {fmt(dc.opex_transport)}</span>
                   </div>
                   <div className="flex justify-between text-text-muted">
                     <span className="pl-2">Аренда</span>
-                    <span className="text-red-400">− {fmt(dc.opex_rent)}</span>
+                    <span className="text-danger">− {fmt(dc.opex_rent)}</span>
                   </div>
                   <div className="flex justify-between text-text-muted">
                     <span className="pl-2">Салық (KaspiPay)</span>
-                    <span className="text-red-400">− {fmt(dc.kaspi_tax_amount)}</span>
+                    <span className="text-danger">− {fmt(dc.kaspi_tax_amount)}</span>
                   </div>
                 </div>
                 <div className="flex justify-between border-t border-border-color pt-2">
                   <span className="text-text-muted">Барлық шығын</span>
-                  <span className="font-medium text-red-400">− {fmt(materialTotal + Number(dc.opex_lunch) + Number(dc.opex_transport) + Number(dc.opex_rent) + Number(dc.kaspi_tax_amount))}</span>
+                  <span className="font-medium text-danger">− {fmt(materialTotal + Number(dc.opex_lunch) + Number(dc.opex_transport) + Number(dc.opex_rent) + Number(dc.kaspi_tax_amount))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-text-muted">Қайырымдылық</span>
-                  <span className="font-medium text-white">{fmt(dc.charity_rounded)}</span>
+                  <span className="font-medium text-ink">{fmt(dc.charity_rounded)}</span>
                 </div>
                 <div className="border-t border-border-color my-2 pt-2 flex justify-between text-base">
-                  <span className="font-bold text-white">Таза табыс</span>
+                  <span className="font-bold text-ink">Таза табыс</span>
                   <span className="font-bold text-primary">{fmt(dc.distributable_after_charity)}</span>
                 </div>
               </div>
@@ -711,7 +711,7 @@ export default function DayClose() {
                   <button
                     type="button"
                     onClick={runPrintReport}
-                    className="flex-1 py-3 bg-card-bg border border-border-color text-white font-bold rounded-xl hover:bg-border-color hover:border-primary/50 transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-card-bg border border-border-color text-ink font-bold rounded-xl hover:bg-border-color hover:border-primary/50 transition-colors flex items-center justify-center gap-2"
                   >
                     <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
                     PDF
@@ -722,7 +722,7 @@ export default function DayClose() {
                     type="button"
                     onClick={handleDeleteShift}
                     disabled={!!deletingShiftId}
-                    className="w-full py-3 border border-red-500/50 text-red-400 font-bold rounded-xl hover:bg-red-500/10 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full py-3 border border-danger/50 text-danger font-bold rounded-xl hover:bg-danger/10 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <span className="material-symbols-outlined text-lg">delete</span>
                     {deletingShiftId ? 'Жойылуда...' : 'Ауысымды жою'}

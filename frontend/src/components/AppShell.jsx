@@ -1,42 +1,46 @@
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { canAccessStaffNotificationSettings } from '../lib/staffNotificationsAccess';
+import { canAccessNotificationSettingsPage } from '../lib/staffNotificationsAccess';
 
+// Same order as before; whatever does not fit in five tabs moves into "Мәзір".
 const navItems = [
   { to: '/', icon: 'calendar_month', label: 'Күнтізбе', roles: ['owner', 'manager', 'worker'] },
-  { to: '/booking/add', icon: 'add_box', label: 'Жазба', roles: ['owner', 'manager'], seniorWorker: true },
+  { to: '/booking/add', icon: 'add', label: 'Жазба', roles: ['owner', 'manager'], seniorWorker: true, accent: true },
   { to: '/clients', icon: 'group', label: 'Клиенттер', roles: ['owner', 'manager'], seniorWorker: true },
   { to: '/inventory', icon: 'inventory_2', label: 'Қойма', roles: ['owner', 'manager', 'worker'] },
-  { to: '/analytics', icon: 'analytics', label: 'Есеп', roles: ['owner'] },
+  { to: '/analytics', icon: 'monitoring', label: 'Есеп', roles: ['owner'] },
   { to: '/reminders', icon: 'task_alt', label: 'Ескертпелер', roles: ['owner', 'manager', 'worker'] },
   { to: '/admin', icon: 'admin_panel_settings', label: 'Админка', roles: ['super_admin'] },
   { to: '/settings', icon: 'settings', label: 'Баптаулар', roles: ['owner'] },
 ];
+const MAX_TABS = 5;
+
+function isActivePath(pathname, to) {
+  if (to === '/') return pathname === '/' || (pathname.startsWith('/booking/') && pathname !== '/booking/add');
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
 
 export default function AppShell({ children }) {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [staffMenuOpen, setStaffMenuOpen] = useState(false);
-  const staffMenuRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const [draftExists, setDraftExists] = useState(false);
 
-  if (user?.role === 'super_admin' && location.pathname !== '/admin') {
-    return <Navigate to="/admin" replace />;
-  }
   const role = user?.role || '';
-  const showStaffNotifications = canAccessStaffNotificationSettings(user);
   const visibleItems = navItems.filter((item) =>
     item.roles.includes(role) || (item.seniorWorker && role === 'worker' && user?.is_senior_worker)
   );
-
-  const handleLogout = () => {
-    setStaffMenuOpen(false);
-    signOut();
-    navigate('/login', { replace: true });
-  };
-
-  const [draftExists, setDraftExists] = useState(false);
+  const tabs = visibleItems.slice(0, MAX_TABS);
+  const overflow = visibleItems.slice(MAX_TABS);
+  const showNotifications = canAccessNotificationSettingsPage(user);
+  const menuItems = [
+    ...overflow,
+    ...(showNotifications ? [{ to: '/notifications', icon: 'notifications', label: 'Хабарландырулар' }] : []),
+  ];
+  const menuActive = menuItems.some((i) => isActivePath(location.pathname, i.to));
 
   useEffect(() => {
     const checkDraft = () => {
@@ -58,132 +62,118 @@ export default function AppShell({ children }) {
   }, [location.pathname]);
 
   useEffect(() => {
-    setStaffMenuOpen(false);
+    setMenuOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!staffMenuOpen) return undefined;
+    if (!menuOpen) return undefined;
     const onPointerDown = (event) => {
-      if (staffMenuRef.current && !staffMenuRef.current.contains(event.target)) {
-        setStaffMenuOpen(false);
-      }
+      if (menuRef.current && !menuRef.current.contains(event.target)) setMenuOpen(false);
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [staffMenuOpen]);
+  }, [menuOpen]);
+
+  if (user?.role === 'super_admin' && location.pathname !== '/admin') {
+    return <Navigate to="/admin" replace />;
+  }
+
+  const handleLogout = () => {
+    setMenuOpen(false);
+    signOut();
+    navigate('/login', { replace: true });
+  };
 
   const handleClearDraft = () => {
     localStorage.removeItem('booking_draft');
     setDraftExists(false);
   };
 
-  const handleContinueDraft = () => {
-    navigate('/booking/add');
-  };
-
   return (
     <div className="flex flex-col min-h-screen bg-bg-main">
-      <main className="flex-1 overflow-auto pb-20">
+      <main className="flex-1 overflow-auto pb-24">
         {children}
         {draftExists && location.pathname !== '/booking/add' && (
-          <div className="fixed bottom-20 left-4 right-4 z-40 flex items-center justify-between bg-primary text-white px-4 py-3 rounded-xl shadow-lg shadow-black/50">
-            <button type="button" onClick={handleContinueDraft} className="flex-1 text-left flex items-center gap-3">
-              <span className="material-symbols-outlined text-2xl">edit_document</span>
-              <span className="font-semibold text-sm">Жазбаны жалғастыру</span>
+          <div className="fixed bottom-[88px] left-3 right-3 z-40 flex items-center gap-2 rounded-2xl border border-primary/40 bg-card-bg/95 backdrop-blur pl-3 pr-2 py-2 shadow-xl shadow-black/50">
+            <span className="w-9 h-9 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-xl">edit_note</span>
+            </span>
+            <button type="button" onClick={() => navigate('/booking/add')} className="flex-1 min-w-0 text-left">
+              <span className="block text-sm font-semibold text-ink">Жазбаны жалғастыру</span>
+              <span className="block text-xs text-text-muted">Аяқталмаған жаңа жазба бар</span>
             </button>
-            <button type="button" onClick={handleClearDraft} className="w-8 h-8 shrink-0 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors ml-2">
-              <span className="material-symbols-outlined text-sm">close</span>
+            <button type="button" onClick={handleClearDraft} className="icon-btn w-9 h-9" aria-label="Жобаны өшіру">
+              <span className="material-symbols-outlined text-lg">close</span>
             </button>
           </div>
         )}
       </main>
-      <nav className="bg-card-bg border-t border-border-color px-2 pt-2 pb-safe fixed bottom-0 left-0 right-0 z-30">
-        <div className="flex justify-around items-end pb-4">
-          {visibleItems.map((item) => {
-            const isActive = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));
+
+      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border-color/80 bg-card-bg/95 backdrop-blur pb-safe">
+        <div className="flex items-stretch justify-around px-1 pt-1.5 pb-2">
+          {tabs.map((item) => {
+            const active = isActivePath(location.pathname, item.to);
             return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={`flex flex-col items-center group py-1 flex-1 min-w-0 ${
-                  isActive ? 'text-primary' : 'text-text-muted group-hover:text-white'
-                }`}
-              >
-                <div
-                  className={`w-10 h-8 rounded-full flex items-center justify-center mb-1 ${
-                    isActive ? 'bg-primary/20' : ''
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-xl">{item.icon}</span>
-                </div>
-                <span className="text-[10px] font-medium">{item.label}</span>
+              <NavLink key={item.to} to={item.to} className="flex-1 min-w-0 flex flex-col items-center gap-1 py-1">
+                {item.accent ? (
+                  <span className={`w-11 h-8 rounded-[11px] flex items-center justify-center bg-primary text-on-primary shadow-md shadow-primary/30 ${active ? 'ring-2 ring-primary/40 ring-offset-2 ring-offset-card-bg' : ''}`}>
+                    <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+                  </span>
+                ) : (
+                  <span className={`w-11 h-8 rounded-full flex items-center justify-center transition-colors ${active ? 'bg-primary/15 text-primary' : 'text-text-muted'}`}>
+                    <span className={`material-symbols-outlined text-[22px] ${active ? 'icon-fill' : ''}`}>{item.icon}</span>
+                  </span>
+                )}
+                <span className={`text-[10px] leading-none font-medium whitespace-nowrap tracking-[-0.01em] ${active ? 'text-ink' : 'text-text-muted'}`}>{item.label}</span>
               </NavLink>
             );
           })}
-          {showStaffNotifications && (
-            <div className="relative flex-1 min-w-0" ref={staffMenuRef}>
+          {(menuItems.length > 0 || role !== 'owner') && (
+            <div className="relative flex-1 min-w-0" ref={menuRef}>
               <button
                 type="button"
-                onClick={() => setStaffMenuOpen((open) => !open)}
-                className={`w-full flex flex-col items-center py-1 transition-colors ${
-                  staffMenuOpen || location.pathname.startsWith('/notifications')
-                    ? 'text-primary'
-                    : 'text-text-muted hover:text-white'
-                }`}
-                aria-expanded={staffMenuOpen}
+                onClick={() => setMenuOpen((open) => !open)}
+                className="w-full flex flex-col items-center gap-1 py-1"
+                aria-expanded={menuOpen}
                 aria-haspopup="menu"
               >
-                <div
-                  className={`w-10 h-8 rounded-full flex items-center justify-center mb-1 ${
-                    staffMenuOpen || location.pathname.startsWith('/notifications') ? 'bg-primary/20' : ''
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-xl">more_horiz</span>
-                </div>
-                <span className="text-[10px] font-medium">Мәзір</span>
+                <span className={`w-11 h-8 rounded-full flex items-center justify-center transition-colors ${menuOpen || menuActive ? 'bg-primary/15 text-primary' : 'text-text-muted'}`}>
+                  <span className="material-symbols-outlined text-[22px]">menu</span>
+                </span>
+                <span className={`text-[10px] leading-none font-medium ${menuOpen || menuActive ? 'text-ink' : 'text-text-muted'}`}>Мәзір</span>
               </button>
-              {staffMenuOpen && (
-                <div
-                  role="menu"
-                  className="absolute bottom-full right-0 mb-2 w-56 rounded-xl border border-border-color bg-card-bg shadow-lg shadow-black/40 overflow-hidden"
-                >
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setStaffMenuOpen(false);
-                      navigate('/notifications');
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-white hover:bg-bg-main"
-                  >
-                    <span className="material-symbols-outlined text-primary text-xl" aria-hidden>notifications</span>
-                    <span>Хабарландырулар</span>
-                  </button>
+              {menuOpen && (
+                <div role="menu" className="absolute bottom-full right-1 mb-3 w-64 rounded-2xl border border-border-color bg-card-bg shadow-2xl shadow-black/60 overflow-hidden py-1.5">
+                  {user?.display_name && (
+                    <div className="px-4 pt-2 pb-3 mb-1 border-b border-border-color/70">
+                      <div className="text-sm font-semibold text-ink truncate">{user.display_name}</div>
+                      <div className="text-xs text-text-muted truncate">{user.phone}</div>
+                    </div>
+                  )}
+                  {menuItems.map((item) => (
+                    <button
+                      key={item.to}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => navigate(item.to)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left text-[15px] hover:bg-raised ${isActivePath(location.pathname, item.to) ? 'text-primary' : 'text-ink'}`}
+                    >
+                      <span className="material-symbols-outlined text-xl text-text-muted" aria-hidden>{item.icon}</span>
+                      {item.label}
+                    </button>
+                  ))}
                   <button
                     type="button"
                     role="menuitem"
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-white hover:bg-bg-main border-t border-border-color"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-[15px] text-danger hover:bg-raised border-t border-border-color/70 mt-1"
                   >
-                    <span className="material-symbols-outlined text-text-muted text-xl" aria-hidden>logout</span>
-                    <span>Шығу</span>
+                    <span className="material-symbols-outlined text-xl" aria-hidden>logout</span>
+                    Шығу
                   </button>
                 </div>
               )}
             </div>
-          )}
-          {(role === 'super_admin') && (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex flex-col items-center py-1 flex-1 min-w-0 text-text-muted hover:text-white transition-colors"
-              title="Шығу"
-            >
-              <div className="w-10 h-8 rounded-full flex items-center justify-center mb-1">
-                <span className="material-symbols-outlined text-xl">logout</span>
-              </div>
-              <span className="text-[10px] font-medium">Шығу</span>
-            </button>
           )}
         </div>
       </nav>

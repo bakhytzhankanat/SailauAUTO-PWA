@@ -25,12 +25,12 @@ export default function JobCompletedSuccess() {
       <div className="w-20 h-20 rounded-full bg-status-completed/20 flex items-center justify-center mb-6">
         <span className="material-symbols-outlined text-5xl text-status-completed">check_circle</span>
       </div>
-      <h1 className="text-xl font-bold text-white text-center mb-2">Тапсырыс аяқталды</h1>
+      <h1 className="text-xl font-bold text-ink text-center mb-2">Тапсырыс аяқталды</h1>
       <p className="text-text-muted text-sm text-center mb-4">Жазба сәтті аяқталды</p>
       {booking && (booking.started_at || booking.completed_at || booking.duration_minutes != null) && (
         <div className="w-full max-w-xs bg-card-bg border border-border-color rounded-xl p-4 mb-6 text-left">
-          <div className="text-text-muted text-xs uppercase font-semibold tracking-wider mb-2">Уақыт</div>
-          <div className="text-white text-sm space-y-1">
+          <div className="text-text-muted text-xs font-semibold mb-2">Уақыт</div>
+          <div className="text-ink text-sm space-y-1">
             <div>Басталды: {formatTime(booking.started_at)}</div>
             <div>Аяқталды: {formatTime(booking.completed_at)}</div>
             <div>Ұзақтығы: {formatDuration(booking.duration_minutes)}</div>
@@ -40,7 +40,7 @@ export default function JobCompletedSuccess() {
       <button
         type="button"
         onClick={() => navigate('/', { replace: true })}
-        className="w-full max-w-xs bg-primary hover:bg-primary/90 text-white font-semibold py-4 rounded-xl"
+        className="w-full max-w-xs bg-primary hover:bg-primary/90 text-on-primary font-semibold py-4 rounded-xl"
       >
         Күнтізбеге өту
       </button>

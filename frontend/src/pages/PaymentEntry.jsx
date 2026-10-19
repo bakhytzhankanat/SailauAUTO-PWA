@@ -151,24 +151,24 @@ export default function PaymentEntry() {
           onClick={() => navigate(-1)}
           className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center hover:bg-card-bg active:scale-95 transition-all"
         >
-          <span className="material-symbols-outlined text-white text-2xl">arrow_back</span>
+          <span className="material-symbols-outlined text-ink text-2xl">arrow_back</span>
         </button>
-        <span className="text-lg font-bold text-white ml-2">Төлем енгізу</span>
+        <span className="text-lg font-bold text-ink ml-2">Төлем енгізу</span>
       </header>
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-4 py-6 pb-32 space-y-6">
         {error && (
-          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>
+          <div className="p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm">{error}</div>
         )}
         <div className="bg-card-bg border border-border-color rounded-xl p-4 space-y-1">
-          <div className="text-text-muted text-xs uppercase font-semibold tracking-wider">Уақыт</div>
-          <div className="text-white text-sm">
+          <div className="text-text-muted text-xs font-semibold">Уақыт</div>
+          <div className="text-ink text-sm">
             Басталды: {booking.started_at
               ? new Date(booking.started_at).toLocaleTimeString('kk-KZ', { hour: '2-digit', minute: '2-digit' })
               : '—'}
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Қызмет үшін төлем</label>
+          <label className="text-text-muted text-xs font-semibold ml-1">Қызмет үшін төлем</label>
           <div className="relative">
             <input
               type="number"
@@ -176,14 +176,14 @@ export default function PaymentEntry() {
               step="1"
               value={servicePaymentAmount}
               onChange={(e) => setServicePaymentAmount(e.target.value)}
-              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-4 text-white text-lg placeholder-[#555] focus:ring-1 focus:ring-primary focus:border-primary outline-none font-medium"
+              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-4 text-ink text-lg placeholder-faint focus:ring-1 focus:ring-primary focus:border-primary outline-none font-medium"
               placeholder="Мысалы: 25000"
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted font-medium">₸</span>
           </div>
         </div>
         <div className="space-y-3">
-          <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Төлем түрі</label>
+          <label className="text-text-muted text-xs font-semibold ml-1">Төлем түрі</label>
           <div className="grid grid-cols-2 gap-3">
             {PAYMENT_TYPES.map((pt) => (
               <label
@@ -191,9 +191,9 @@ export default function PaymentEntry() {
                 className={`cursor-pointer rounded-xl p-4 flex flex-col items-center justify-center gap-2 border-2 transition-all ${
                   paymentType === pt.value
                     ? pt.accent
-                      ? 'border-red-500 bg-red-500/10'
+                      ? 'border-danger bg-danger/10'
                       : 'border-primary bg-primary/10'
-                    : 'border-border-color bg-card-bg hover:border-[#333]'
+                    : 'border-border-color bg-card-bg hover:border-border-color'
                 }`}
               >
                 <input
@@ -204,10 +204,10 @@ export default function PaymentEntry() {
                   onChange={() => setPaymentType(pt.value)}
                   className="sr-only"
                 />
-                <span className={`material-symbols-outlined ${paymentType === pt.value ? (pt.accent ? 'text-red-500' : 'text-primary') : 'text-text-muted'}`}>
+                <span className={`material-symbols-outlined ${paymentType === pt.value ? (pt.accent ? 'text-danger' : 'text-primary') : 'text-text-muted'}`}>
                   {pt.icon}
                 </span>
-                <span className={`text-sm font-medium ${paymentType === pt.value ? (pt.accent ? 'text-red-500' : 'text-primary') : 'text-white'}`}>
+                <span className={`text-sm font-medium ${paymentType === pt.value ? (pt.accent ? 'text-danger' : 'text-primary') : 'text-ink'}`}>
                   {pt.label}
                 </span>
               </label>
@@ -215,7 +215,7 @@ export default function PaymentEntry() {
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Материал шығыны (қосымша)</label>
+          <label className="text-text-muted text-xs font-semibold ml-1">Материал шығыны (қосымша)</label>
           <div className="relative">
             <input
               type="number"
@@ -223,15 +223,15 @@ export default function PaymentEntry() {
               step="1"
               value={materialExpense}
               onChange={(e) => setMaterialExpense(e.target.value)}
-              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-4 text-white text-lg placeholder-[#555] focus:ring-1 focus:ring-primary focus:border-primary outline-none font-medium"
+              className="w-full bg-card-bg border border-border-color rounded-xl px-4 py-4 text-ink text-lg placeholder-faint focus:ring-1 focus:ring-primary focus:border-primary outline-none font-medium"
               placeholder="Сома"
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted font-medium">₸</span>
           </div>
-          <p className="text-[#555] text-xs ml-1">Жұмыс барысында қолданылған шығын материалдарының құны.</p>
+          <p className="text-faint text-xs ml-1">Жұмыс барысында қолданылған шығын материалдарының құны.</p>
         </div>
         <div className="space-y-3 pt-2">
-          <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Сатылған бөлшектер</label>
+          <label className="text-text-muted text-xs font-semibold ml-1">Сатылған бөлшектер</label>
           <div className="space-y-2">
             <select
               value={addPartItemId}
@@ -240,7 +240,7 @@ export default function PaymentEntry() {
                 setAddPartUnitPrice('');
                 setAddPartPriceError('');
               }}
-              className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-white text-sm"
+              className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-ink text-sm"
             >
               <option value="">Таңдаңыз</option>
               {items.map((i) => (
@@ -258,7 +258,7 @@ export default function PaymentEntry() {
                     : `${minP.toLocaleString()}–${maxP.toLocaleString()} ₸`}
                 </p>
                 {isFixedPrice ? (
-                  <p className="text-white text-sm">Бір баға — Қосу батырмасымен қосылады</p>
+                  <p className="text-ink text-sm">Бір баға — Қосу батырмасымен қосылады</p>
                 ) : (
                   <>
                     <input
@@ -272,9 +272,9 @@ export default function PaymentEntry() {
                         setAddPartPriceError('');
                       }}
                       placeholder={`${minP.toLocaleString()}–${maxP.toLocaleString()}`}
-                      className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-white text-sm placeholder-text-muted"
+                      className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-ink text-sm placeholder-text-muted"
                     />
-                    {addPartPriceError && <p className="text-red-400 text-xs">{addPartPriceError}</p>}
+                    {addPartPriceError && <p className="text-danger text-xs">{addPartPriceError}</p>}
                   </>
                 )}
               </div>
@@ -285,7 +285,7 @@ export default function PaymentEntry() {
                 min="1"
                 value={addPartQty}
                 onChange={(e) => setAddPartQty(Number(e.target.value) || 1)}
-                className="w-20 bg-card-bg border border-border-color rounded-lg px-2 py-2 text-white text-center text-sm"
+                className="w-20 bg-card-bg border border-border-color rounded-lg px-2 py-2 text-ink text-center text-sm"
               />
               <span className="text-text-muted text-sm">дана</span>
               <button type="button" onClick={addPartSale} className="text-primary text-sm font-semibold flex items-center gap-1">
@@ -301,13 +301,13 @@ export default function PaymentEntry() {
                 className="bg-card-bg border border-border-color rounded-xl p-4 flex justify-between items-center"
               >
                 <div>
-                  <div className="text-white font-medium text-sm">{p.name}</div>
+                  <div className="text-ink font-medium text-sm">{p.name}</div>
                   <div className="text-text-muted text-xs mt-0.5">{Number(p.unit_price).toLocaleString()} ₸ × {p.quantity}</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => removePartSale(p.inventory_item_id)}
-                  className="text-red-400 text-xs font-medium flex items-center gap-0.5"
+                  className="text-danger text-xs font-medium flex items-center gap-0.5"
                 >
                   <span className="material-symbols-outlined text-sm">delete</span>
                   Жою
@@ -318,7 +318,7 @@ export default function PaymentEntry() {
         </div>
         {booking.services?.length > 0 && (
           <div className="space-y-3 pt-2">
-            <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Кепілдік (3 ай) — қызметтерді таңдаңыз</label>
+            <label className="text-text-muted text-xs font-semibold ml-1">Кепілдік (3 ай) — қызметтерді таңдаңыз</label>
             <div className="space-y-2">
               {booking.services.map((s) => (
                 <label
@@ -331,7 +331,7 @@ export default function PaymentEntry() {
                     onChange={() => toggleWarranty(s.service_catalog_id)}
                     className="rounded border-border-color text-primary focus:ring-primary"
                   />
-                  <span className="text-white text-sm">{s.service_name}</span>
+                  <span className="text-ink text-sm">{s.service_name}</span>
                 </label>
               ))}
             </div>
@@ -339,12 +339,12 @@ export default function PaymentEntry() {
         )}
         {booking.services?.some((s) => s.id) && (
           <div className="space-y-3 pt-2">
-            <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Есік (қажет болса)</label>
-            <p className="text-[#555] text-xs ml-1">Бір жағын таңдасаңыз — 1 есік, екеуін де таңдасаңыз — екі есік.</p>
+            <label className="text-text-muted text-xs font-semibold ml-1">Есік (қажет болса)</label>
+            <p className="text-faint text-xs ml-1">Бір жағын таңдасаңыз — 1 есік, екеуін де таңдасаңыз — екі есік.</p>
             <div className="space-y-2">
               {booking.services.filter((s) => s.id).map((s) => (
                 <div key={s.id} className="p-3 rounded-xl border border-border-color bg-card-bg space-y-2">
-                  <div className="text-white text-sm">{s.service_name}</div>
+                  <div className="text-ink text-sm">{s.service_name}</div>
                   <DoorSidePicker
                     value={doorSides[s.id] ?? null}
                     onChange={(side) => setDoorSides((prev) => ({ ...prev, [s.id]: side }))}
@@ -355,7 +355,7 @@ export default function PaymentEntry() {
           </div>
         )}
         <div className="space-y-3 pt-2">
-          <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Қай шебер(лер) жұмыс жасады?</label>
+          <label className="text-text-muted text-xs font-semibold ml-1">Қай шебер(лер) жұмыс жасады?</label>
           <div className="space-y-2">
             {workers.map((w) => (
               <label key={w.id} className="flex items-center gap-3 p-3 rounded-xl border border-border-color bg-card-bg cursor-pointer">
@@ -369,7 +369,7 @@ export default function PaymentEntry() {
                   }}
                   className="rounded border-border-color text-primary focus:ring-primary"
                 />
-                <span className="text-white text-sm">{w.display_name || w.phone}</span>
+                <span className="text-ink text-sm">{w.display_name || w.phone}</span>
               </label>
             ))}
             {workers.length === 0 && (
@@ -380,7 +380,7 @@ export default function PaymentEntry() {
         <button
           type="submit"
           disabled={submitting || (servicePaymentAmount !== '' && Number(servicePaymentAmount) < 0)}
-          className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full bg-primary hover:bg-primary/90 text-on-primary font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {submitting ? 'Сақталуда...' : 'Аяқтау'}
         </button>

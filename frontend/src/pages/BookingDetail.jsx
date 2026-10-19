@@ -69,7 +69,7 @@ export default function BookingDetail() {
   if (error || !booking) {
     return (
       <div className="p-4">
-        <p className="text-red-400">{error || 'Жазба табылмады'}</p>
+        <p className="text-danger">{error || 'Жазба табылмады'}</p>
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -109,41 +109,41 @@ export default function BookingDetail() {
           onClick={() => navigate(-1)}
           className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center hover:bg-card-bg active:scale-95 transition-all"
         >
-          <span className="material-symbols-outlined text-white text-2xl">arrow_back</span>
+          <span className="material-symbols-outlined text-ink text-2xl">arrow_back</span>
         </button>
-        <span className="text-lg font-bold text-white ml-2">Тапсырыс №{orderNumber}</span>
+        <span className="text-lg font-bold text-ink ml-2">Тапсырыс №{orderNumber}</span>
       </header>
       <main className="flex-1 overflow-y-auto px-4 py-4 pb-24 space-y-4">
         <div className="bg-card-bg rounded-2xl border border-border-color overflow-hidden shadow-lg">
           <div className="p-4 border-b border-border-color">
-            <h2 className="text-text-muted text-xs uppercase font-semibold tracking-wider mb-2">Клиент</h2>
+            <h2 className="text-text-muted text-xs font-semibold mb-2">Клиент</h2>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-white font-bold text-lg">{booking.client_name}</div>
+                <div className="text-ink font-bold text-lg">{booking.client_name}</div>
                 <div className="text-primary font-medium mt-0.5">{booking.phone}</div>
               </div>
               <a
                 href={`tel:${booking.phone}`}
-                className="w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center hover:bg-[#333] active:bg-primary transition-colors"
+                className="w-10 h-10 rounded-full bg-raised flex items-center justify-center hover:bg-raised active:bg-primary transition-colors"
                 aria-label="Қоңырау"
               >
-                <span className="material-symbols-outlined text-white">call</span>
+                <span className="material-symbols-outlined text-ink">call</span>
               </a>
             </div>
           </div>
           <div className="p-4 border-b border-border-color">
-            <h2 className="text-text-muted text-xs uppercase font-semibold tracking-wider mb-2">Көлік</h2>
+            <h2 className="text-text-muted text-xs font-semibold mb-2">Көлік</h2>
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-white font-bold text-lg">{booking.vehicle_name}</div>
+                <div className="text-ink font-bold text-lg">{booking.vehicle_name}</div>
                 <div className="text-text-muted text-sm mt-0.5">
                   {booking.body_type}
                   {booking.vehicle_year ? ` • ${booking.vehicle_year} жыл` : ''}
                 </div>
               </div>
               {booking.plate_number && (
-                <div className="bg-[#2A2A2A] px-2 py-1 rounded border border-[#333]">
-                  <span className="font-mono text-white text-sm font-semibold tracking-wide">
+                <div className="bg-raised px-2 py-1 rounded border border-border-color">
+                  <span className="font-mono text-ink text-sm font-semibold tracking-wide">
                     {booking.plate_number}
                   </span>
                 </div>
@@ -151,7 +151,7 @@ export default function BookingDetail() {
             </div>
           </div>
           <div className="p-4 border-b border-border-color">
-            <h2 className="text-text-muted text-xs uppercase font-semibold tracking-wider mb-3">Қызметтер</h2>
+            <h2 className="text-text-muted text-xs font-semibold mb-3">Қызметтер</h2>
             <div className="space-y-3">
               {booking.services?.map((s, i) => (
                 <div key={s.id || i} className="flex justify-between items-start">
@@ -160,7 +160,7 @@ export default function BookingDetail() {
                       <span className="text-primary text-xs font-bold">{i + 1}</span>
                     </div>
                     <div>
-                      <div className="text-white text-sm font-medium leading-tight">{formatServiceName(s.service_name)}</div>
+                      <div className="text-ink text-sm font-medium leading-tight">{formatServiceName(s.service_name)}</div>
                       {s.door_side && (
                         <div className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-primary/10 border border-primary/30 text-primary text-[11px] font-medium">
                           <span className="material-symbols-outlined text-sm">sensor_door</span>
@@ -175,34 +175,34 @@ export default function BookingDetail() {
             </div>
           </div>
           <div className="p-4">
-            <h2 className="text-text-muted text-xs uppercase font-semibold tracking-wider mb-2">Кесте</h2>
+            <h2 className="text-text-muted text-xs font-semibold mb-2">Кесте</h2>
             <div className="flex gap-4 mb-3">
-              <div className="flex-1 bg-[#252525] rounded-lg p-3 border border-border-color">
+              <div className="flex-1 bg-raised rounded-lg p-3 border border-border-color">
                 <div className="text-text-muted text-xs mb-1">Орын</div>
-                <div className="text-white font-semibold flex items-center gap-2">
+                <div className="text-ink font-semibold flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary text-lg">garage_home</span>
                   Бокс {booking.box_id}
                 </div>
               </div>
-              <div className="flex-1 bg-[#252525] rounded-lg p-3 border border-border-color">
+              <div className="flex-1 bg-raised rounded-lg p-3 border border-border-color">
                 <div className="text-text-muted text-xs mb-1">Уақыты (жазба)</div>
-                <div className="text-white font-semibold">
+                <div className="text-ink font-semibold">
                   {formatTime(booking.start_time)} – {formatTime(booking.end_time)}
                 </div>
               </div>
             </div>
             <div className="text-text-muted text-xs mb-3">{booking.date}</div>
             {(booking.started_at || booking.completed_at) && (
-              <div className="bg-[#252525] rounded-lg p-3 border border-border-color space-y-2">
-                <div className="text-text-muted text-xs uppercase font-semibold tracking-wider">Фактілі жұмыс уақыты</div>
+              <div className="bg-raised rounded-lg p-3 border border-border-color space-y-2">
+                <div className="text-text-muted text-xs font-semibold">Фактілі жұмыс уақыты</div>
                 <div className="grid gap-2">
                   <div className="flex justify-between items-center">
                     <span className="text-text-muted text-sm">Жұмысты бастау</span>
-                    <span className="text-white font-medium tabular-nums">{formatDateTime(booking.started_at)}</span>
+                    <span className="text-ink font-medium tabular-nums">{formatDateTime(booking.started_at)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-text-muted text-sm">Жұмысты аяқтау</span>
-                    <span className="text-white font-medium tabular-nums">{formatDateTime(booking.completed_at)}</span>
+                    <span className="text-ink font-medium tabular-nums">{formatDateTime(booking.completed_at)}</span>
                   </div>
                 </div>
               </div>
@@ -210,9 +210,9 @@ export default function BookingDetail() {
           </div>
         </div>
         {booking.note && (
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-            <h2 className="text-amber-500 font-bold text-sm uppercase mb-1">Ескерту</h2>
-            <p className="text-white text-sm">{booking.note}</p>
+          <div className="bg-warn/10 border border-warn/30 rounded-xl p-4">
+            <h2 className="text-warn font-bold text-sm mb-1">Ескерту</h2>
+            <p className="text-ink text-sm">{booking.note}</p>
           </div>
         )}
         {canStart && (
@@ -221,7 +221,7 @@ export default function BookingDetail() {
               <button
                 type="button"
                 onClick={() => navigate(`/booking/${id}/edit`)}
-                className="w-full bg-card-bg border border-border-color hover:bg-[#2A2A2A] text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
+                className="w-full bg-card-bg border border-border-color hover:bg-raised text-ink font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined">edit</span>
                 Жазбаны өңдеу
@@ -231,7 +231,7 @@ export default function BookingDetail() {
               type="button"
               onClick={handleStart}
               disabled={starting}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-primary hover:bg-primary/90 text-on-primary font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <span className="material-symbols-outlined">play_arrow</span>
               {starting ? '...' : 'Жұмысты бастау'}
@@ -242,7 +242,7 @@ export default function BookingDetail() {
           <button
             type="button"
             onClick={() => navigate(`/booking/${id}/payment`)}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl mt-4 flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primary/90 text-on-primary font-bold py-4 rounded-xl mt-4 flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined">check_circle</span>
             Жұмысты аяқтау
@@ -257,7 +257,7 @@ export default function BookingDetail() {
               <button
                 type="button"
                 onClick={() => navigate(`/booking/${id}/completion`)}
-                className="w-full bg-card-bg border border-border-color hover:bg-[#2A2A2A] text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
+                className="w-full bg-card-bg border border-border-color hover:bg-raised text-ink font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined">receipt_long</span>
                 Төлем мен бөлшектерді өңдеу

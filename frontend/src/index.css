@@ -2,31 +2,161 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme "Цех": graphite shop floor, brand teal, status colours unchanged in meaning. */
+:root {
+  --bg: 19 22 26;
+  --surface: 28 32 37;
+  --raised: 39 44 51;
+  --line: 48 55 63;
+  --ink: 236 239 242;
+  --muted: 145 155 166;
+  --faint: 95 104 115;
+  --primary: 42 145 131;
+  --on-primary: 255 255 255;
+  --danger: 239 88 84;
+  --warn: 242 182 64;
+  --ok: 56 196 120;
+  --st-planned: 84 146 255;
+  --st-arrived: 255 140 66;
+  --st-progress: 242 196 61;
+  --st-done: 56 196 120;
+  --st-noshow: 124 132 142;
+
+  --font-ui: 'Geologica', 'Noto Sans', system-ui, sans-serif;
+  --font-num: 'Geologica', 'Noto Sans', system-ui, sans-serif;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --nav-h: 76px;
+  color-scheme: dark;
+}
+
 html {
   touch-action: manipulation;
   -ms-touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background-color: #0F0F0F;
-  color: white;
-  font-family: 'Noto Sans', 'Inter', system-ui, sans-serif;
+  background-color: rgb(var(--bg));
+  color: rgb(var(--ink));
+  font-family: var(--font-ui);
+  font-feature-settings: 'tnum' 0;
   min-height: max(884px, 100dvh);
   touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
 }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #1C1C1C inset !important;
-  -webkit-text-fill-color: white !important;
+  -webkit-box-shadow: 0 0 0 30px rgb(var(--raised)) inset !important;
+  -webkit-text-fill-color: rgb(var(--ink)) !important;
 }
 
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
+.icon-fill {
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
 
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Numbers line up in tables, timers and money. */
+.font-mono,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Small heading over a group of fields: sentence case, quiet. */
+  .section-label {
+    @apply text-[13px] font-semibold text-text-muted normal-case tracking-normal;
+  }
+
+  .card {
+    @apply bg-card-bg rounded-2xl border border-border-color/70;
+  }
+
+  .field {
+    @apply w-full bg-raised/60 border border-border-color rounded-xl px-4 py-3 text-ink placeholder-faint outline-none transition-colors;
+  }
+  .field:focus {
+    @apply border-primary ring-1 ring-primary;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-primary text-on-primary py-4 px-5 shadow-lg shadow-primary/20;
+  }
+  .btn-secondary {
+    @apply btn bg-raised text-ink py-3 px-4 border border-border-color;
+  }
+  .btn-danger {
+    @apply btn bg-danger/10 text-danger py-3 px-4 border border-danger/30;
+  }
+
+  .chip {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-border-color bg-card-bg px-3.5 py-2 text-sm font-medium text-text-muted transition-colors;
+  }
+  .chip-on {
+    @apply border-primary bg-primary/15 text-ink;
+  }
+
+  .segmented {
+    @apply flex rounded-xl bg-raised/70 p-1;
+  }
+  .segmented > button {
+    @apply flex-1 rounded-[10px] py-2 text-sm font-semibold text-text-muted transition-colors;
+  }
+  .segmented > button[aria-pressed='true'] {
+    @apply bg-card-bg text-ink shadow-sm shadow-black/40;
+  }
+
+  .icon-btn {
+    @apply w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-text-muted transition-colors active:scale-95;
+  }
+  .icon-btn:hover {
+    @apply bg-raised text-ink;
+  }
+
+  .page-header {
+    @apply sticky top-0 z-20 flex items-center gap-2 px-3 py-3 bg-bg-main/90 backdrop-blur border-b border-border-color/70;
+  }
+  .page-title {
+    @apply text-[17px] font-semibold text-ink truncate;
+  }
+
+  .scrim {
+    @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-[2px];
+  }
+  .sheet {
+    @apply w-full max-w-md bg-card-bg border border-border-color rounded-t-[22px] sm:rounded-2xl p-5 pb-8 max-h-[90vh] overflow-y-auto shadow-2xl shadow-black/60;
+  }
+
+  /* Kazakhstan licence plate: white plate, black characters, flag strip. */
+  .kz-plate {
+    @apply inline-flex items-stretch overflow-hidden rounded-[5px] border border-[#11161c] bg-white text-[#0d1117] leading-none shadow-sm;
+  }
+  .kz-plate-flag {
+    @apply flex flex-col items-center justify-end bg-[#00A3D9] px-[3px] pb-[2px] text-[7px] font-bold text-white;
+  }
+  .kz-plate-text {
+    @apply px-1.5 py-[3px] font-semibold tracking-[0.06em] uppercase whitespace-nowrap;
+  }
+
+  .photo-stage {
+    background: radial-gradient(ellipse at 50% 35%, rgb(var(--raised)) 0%, rgb(var(--bg)) 75%);
+  }
 }

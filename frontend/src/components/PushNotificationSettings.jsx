@@ -122,7 +122,7 @@ export default function PushNotificationSettings() {
           <span className="material-symbols-outlined text-primary text-xl" aria-hidden>notifications</span>
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="font-semibold text-white">Хабарландырулар</h2>
+          <h2 className="font-semibold text-ink">Хабарландырулар</h2>
           <p className="mt-2 text-sm leading-5 text-text-muted">
             {status.loading
               ? 'Тексерілуде...'
@@ -151,15 +151,15 @@ export default function PushNotificationSettings() {
         <div className="mt-4 flex flex-wrap gap-2">
           {enabled ? (
             <>
-              <button type="button" onClick={handleTest} disabled={busy} className="px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50">
+              <button type="button" onClick={handleTest} disabled={busy} className="px-4 py-2.5 rounded-lg bg-primary text-on-primary text-sm font-semibold hover:bg-primary/90 disabled:opacity-50">
                 Сынақ хабарламасы
               </button>
-              <button type="button" onClick={handleDisable} disabled={busy} className="px-4 py-2.5 rounded-lg border border-border-color text-sm font-medium text-white hover:bg-bg-main disabled:opacity-50">
+              <button type="button" onClick={handleDisable} disabled={busy} className="px-4 py-2.5 rounded-lg border border-border-color text-sm font-medium text-ink hover:bg-bg-main disabled:opacity-50">
                 {busy ? 'Күте тұрыңыз...' : 'Хабарландыруларды өшіру'}
               </button>
             </>
           ) : (
-            <button type="button" onClick={handleEnable} disabled={busy || !canEnable} className="px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50">
+            <button type="button" onClick={handleEnable} disabled={busy || !canEnable} className="px-4 py-2.5 rounded-lg bg-primary text-on-primary text-sm font-semibold hover:bg-primary/90 disabled:opacity-50">
               {busy ? 'Қосылуда...' : 'Хабарландыруларды қосу'}
             </button>
           )}
@@ -168,11 +168,11 @@ export default function PushNotificationSettings() {
 
       {preferences.length > 0 && (
         <div className="mt-5 pt-4 border-t border-border-color">
-          <h3 className="text-sm font-medium text-white">Қандай хабарландырулар керек?</h3>
+          <h3 className="text-sm font-medium text-ink">Қандай хабарландырулар керек?</h3>
           <div className="mt-3 space-y-3">
             {preferences.map((preference) => (
               <label key={preference.key} className="flex items-center justify-between gap-4 cursor-pointer">
-                <span className="text-sm text-white">{PREFERENCE_LABELS[preference.key] || 'Хабарландыру'}</span>
+                <span className="text-sm text-ink">{PREFERENCE_LABELS[preference.key] || 'Хабарландыру'}</span>
                 <input
                   type="checkbox"
                   checked={Boolean(preference.enabled)}

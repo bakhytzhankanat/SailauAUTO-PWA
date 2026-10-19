@@ -41,12 +41,12 @@ export default function CarModelPicker({ value, onChange }) {
   };
 
   const chip = 'px-3 py-2 rounded-lg border text-sm font-medium transition-colors text-left';
-  const chipIdle = 'border-border-color bg-card-bg text-white hover:border-primary/60';
+  const chipIdle = 'border-border-color bg-card-bg text-ink hover:border-primary/60';
 
   return (
-    <div className="rounded-2xl border border-border-color bg-[#151515] p-3 space-y-3">
+    <div className="rounded-2xl border border-border-color bg-bg-main p-3 space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-white">Марка және модель</h3>
+        <h3 className="text-sm font-semibold text-ink">Марка және модель</h3>
         {value && (
           <button
             type="button"
@@ -66,7 +66,7 @@ export default function CarModelPicker({ value, onChange }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Іздеу: Camry, Tiggo, Lada..."
-          className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none text-sm"
+          className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-ink placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none text-sm"
         />
       </div>
 
@@ -104,7 +104,7 @@ export default function CarModelPicker({ value, onChange }) {
               <span className="material-symbols-outlined text-text-muted text-lg">arrow_back</span>
             </button>
             <BrandLogo make={currentMake.name} size="md" />
-            <span className="text-white font-semibold">{currentMake.name}</span>
+            <span className="text-ink font-semibold">{currentMake.name}</span>
           </div>
           <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto">
             {currentMake.models.map((model) => {
@@ -128,7 +128,7 @@ export default function CarModelPicker({ value, onChange }) {
       ) : (
         <div className="space-y-3">
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mb-1.5">Танымал</div>
+            <div className="text-[11px] text-text-muted font-semibold mb-1.5">Танымал</div>
             <div className="grid grid-cols-3 gap-2">
               {popular.map((m) => (
                 <button key={m.name} type="button" onClick={() => openMake(m.name)} className={`${chip} ${chipIdle} flex flex-col items-center gap-1.5 px-1 py-2.5`}>
@@ -139,10 +139,10 @@ export default function CarModelPicker({ value, onChange }) {
             </div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mb-1.5">Барлық маркалар ({CAR_MAKES.length})</div>
+            <div className="text-[11px] text-text-muted font-semibold mb-1.5">Барлық маркалар ({CAR_MAKES.length})</div>
             <div className="flex flex-wrap gap-1.5 max-h-64 overflow-y-auto">
               {CAR_MAKES.map((m) => (
-                <button key={m.name} type="button" onClick={() => openMake(m.name)} className="pl-1 pr-2.5 py-1 rounded-lg border border-border-color bg-card-bg text-white text-xs hover:border-primary/60 flex items-center gap-1.5">
+                <button key={m.name} type="button" onClick={() => openMake(m.name)} className="pl-1 pr-2.5 py-1 rounded-lg border border-border-color bg-card-bg text-ink text-xs hover:border-primary/60 flex items-center gap-1.5">
                   <BrandLogo make={m.name} />
                   {m.name}
                 </button>

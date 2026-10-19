@@ -42,12 +42,12 @@ export default function Login() {
         <div className="w-full bg-card-bg rounded-xl border border-border-color p-6 sm:p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <p className="text-red-400 text-sm text-center" role="alert">
+              <p className="text-danger text-sm text-center" role="alert">
                 {error}
               </p>
             )}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white ml-1" htmlFor="phone">
+              <label className="block text-sm font-medium text-ink ml-1" htmlFor="phone">
                 Телефон
               </label>
               <div className="relative group">
@@ -55,7 +55,7 @@ export default function Login() {
                   smartphone
                 </span>
                 <input
-                  className="block w-full pl-12 pr-4 py-4 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200 text-base"
+                  className="block w-full pl-12 pr-4 py-4 bg-card-bg border border-border-color rounded-lg text-ink placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200 text-base"
                   id="phone"
                   type="tel"
                   placeholder="+7 (700) 000-00-00"
@@ -67,7 +67,7 @@ export default function Login() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white ml-1" htmlFor="password">
+              <label className="block text-sm font-medium text-ink ml-1" htmlFor="password">
                 Құпия сөз
               </label>
               <div className="relative group">
@@ -75,7 +75,7 @@ export default function Login() {
                   lock
                 </span>
                 <input
-                  className="block w-full pl-12 pr-4 py-4 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200 text-base"
+                  className="block w-full pl-12 pr-4 py-4 bg-card-bg border border-border-color rounded-lg text-ink placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200 text-base"
                   id="password"
                   type="password"
                   placeholder="••••••••"
@@ -89,7 +89,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full flex justify-center py-4 px-4 border border-transparent rounded-lg shadow-sm text-lg font-bold text-white bg-primary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-card-bg transition-all duration-200 mt-2 disabled:opacity-50"
+              className="w-full flex justify-center py-4 px-4 border border-transparent rounded-lg shadow-sm text-lg font-bold text-on-primary bg-primary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-card-bg transition-all duration-200 mt-2 disabled:opacity-50"
             >
               {submitting ? '...' : 'Кіру'}
             </button>

@@ -49,7 +49,7 @@ export default function ClientsList() {
         <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
           <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>
-        <h1 className="text-xl font-bold text-white">Клиенттер</h1>
+        <h1 className="text-xl font-bold text-ink">Клиенттер</h1>
       </header>
       <main className="flex-1 overflow-y-auto p-4 pb-24">
         <div className="relative mb-4">
@@ -61,10 +61,10 @@ export default function ClientsList() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Аты, телефон немесе мемлекеттік нөмір"
-            className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:ring-1 focus:ring-primary"
+            className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-ink placeholder-text-muted focus:ring-1 focus:ring-primary"
           />
         </div>
-        {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+        {error && <p className="text-danger text-sm mb-4">{error}</p>}
         {loading ? (
           <p className="text-text-muted">Жүктелуде...</p>
         ) : list.length === 0 ? (
@@ -76,11 +76,11 @@ export default function ClientsList() {
                 key={c.id}
                 type="button"
                 onClick={() => navigate(`/clients/${c.id}`)}
-                className="w-full bg-card-bg border border-border-color rounded-xl p-4 text-left hover:bg-[#252525] transition-colors"
+                className="w-full bg-card-bg border border-border-color rounded-xl p-4 text-left hover:bg-raised transition-colors"
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="font-semibold text-white">{c.name}</div>
+                    <div className="font-semibold text-ink">{c.name}</div>
                     <div className="text-primary text-sm mt-0.5">{c.phone}</div>
                   </div>
                   <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-border-color text-text-muted">
@@ -90,7 +90,7 @@ export default function ClientsList() {
                 {(c.matched_plate || c.last_plate_number || c.last_vehicle_name) && (
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
                     {(c.matched_plate || c.last_plate_number) && (
-                      <span className="font-mono text-xs font-semibold tracking-wider px-2 py-0.5 rounded border border-white/20 bg-white/5 text-white">
+                      <span className="font-mono text-xs font-semibold tracking-wider px-2 py-0.5 rounded border border-white/20 bg-white/5 text-ink">
                         {c.matched_plate || c.last_plate_number}
                       </span>
                     )}
