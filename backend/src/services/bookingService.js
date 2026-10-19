@@ -44,7 +44,7 @@ export async function listByDate(date, boxId = null, serviceId = null) {
   if (!serviceId) throw new Error('service_id қажет');
   let query = `
     SELECT b.*,
-           v.name AS vehicle_name, v.body_type AS vehicle_body_type,
+           COALESCE(NULLIF(to_jsonb(b)->>'vehicle_custom_name', ''), v.name) AS vehicle_name, v.body_type AS vehicle_body_type,
            u.display_name AS assigned_master_name
     FROM booking b
     JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
@@ -118,7 +118,7 @@ export async function getById(id, serviceId = null) {
   if (!serviceId) throw new Error('service_id қажет');
   const { rows } = await pool.query(
     `SELECT b.*,
-            v.name AS vehicle_name, v.body_type AS vehicle_body_type, v.year AS vehicle_year,
+            COALESCE(NULLIF(to_jsonb(b)->>'vehicle_custom_name', ''), v.name) AS vehicle_name, v.body_type AS vehicle_body_type, v.year AS vehicle_year,
             u.display_name AS assigned_master_name
      FROM booking b
      JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
@@ -147,6 +147,13 @@ export async function getById(id, serviceId = null) {
       [id]
     );
     serviceRows = (res.rows || []).map((s) => ({ ...s, warranty_mode: false }));
+  }
+  try {
+    const res = await pool.query('SELECT id, door_side FROM booking_service WHERE booking_id = $1', [id]);
+    const doorById = new Map(res.rows.map((r) => [r.id, r.door_side]));
+    serviceRows = serviceRows.map((s) => ({ ...s, door_side: doorById.get(s.id) ?? null }));
+  } catch (_) {
+    serviceRows = serviceRows.map((s) => ({ ...s, door_side: null }));
   }
   let masterRows = [];
   try {
@@ -189,6 +196,24 @@ export async function getById(id, serviceId = null) {
   };
 }
 
+/** Free make/model name for the "Другое" vehicle; null clears it. */
+function normalizeCustomVehicleName(value) {
+  const name = typeof value === 'string' ? value.trim().slice(0, 120) : '';
+  return name || null;
+}
+
+/** Savepoint so a database without migration 049 still saves the booking. */
+async function saveCustomVehicleName(client, bookingId, value) {
+  await client.query('SAVEPOINT sp_vehicle_name');
+  try {
+    await client.query('UPDATE booking SET vehicle_custom_name = $2 WHERE id = $1', [bookingId, normalizeCustomVehicleName(value)]);
+    await client.query('RELEASE SAVEPOINT sp_vehicle_name');
+  } catch (err) {
+    console.warn('Saving custom vehicle name skipped:', err.message);
+    await client.query('ROLLBACK TO SAVEPOINT sp_vehicle_name');
+  }
+}
+
 /**
  * Create booking (structure only). Owner/Manager only.
  */
@@ -200,6 +225,7 @@ export async function create(serviceId, data) {
     phone,
     source,
     vehicle_catalog_id,
+    vehicle_custom_name,
     body_type,
     plate_number,
     box_id,
@@ -240,6 +266,9 @@ export async function create(serviceId, data) {
         masterId,
       ]
     );
+    if (normalizeCustomVehicleName(vehicle_custom_name)) {
+      await saveCustomVehicleName(client, booking.id, vehicle_custom_name);
+    }
     if (services && services.length > 0) {
       for (const s of services) {
         const warrantyMode = s.warranty_mode === true || s.warranty_mode === 'true';
@@ -309,6 +338,7 @@ export async function updateStructure(id, serviceId, data) {
     phone,
     source,
     vehicle_catalog_id,
+    vehicle_custom_name,
     body_type,
     plate_number,
     box_id,
@@ -361,6 +391,9 @@ export async function updateStructure(id, serviceId, data) {
         masterId,
       ]
     );
+    if (vehicle_custom_name !== undefined) {
+      await saveCustomVehicleName(client, id, vehicle_custom_name);
+    }
     if (services !== undefined) {
       await client.query('DELETE FROM booking_service WHERE booking_id = $1', [id]);
       for (const s of services) {

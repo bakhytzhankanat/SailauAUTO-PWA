@@ -1,35 +1,83 @@
 import jwt from 'jsonwebtoken';
 import { pool } from '../db/pool.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+const DEV_JWT_SECRET = 'dev-secret-change-in-production';
+const IS_PRODUCTION = process.env.NODE_ENV === 'production' || Boolean(process.env.RENDER);
+const JWT_SECRET = process.env.JWT_SECRET || (IS_PRODUCTION ? null : DEV_JWT_SECRET);
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30d';
+// Token older than this is re-issued on the next request (sliding session).
+const TOKEN_REFRESH_AFTER_SECONDS = 6 * 60 * 60;
+export const REFRESH_TOKEN_HEADER = 'X-Refresh-Token';
+
+/**
+ * Fail fast on startup: in production the server must not run with the public dev secret,
+ * otherwise anyone could forge tokens.
+ */
+export function assertJwtSecretConfigured() {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required in production');
+  }
+  if (!process.env.JWT_SECRET) {
+    console.warn('JWT_SECRET is not set; using the insecure development secret.');
+  }
+}
+
+export function signToken(userId) {
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
+
+async function loadUser(userId) {
+  try {
+    return await pool.query(
+      'SELECT id, phone, display_name, role, is_senior_worker, service_id, is_active FROM "user" WHERE id = $1',
+      [userId]
+    );
+  } catch (err) {
+    // A pooled connection may have been dropped while the app was idle; retry once on a fresh one.
+    console.warn('Auth user lookup failed, retrying:', err.message);
+    return pool.query(
+      'SELECT id, phone, display_name, role, is_senior_worker, service_id, is_active FROM "user" WHERE id = $1',
+      [userId]
+    );
+  }
+}
 
 /**
  * Verify JWT and attach req.user = { id, phone, display_name, role, is_senior_worker }.
  * No 401 here; use requireAuth for that.
+ * Database errors answer 503 instead of logging the user out.
+ * Tokens older than TOKEN_REFRESH_AFTER_SECONDS get a fresh one in the X-Refresh-Token header.
  */
 export async function optionalAuth(req, res, next) {
   const auth = req.headers.authorization;
   const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
-  if (!token) {
-    req.user = null;
+  req.user = null;
+  if (!token) return next();
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, JWT_SECRET);
+  } catch {
     return next();
   }
+
+  let rows;
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const { rows } = await pool.query(
-      'SELECT id, phone, display_name, role, is_senior_worker, service_id FROM "user" WHERE id = $1',
-      [decoded.userId]
-    );
-    if (rows.length === 0) {
-      req.user = null;
-      return next();
-    }
-    req.user = { ...rows[0], service_id: rows[0].service_id ?? null };
-    next();
-  } catch {
-    req.user = null;
-    next();
+    ({ rows } = await loadUser(decoded.userId));
+  } catch (err) {
+    console.error('Auth user lookup failed:', err.message);
+    return res.status(503).json({ error: 'Сервер уақытша қолжетімсіз. Қайталап көріңіз.' });
   }
+  if (rows.length === 0 || rows[0].is_active === false) return next();
+
+  const { is_active, ...user } = rows[0];
+  req.user = { ...user, service_id: user.service_id ?? null };
+
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (!decoded.iat || nowSeconds - decoded.iat > TOKEN_REFRESH_AFTER_SECONDS) {
+    res.setHeader(REFRESH_TOKEN_HEADER, signToken(user.id));
+  }
+  next();
 }
 
 /**
@@ -113,5 +161,3 @@ export function requireService(req, res, next) {
   if (!req.user.service_id) return res.status(403).json({ error: 'Рұқсат жоқ' });
   next();
 }
-
-export { JWT_SECRET };

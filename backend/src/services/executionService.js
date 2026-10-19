@@ -3,6 +3,35 @@ import { getById } from './bookingService.js';
 import { isLowStockThresholdCrossing, queuePush } from './pushService.js';
 import { dispatchPushEvent, PUSH_EVENT_TYPES } from './notificationEventService.js';
 
+const DOOR_SIDES = ['left', 'right', 'both'];
+
+/** 'left' | 'right' | 'both' | null (anything else clears the choice). */
+export function normalizeDoorSide(value) {
+  return DOOR_SIDES.includes(value) ? value : null;
+}
+
+/**
+ * Save door choices for booking services: [{ booking_service_id, door_side }].
+ * Runs in a savepoint so a database without migration 048 still completes the booking.
+ */
+async function saveServiceDoors(client, bookingId, serviceDoors) {
+  const entries = (Array.isArray(serviceDoors) ? serviceDoors : []).filter((d) => d && d.booking_service_id);
+  if (entries.length === 0) return;
+  await client.query('SAVEPOINT sp_doors');
+  try {
+    for (const d of entries) {
+      await client.query(
+        'UPDATE booking_service SET door_side = $3 WHERE id = $1 AND booking_id = $2',
+        [d.booking_service_id, bookingId, normalizeDoorSide(d.door_side)]
+      );
+    }
+    await client.query('RELEASE SAVEPOINT sp_doors');
+  } catch (err) {
+    console.warn('Saving door sides skipped:', err.message);
+    await client.query('ROLLBACK TO SAVEPOINT sp_doors');
+  }
+}
+
 /**
  * Start job: status planned|arrived → in_progress, started_at = now().
  * Allowed: worker, owner.
@@ -24,7 +53,8 @@ export async function startBooking(id, serviceId, assignedMasterId = null) {
 /**
  * Complete booking: in_progress → completed.
  * Payload: service_payment_amount, payment_type, material_expense, kaspi_tax_amount (optional),
- * part_sales: [{ inventory_item_id, quantity, unit_price }], warranty_service_ids: [uuid].
+ * part_sales: [{ inventory_item_id, quantity, unit_price }], warranty_service_ids: [uuid],
+ * service_doors: [{ booking_service_id, door_side: 'left'|'right'|'both'|null }] (optional).
  * unit_price required; must be in [sale_price_min, sale_price_max].
  * Creates client if booking.client_id is null; creates warranty rows; creates part_sale + decrements inventory + movement.
  */
@@ -48,6 +78,7 @@ export async function completeBooking(id, serviceId, payload) {
     part_sales = [],
     warranty_service_ids = [],
     master_user_ids = [],
+    service_doors = [],
   } = payload;
 
   let kaspi_tax_amount = payloadKaspiTax != null ? Number(payloadKaspiTax) : null;
@@ -126,6 +157,8 @@ export async function completeBooking(id, serviceId, payload) {
         sid,
       ]
     );
+
+    await saveServiceDoors(client, id, service_doors);
 
     if (clientId && warranty_service_ids.length > 0) {
       const warrantyMasterId = booking.assigned_master_id || (booking.masters && booking.masters[0] && booking.masters[0].master_user_id) || null;
@@ -353,10 +386,13 @@ export async function updateCompletion(id, serviceId, payload) {
         const qty = Math.max(1, parseInt(s.quantity, 10) || 1);
         const warrantyMode = s.warranty_mode === true || s.warranty_mode === 'true';
         if (catalogId) {
-          await client.query(
-            'INSERT INTO booking_service (booking_id, service_catalog_id, quantity, warranty_mode) VALUES ($1, $2, $3, $4)',
+          const { rows: [inserted] } = await client.query(
+            'INSERT INTO booking_service (booking_id, service_catalog_id, quantity, warranty_mode) VALUES ($1, $2, $3, $4) RETURNING id',
             [id, catalogId, qty, warrantyMode]
           );
+          if (normalizeDoorSide(s.door_side)) {
+            await saveServiceDoors(client, id, [{ booking_service_id: inserted.id, door_side: s.door_side }]);
+          }
           if (warrantyMode) warrantyServiceIds.push(catalogId);
         }
       }

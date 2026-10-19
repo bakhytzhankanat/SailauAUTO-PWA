@@ -18,9 +18,16 @@ const PERIODS = [
   { value: 'day', label: 'Күн' },
   { value: 'week', label: 'Апта' },
   { value: 'month', label: 'Ай' },
+  { value: 'range', label: 'Аралық' },
 ];
 
-const PERIOD_LABELS = { day: 'Күн', week: 'Апта', month: 'Ай' };
+const PERIOD_LABELS = { day: 'Күн', week: 'Апта', month: 'Ай', range: 'Аралық' };
+
+function daysAgoIso(days) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
+}
 
 function getPrintReportHtml(payload) {
   const {
@@ -109,6 +116,8 @@ export default function Analytics() {
   const [tab, setTab] = useState('analytics');
   const [period, setPeriod] = useState('day');
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [rangeStart, setRangeStart] = useState(() => daysAgoIso(6));
+  const [rangeEnd, setRangeEnd] = useState(() => new Date().toISOString().slice(0, 10));
   const [drillMasterId, setDrillMasterId] = useState(null);
   const [data, setData] = useState(null);
   const [workers, setWorkers] = useState([]);
@@ -126,13 +135,23 @@ export default function Analytics() {
     }
   }, [canAccessAccounting, navigate]);
 
+  const isRange = period === 'range';
+  const rangeInvalid = isRange && (!rangeStart || !rangeEnd || rangeStart > rangeEnd);
+
   const load = useCallback(async () => {
     if (!canAccessAccounting) return;
+    if (rangeInvalid) {
+      setData(null);
+      setError('Басталу күні аяқталу күнінен кейін болмауы керек');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
       const [res, workersRes] = await Promise.all([
-        getAnalyticsSummary(period, date, drillMasterId),
+        isRange
+          ? getAnalyticsSummary('range', rangeStart, drillMasterId, rangeEnd)
+          : getAnalyticsSummary(period, date, drillMasterId),
         getDayCloseWorkers().catch(() => []),
       ]);
       setData(res);
@@ -143,7 +162,7 @@ export default function Analytics() {
     } finally {
       setLoading(false);
     }
-  }, [canAccessAccounting, period, date, drillMasterId]);
+  }, [canAccessAccounting, period, date, drillMasterId, isRange, rangeInvalid, rangeStart, rangeEnd]);
 
   useEffect(() => {
     load();
@@ -228,13 +247,44 @@ export default function Analytics() {
             <option key={p.value} value={p.value}>{p.label}</option>
           ))}
         </select>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="bg-card-bg border border-border-color rounded-lg px-3 py-1.5 text-white text-xs flex-1 min-w-[120px]"
-        />
+        {isRange ? (
+          <div className="flex items-center gap-1.5 flex-1 min-w-[240px]">
+            <label className="flex-1 min-w-0">
+              <span className="block text-[10px] text-text-muted mb-0.5 ml-1">Бастап</span>
+              <input
+                type="date"
+                value={rangeStart}
+                max={rangeEnd || undefined}
+                onChange={(e) => setRangeStart(e.target.value)}
+                className="w-full bg-card-bg border border-border-color rounded-lg px-2 py-1.5 text-white text-xs"
+              />
+            </label>
+            <span className="text-text-muted text-xs mt-4">—</span>
+            <label className="flex-1 min-w-0">
+              <span className="block text-[10px] text-text-muted mb-0.5 ml-1">Дейін</span>
+              <input
+                type="date"
+                value={rangeEnd}
+                min={rangeStart || undefined}
+                onChange={(e) => setRangeEnd(e.target.value)}
+                className="w-full bg-card-bg border border-border-color rounded-lg px-2 py-1.5 text-white text-xs"
+              />
+            </label>
+          </div>
+        ) : (
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="bg-card-bg border border-border-color rounded-lg px-3 py-1.5 text-white text-xs flex-1 min-w-[120px]"
+          />
+        )}
       </div>
+      {data && period !== 'day' && (
+        <p className="px-3 pt-1.5 text-[11px] text-text-muted shrink-0">
+          {data.start_date} — {data.end_date} · {data.days_count} күн
+        </p>
+      )}
 
       <div className="px-3 pt-2 shrink-0">
         <div className="flex p-1 bg-card-bg rounded-lg border border-border-color">

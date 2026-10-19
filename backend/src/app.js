@@ -17,6 +17,7 @@ import usersRoutes from './routes/users.js';
 import adminRoutes from './routes/admin.js';
 import analyticsRoutes from './routes/analytics.js';
 import pushRoutes from './routes/push.js';
+import { REFRESH_TOKEN_HEADER } from './middleware/auth.js';
 
 const app = express();
 
@@ -27,13 +28,14 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Expose-Headers', REFRESH_TOKEN_HEADER);
   res.setHeader('Access-Control-Max-Age', '86400');
   if ((req.method || '').toUpperCase() === 'OPTIONS') {
     return res.status(200).json({ ok: true });
   }
   next();
 });
-app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
+app.use(cors({ origin: CORS_ORIGIN, credentials: true, exposedHeaders: [REFRESH_TOKEN_HEADER] }));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);

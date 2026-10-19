@@ -79,6 +79,7 @@ export async function complete(req, res) {
       'part_sales',
       'warranty_service_ids',
       'master_user_ids',
+      'service_doors',
     ];
     const filtered = {};
     for (const key of allowed) {

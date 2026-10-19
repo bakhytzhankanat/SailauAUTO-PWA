@@ -10,8 +10,12 @@ import {
   createBooking,
   getClientWarranties,
 } from '../lib/api';
+import CarModelPicker from '../components/CarModelPicker';
+import VehiclePhoto from '../components/VehiclePhoto';
 
 const STEP_KEYS_BASE = ['client', 'vehicle', 'plate', 'services', 'note', 'summary'];
+/** Old drafts may still hold this placeholder id for "Другое". */
+const OTHER_VEHICLE_ID = '__other__';
 function getStepKeys(selectedVehicle) {
   const hasBodyStep = selectedVehicle?.body_options?.length > 0;
   if (!hasBodyStep) return STEP_KEYS_BASE;
@@ -80,6 +84,7 @@ export default function AddBooking() {
       phone: '',
       source: 'live',
       vehicle_catalog_id: null,
+      vehicle_custom_name: '',
       body_type: '',
       plate_number: '',
       box_id: 1,
@@ -186,6 +191,9 @@ export default function AddBooking() {
           next.vehicle_year = v.year;
           next.body_type = (v.body_options?.length > 0) ? '' : (v.body_type || v.name);
         }
+        if (!v?.is_other && patch.vehicle_catalog_id !== OTHER_VEHICLE_ID) {
+          next.vehicle_custom_name = '';
+        }
       }
       if (patch.start_time !== undefined || patch.duration !== undefined) {
         const start = patch.start_time ?? next.start_time;
@@ -245,6 +253,14 @@ export default function AddBooking() {
       setSubmitError('Қызметтер мен уақытты толтырыңыз');
       return;
     }
+    // "Другое" must be saved as the catalogue's own "Басқа көлік" row, never as another model.
+    const otherVehicle = vehicles.find((v) => v.is_other);
+    const isOtherVehicle = form.vehicle_catalog_id === OTHER_VEHICLE_ID || form.vehicle_catalog_id === otherVehicle?.id;
+    const vehicleCatalogId = form.vehicle_catalog_id === OTHER_VEHICLE_ID ? otherVehicle?.id : form.vehicle_catalog_id;
+    if (!vehicleCatalogId) {
+      setSubmitError('«Басқа көлік» каталогта жоқ. Серверде миграцияны іске қосыңыз (npm run migrate).');
+      return;
+    }
     setSubmitting(true);
     try {
       const existing = await getBookings(form.date, form.box_id);
@@ -265,7 +281,8 @@ export default function AddBooking() {
         client_name: form.client_name.trim(),
         phone: form.phone.trim(),
         source: form.source,
-        vehicle_catalog_id: form.vehicle_catalog_id === '__other__' ? (vehicles[0]?.id || form.vehicle_catalog_id) : form.vehicle_catalog_id,
+        vehicle_catalog_id: vehicleCatalogId,
+        vehicle_custom_name: isOtherVehicle ? (form.vehicle_custom_name?.trim() || null) : null,
         body_type: form.body_type,
         plate_number: form.plate_number?.trim() || undefined,
         box_id: form.box_id,
@@ -426,9 +443,15 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
     };
     if (c.last_vehicle_name && Array.isArray(vehicles) && vehicles.length > 0) {
       const v = vehicles.find((x) => x.name === c.last_vehicle_name);
+      const other = vehicles.find((x) => x.is_other);
       if (v) {
         patch.vehicle_catalog_id = v.id;
         patch.body_type = c.last_body_type || (v.body_options?.length > 0 ? '' : (v.body_type || v.name));
+      } else if (other) {
+        // A car typed under "Другое" (e.g. "Toyota Camry") is not a catalogue model.
+        patch.vehicle_catalog_id = other.id;
+        patch.body_type = other.body_type;
+        patch.vehicle_custom_name = c.last_vehicle_name;
       }
     }
     updateForm(patch);
@@ -521,7 +544,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
                   type="text"
                   value={clientSearch}
                   onChange={(e) => setClientSearch(e.target.value)}
-                  placeholder="Іздеу (аты немесе телефон)"
+                  placeholder="Іздеу (аты, телефон немесе нөмір)"
                   className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:ring-1 focus:ring-primary focus:border-primary outline-none text-sm"
                 />
               </div>
@@ -566,78 +589,87 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
 }
 
 function StepVehicle({ form, updateForm, vehicles }) {
-  const OTHER_ID = '__other__';
-  const isOther = form.vehicle_catalog_id === OTHER_ID;
+  const otherVehicle = vehicles.find((v) => v.is_other);
+  const otherId = otherVehicle?.id || OTHER_VEHICLE_ID;
+  const isOther = form.vehicle_catalog_id === OTHER_VEHICLE_ID || (otherVehicle && form.vehicle_catalog_id === otherVehicle.id);
+  const models = vehicles.filter((v) => !v.is_other);
+  const cardClass = (selected) =>
+    `relative flex flex-col rounded-2xl overflow-hidden border-2 transition-all text-left ${
+      selected ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20' : 'border-border-color bg-card-bg'
+    }`;
+  const check = (
+    <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md">
+      <span className="material-symbols-outlined text-white text-base">check</span>
+    </div>
+  );
   return (
     <div className="space-y-4 pb-24">
       <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2">Танымал модельдер</h2>
       <div className="grid grid-cols-2 gap-3">
-        {vehicles.map((v) => {
+        {models.map((v) => {
           const isSelected = form.vehicle_catalog_id === v.id;
+          const [brand, ...rest] = v.name.split(' ');
           return (
-            <button
-              key={v.id}
-              type="button"
-              onClick={() => updateForm({ vehicle_catalog_id: v.id })}
-              className={`relative rounded-2xl overflow-hidden border-2 transition-all text-left ${
-                isSelected ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20' : 'border-border-color bg-card-bg'
-              }`}
-            >
-              <div className="aspect-[4/3] bg-[#1a1a1a] flex items-center justify-center">
-                <span className="material-symbols-outlined text-4xl text-primary/80">directions_car</span>
-              </div>
-              <div className="p-3">
-                <div className="font-semibold text-white text-sm leading-tight">{v.name}</div>
+            <button key={v.id} type="button" onClick={() => updateForm({ vehicle_catalog_id: v.id })} className={cardClass(isSelected)}>
+              <VehiclePhoto name={v.name} className="w-full aspect-[3/2] shrink-0" />
+              <div className="p-3 pt-2">
+                <div className="text-[10px] uppercase tracking-[0.18em] text-text-muted font-semibold">{brand}</div>
+                <div className="font-semibold text-white text-sm leading-tight">{rest.join(' ') || v.name}</div>
                 <div className="text-xs text-text-muted mt-0.5">
                   {v.body_options?.length ? `Кузов: ${v.body_options.join(', ')}` : (v.body_type || 'Минивэн')}
                 </div>
               </div>
-              {isSelected && (
-                <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                  <span className="material-symbols-outlined text-white text-lg">check</span>
-                </div>
-              )}
+              {isSelected && check}
             </button>
           );
         })}
         <button
           type="button"
-          onClick={() => updateForm({ vehicle_catalog_id: OTHER_ID, body_type: 'Другое' })}
-          className={`relative rounded-2xl overflow-hidden border-2 transition-all text-left ${
-            isOther ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20' : 'border-border-color bg-card-bg'
-          }`}
+          onClick={() => updateForm({ vehicle_catalog_id: otherId, body_type: otherVehicle?.body_type || 'Другое' })}
+          className={cardClass(isOther)}
         >
-          <div className="aspect-[4/3] bg-[#1a1a1a] flex items-center justify-center">
-            <span className="material-symbols-outlined text-4xl text-text-muted">more_horiz</span>
+          <div className="w-full aspect-[3/2] shrink-0 bg-gradient-to-b from-[#2a2d31] to-[#151617] flex flex-col items-center justify-center gap-1">
+            <span className="material-symbols-outlined text-4xl text-primary/80">manage_search</span>
+            <span className="text-[11px] text-text-muted">Барлық маркалар</span>
           </div>
-          <div className="p-3">
-            <div className="font-semibold text-white text-sm leading-tight">Другое</div>
-            <div className="text-xs text-text-muted mt-0.5">Басқа көлік</div>
+          <div className="p-3 pt-2">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-muted font-semibold">Басқа</div>
+            <div className="font-semibold text-white text-sm leading-tight truncate">{isOther && form.vehicle_custom_name ? form.vehicle_custom_name : 'Другое'}</div>
+            <div className="text-xs text-text-muted mt-0.5">Марка мен модельді таңдау</div>
           </div>
-          {isOther && (
-            <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-lg">check</span>
-            </div>
-          )}
+          {isOther && check}
         </button>
       </div>
+      {isOther && (
+        <CarModelPicker
+          value={form.vehicle_custom_name || ''}
+          onChange={(name) => updateForm({ vehicle_custom_name: name })}
+        />
+      )}
     </div>
   );
 }
 
 function StepBody({ form, updateForm, selectedVehicle }) {
   const options = selectedVehicle?.body_options || [];
+  const preview = form.body_type || options[0];
   return (
     <div className="space-y-4">
       <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Кузов таңдау</h2>
-      <p className="text-white text-sm mb-2">{selectedVehicle?.name}</p>
-      <div className="grid gap-3">
+      <div className="rounded-2xl overflow-hidden border border-border-color">
+        <VehiclePhoto name={selectedVehicle?.name} bodyType={preview} className="w-full aspect-[3/2]" />
+        <div className="px-4 py-3 bg-card-bg flex items-baseline justify-between gap-2">
+          <span className="text-white font-semibold">{selectedVehicle?.name}</span>
+          {form.body_type && <span className="text-primary text-sm font-medium">Кузов {form.body_type}</span>}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         {options.map((opt) => (
           <button
             key={opt}
             type="button"
             onClick={() => updateForm({ body_type: opt })}
-            className={`w-full bg-card-bg border rounded-xl p-4 flex items-center justify-between text-left ${
+            className={`w-full bg-card-bg border rounded-xl px-4 py-3 flex items-center justify-between text-left ${
               form.body_type === opt ? 'border-primary bg-primary/10' : 'border-border-color'
             }`}
           >
@@ -876,7 +908,7 @@ function StepSummary({ form, selectedVehicle, categoriesWithServices }) {
         </div>
         <div className="p-4">
           <div className="text-text-muted text-xs uppercase font-semibold mb-1">Көлік</div>
-          <div className="text-white font-bold">{selectedVehicle?.name || form.vehicle_name}</div>
+          <div className="text-white font-bold">{form.vehicle_custom_name || selectedVehicle?.name || form.vehicle_name}</div>
           <div className="text-text-muted text-sm">{form.body_type}</div>
           {form.plate_number && <div className="font-mono text-sm mt-1">{form.plate_number}</div>}
         </div>

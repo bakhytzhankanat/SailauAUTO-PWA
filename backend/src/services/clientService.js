@@ -8,26 +8,68 @@ function toDateStr(d) {
   return m ? m[0] : s;
 }
 
+// Cyrillic letters that look like Latin ones on Kazakhstan plates (А→A, В→B, ...).
+const PLATE_CYRILLIC = 'АВЕКМНОРСТУХ';
+const PLATE_LATIN = 'ABEKMHOPCTYX';
+
 /**
- * Search clients by phone (LIKE) or name (ILIKE). Owner/Manager only.
+ * Normalize a plate number for matching: uppercase, only letters/digits, Cyrillic look-alikes → Latin.
+ * "123 abc 02", "123-АВС-02" and "123ABC02" all become "123ABC02".
+ */
+export function normalizePlate(value) {
+  if (!value) return '';
+  let out = '';
+  for (const ch of String(value).toUpperCase()) {
+    const i = PLATE_CYRILLIC.indexOf(ch);
+    out += i >= 0 ? PLATE_LATIN[i] : ch;
+  }
+  return out.replace(/[^0-9A-ZА-ЯӘҒҚҢӨҰҮҺІЁ]/g, '');
+}
+
+/** SQL counterpart of normalizePlate for column `expr`. */
+function plateSql(expr) {
+  return `translate(regexp_replace(upper(COALESCE(${expr}, '')), '[^0-9A-ZА-ЯӘҒҚҢӨҰҮҺІЁ]', '', 'g'), '${PLATE_CYRILLIC}', '${PLATE_LATIN}')`;
+}
+
+/**
+ * Search clients by phone (LIKE), name (ILIKE) or plate number (partial, e.g. first digits).
+ * Plate matches the client's last plate or any plate from their bookings. Owner/Manager only.
  */
 export async function search(serviceId, opts = {}) {
   if (!serviceId) throw new Error('service_id қажет');
   const q = (opts.q || '').trim();
+  const plateQ = normalizePlate(q);
 
   const buildSql = (includeBody) => {
-    let sql = `
-      SELECT c.id, c.name, c.phone, c.source, c.created_at, c.last_vehicle_name, c.last_plate_number${includeBody ? ', c.last_body_type' : ''},
-             (SELECT MAX(b.date) FROM booking b WHERE b.client_id = c.id AND b.status = 'completed') AS last_visit_date
-      FROM client c
-      WHERE c.service_id = $1
-    `;
     const params = [serviceId];
+    let matchedPlateSelect = '';
+    let where = '';
+    let order = 'c.name';
     if (q) {
       params.push(`%${q}%`);
-      sql += ` AND (c.phone LIKE $2 OR c.name ILIKE $2)`;
+      const conditions = ['c.phone LIKE $2', 'c.name ILIKE $2'];
+      if (plateQ) {
+        params.push(`%${plateQ}%`, `${plateQ}%`);
+        conditions.push(
+          `${plateSql('c.last_plate_number')} LIKE $3`,
+          `EXISTS (SELECT 1 FROM booking pb WHERE pb.client_id = c.id AND ${plateSql('pb.plate_number')} LIKE $3)`
+        );
+        matchedPlateSelect = `,
+             (SELECT pb.plate_number FROM booking pb
+              WHERE pb.client_id = c.id AND ${plateSql('pb.plate_number')} LIKE $3
+              ORDER BY pb.date DESC LIMIT 1) AS matched_plate`;
+        // Plates that start with the typed characters come first.
+        order = `(${plateSql('c.last_plate_number')} LIKE $4) DESC, c.name`;
+      }
+      where = ` AND (${conditions.join(' OR ')})`;
     }
-    sql += ' ORDER BY c.name';
+    const sql = `
+      SELECT c.id, c.name, c.phone, c.source, c.created_at, c.last_vehicle_name, c.last_plate_number${includeBody ? ', c.last_body_type' : ''},
+             (SELECT MAX(b.date) FROM booking b WHERE b.client_id = c.id AND b.status = 'completed') AS last_visit_date${matchedPlateSelect}
+      FROM client c
+      WHERE c.service_id = $1${where}
+      ORDER BY ${order}
+    `;
     return { sql, params };
   };
 
@@ -52,6 +94,7 @@ export async function search(serviceId, opts = {}) {
     last_plate_number: r.last_plate_number ?? null,
     last_body_type: r.last_body_type ?? null,
     last_visit_date: toDateStr(r.last_visit_date),
+    matched_plate: r.matched_plate ?? null,
   }));
 }
 
@@ -86,12 +129,12 @@ export async function getById(id, serviceId) {
   const last_visit_date = toDateStr(statsRows[0]?.last_visit_date);
 
   const { rows: vehicles } = await pool.query(
-    `SELECT DISTINCT ON (b.vehicle_catalog_id, COALESCE(b.plate_number, ''))
-      v.name AS vehicle_name, v.body_type, v.year, b.plate_number
+    `SELECT DISTINCT ON (b.vehicle_catalog_id, COALESCE(b.plate_number, ''), COALESCE(to_jsonb(b)->>'vehicle_custom_name', ''))
+      COALESCE(NULLIF(to_jsonb(b)->>'vehicle_custom_name', ''), v.name) AS vehicle_name, v.body_type, v.year, b.plate_number
      FROM booking b
      JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
      WHERE b.client_id = $1
-     ORDER BY b.vehicle_catalog_id, COALESCE(b.plate_number, ''), b.date DESC`,
+     ORDER BY b.vehicle_catalog_id, COALESCE(b.plate_number, ''), COALESCE(to_jsonb(b)->>'vehicle_custom_name', ''), b.date DESC`,
     [id]
   );
 
@@ -123,7 +166,7 @@ export async function listVisits(clientId, serviceId) {
   if (!serviceId) throw new Error('service_id қажет');
   const { rows: bookings } = await pool.query(
     `SELECT b.id, b.date, b.start_time, b.end_time, b.service_payment_amount, b.payment_type, b.material_expense,
-            v.name AS vehicle_name, v.body_type, v.year, b.plate_number
+            COALESCE(NULLIF(to_jsonb(b)->>'vehicle_custom_name', ''), v.name) AS vehicle_name, v.body_type, v.year, b.plate_number
      FROM booking b
      JOIN vehicle_catalog v ON v.id = b.vehicle_catalog_id
      WHERE b.client_id = $1 AND b.service_id = $2 AND b.status = 'completed'
@@ -133,13 +176,24 @@ export async function listVisits(clientId, serviceId) {
 
   const result = [];
   for (const b of bookings) {
-    const { rows: services } = await pool.query(
-      `SELECT bs.quantity, s.name AS service_name
-       FROM booking_service bs
-       JOIN service_catalog s ON s.id = bs.service_catalog_id
-       WHERE bs.booking_id = $1`,
-      [b.id]
-    );
+    let services;
+    try {
+      ({ rows: services } = await pool.query(
+        `SELECT bs.quantity, bs.door_side, s.name AS service_name
+         FROM booking_service bs
+         JOIN service_catalog s ON s.id = bs.service_catalog_id
+         WHERE bs.booking_id = $1`,
+        [b.id]
+      ));
+    } catch (_) {
+      ({ rows: services } = await pool.query(
+        `SELECT bs.quantity, s.name AS service_name
+         FROM booking_service bs
+         JOIN service_catalog s ON s.id = bs.service_catalog_id
+         WHERE bs.booking_id = $1`,
+        [b.id]
+      ));
+    }
     const { rows: partRows } = await pool.query(
       'SELECT COALESCE(SUM(quantity * unit_price), 0) AS total FROM part_sale WHERE booking_id = $1',
       [b.id]
@@ -154,7 +208,7 @@ export async function listVisits(clientId, serviceId) {
       body_type: b.body_type,
       vehicle_year: b.year,
       plate_number: b.plate_number,
-      services: services.map((s) => ({ service_name: s.service_name, quantity: s.quantity })),
+      services: services.map((s) => ({ service_name: s.service_name, quantity: s.quantity, door_side: s.door_side ?? null })),
       service_payment_amount: b.service_payment_amount != null ? Number(b.service_payment_amount) : null,
       payment_type: b.payment_type,
       material_expense: b.material_expense != null ? Number(b.material_expense) : null,

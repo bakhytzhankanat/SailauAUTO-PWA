@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getBooking, startBooking } from '../lib/api';
+import { DOOR_SIDE_LABELS } from '../lib/doorSide';
 
 function formatTime(t) {
   if (!t) return '';
@@ -160,6 +161,12 @@ export default function BookingDetail() {
                     </div>
                     <div>
                       <div className="text-white text-sm font-medium leading-tight">{formatServiceName(s.service_name)}</div>
+                      {s.door_side && (
+                        <div className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-primary/10 border border-primary/30 text-primary text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-sm">sensor_door</span>
+                          {DOOR_SIDE_LABELS[s.door_side]}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="text-text-muted text-sm font-mono">x{s.quantity}</div>
