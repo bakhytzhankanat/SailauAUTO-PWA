@@ -18,7 +18,7 @@ export default function DoorSidePicker({ value, onChange }) {
             aria-pressed={active}
             onClick={() => onChange(toggleDoorSide(value, side.value))}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-xs font-semibold transition-colors ${
-              active ? 'border-primary bg-primary/15 text-primary' : 'border-border-color bg-[#1a1a1a] text-text-muted'
+              active ? 'border-primary bg-primary/15 text-primary' : 'border-border-color bg-bg-main text-text-muted'
             }`}
           >
             <span className="material-symbols-outlined text-base">

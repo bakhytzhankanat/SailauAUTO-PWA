@@ -6,7 +6,7 @@ export default function VehiclePhoto({ name, bodyType = null, className = '' }) 
   const [failed, setFailed] = useState(false);
   const src = vehiclePhotoUrl(name, bodyType);
   return (
-    <div className={`relative overflow-hidden bg-[radial-gradient(ellipse_at_50%_35%,#34373c_0%,#1b1c1e_70%)] ${className}`}>
+    <div className={`relative overflow-hidden photo-stage ${className}`}>
       {src && !failed ? (
         <>
           <div className="absolute left-[12%] right-[12%] bottom-[9%] h-[10%] rounded-[50%] bg-black/60 blur-md" />

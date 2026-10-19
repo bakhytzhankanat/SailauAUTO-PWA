@@ -90,33 +90,33 @@ export default function ServicesManage() {
         <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-card-bg">
           <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>
-        <h1 className="text-lg font-bold text-white">Қызметтер басқару</h1>
+        <h1 className="text-lg font-bold text-ink">Қызметтер басқару</h1>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 py-4 pb-32 space-y-4">
         {error && (
-          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>
+          <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>
         )}
 
         {categories.map((cat) => (
-          <section key={cat.id} className="bg-card-bg rounded-xl border border-border-color overflow-hidden">
+          <section key={cat.id} className="card overflow-hidden">
             <div className="px-4 py-3 border-b border-border-color">
-              <h2 className="text-white font-semibold text-sm">{cat.name}</h2>
+              <h2 className="text-ink font-semibold text-sm">{cat.name}</h2>
               <span className="text-text-muted text-xs">{cat.services?.length || 0} қызмет</span>
             </div>
             <div className="divide-y divide-border-color">
               {(cat.services || []).map((s) => (
                 <div key={s.id} className="px-4 py-3 flex items-center justify-between">
                   <div>
-                    <div className="text-white text-sm">{s.name}</div>
+                    <div className="text-ink text-sm">{s.name}</div>
                     {s.subgroup && <div className="text-text-muted text-xs">{s.subgroup}</div>}
-                    {s.warranty_mode && <span className="text-xs text-yellow-400">Гарантия</span>}
+                    {s.warranty_mode && <span className="text-xs text-warn">Гарантия</span>}
                   </div>
                   <button
                     type="button"
                     onClick={() => handleDelete(s.id)}
                     disabled={deleting === s.id}
-                    className="text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
+                    className="text-danger hover:text-danger transition-colors disabled:opacity-50"
                   >
                     <span className="material-symbols-outlined text-lg">delete</span>
                   </button>
@@ -131,14 +131,14 @@ export default function ServicesManage() {
 
         {showAdd && (
           <section className="bg-card-bg rounded-xl border border-primary/30 p-4 space-y-4">
-            <h2 className="text-white font-semibold text-sm">Жаңа қызмет қосу</h2>
+            <h2 className="text-ink font-semibold text-sm">Жаңа қызмет қосу</h2>
 
             <div>
               <label className="text-xs text-text-muted block mb-1">Категория *</label>
               <select
                 value={form.category_id}
                 onChange={(e) => setForm((p) => ({ ...p, category_id: e.target.value }))}
-                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2.5 text-white text-sm"
+                className="field !py-2.5 text-sm"
               >
                 <option value="">Таңдаңыз</option>
                 {categories.map((c) => (
@@ -153,7 +153,7 @@ export default function ServicesManage() {
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2.5 text-white text-sm"
+                className="field !py-2.5 text-sm"
                 placeholder="Мысалы: Полировка"
               />
             </div>
@@ -164,7 +164,7 @@ export default function ServicesManage() {
                 type="text"
                 value={form.subgroup}
                 onChange={(e) => setForm((p) => ({ ...p, subgroup: e.target.value }))}
-                className="w-full bg-bg-main border border-border-color rounded-lg px-3 py-2.5 text-white text-sm"
+                className="field !py-2.5 text-sm"
                 placeholder="Мысалы: Дири"
               />
             </div>
@@ -175,9 +175,9 @@ export default function ServicesManage() {
                   type="checkbox"
                   checked={form.allVehicles}
                   onChange={(e) => setForm((p) => ({ ...p, allVehicles: e.target.checked, vehicle_ids: [] }))}
-                  className="rounded border-border-color text-primary focus:ring-primary"
+                  className="w-5 h-5 rounded accent-[rgb(var(--primary))]"
                 />
-                <span className="text-white text-sm">Барлық көліктерге</span>
+                <span className="text-ink text-sm">Барлық көліктерге</span>
               </label>
             </div>
 
@@ -191,9 +191,9 @@ export default function ServicesManage() {
                         type="checkbox"
                         checked={form.vehicle_ids.includes(v.id)}
                         onChange={() => toggleVehicle(v.id)}
-                        className="rounded border-border-color text-primary focus:ring-primary"
+                        className="w-5 h-5 rounded accent-[rgb(var(--primary))]"
                       />
-                      <span className="text-white truncate">{v.name}</span>
+                      <span className="text-ink truncate">{v.name}</span>
                     </label>
                   ))}
                 </div>
@@ -205,7 +205,7 @@ export default function ServicesManage() {
                 type="button"
                 onClick={handleAdd}
                 disabled={submitting}
-                className="flex-1 bg-primary text-white font-semibold py-3 rounded-xl disabled:opacity-50"
+                className="flex-1 bg-primary text-on-primary font-semibold py-3 rounded-xl disabled:opacity-50"
               >
                 {submitting ? 'Сақталуда...' : 'Қосу'}
               </button>
@@ -222,11 +222,11 @@ export default function ServicesManage() {
       </main>
 
       {!showAdd && (
-        <div className="fixed bottom-20 right-4 z-40">
+        <div className="fixed bottom-[92px] right-4 z-40">
           <button
             type="button"
             onClick={() => setShowAdd(true)}
-            className="bg-primary text-white font-semibold px-6 py-4 rounded-full shadow-2xl shadow-primary/40 flex items-center gap-2"
+            className="bg-primary text-on-primary font-semibold px-6 py-4 rounded-full shadow-2xl shadow-primary/40 flex items-center gap-2"
           >
             <span className="material-symbols-outlined">add</span>
             Қызмет қосу

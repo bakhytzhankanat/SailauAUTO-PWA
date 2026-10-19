@@ -1,27 +1,39 @@
 /** @type {import('tailwindcss').Config} */
+// Colours are CSS variables (src/index.css) so the whole app can be re-themed from one place.
+const v = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        primary: '#30867b',
-        'bg-main': '#0F0F0F',
-        'card-bg': '#1C1C1C',
-        'border-color': '#2A2A2A',
-        'text-muted': '#9E9E9E',
-        'status-planned': '#3B82F6',
-        'status-reached': '#F97316',
-        'status-progress': '#EAB308',
-        'status-completed': '#22C55E',
-        'status-no-show': '#6B7280',
-        'status-danger': '#EF4444',
-        'status-warning': '#F97316',
+        primary: v('primary'),
+        'on-primary': v('on-primary'),
+        'bg-main': v('bg'),
+        'card-bg': v('surface'),
+        raised: v('raised'),
+        'border-color': v('line'),
+        ink: v('ink'),
+        'text-muted': v('muted'),
+        faint: v('faint'),
+        danger: v('danger'),
+        warn: v('warn'),
+        ok: v('ok'),
+        'status-planned': v('st-planned'),
+        'status-reached': v('st-arrived'),
+        'status-progress': v('st-progress'),
+        'status-completed': v('st-done'),
+        'status-no-show': v('st-noshow'),
+        'status-danger': v('danger'),
+        'status-warning': v('st-arrived'),
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['var(--font-ui)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-num)', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
-        xl: '16px',
+        xl: 'var(--r-md)',
+        '2xl': 'var(--r-lg)',
       },
     },
   },

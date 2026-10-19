@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { dayMonth } from '../lib/dates';
 import { getClients } from '../lib/api';
+import { Plate, Loading, EmptyState, ErrorNote } from '../components/ui';
 
 const SOURCE_LABEL = { whatsapp: 'WhatsApp', live: 'Жиі' };
 
@@ -45,64 +47,59 @@ export default function ClientsList() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <header className="px-4 py-4 border-b border-border-color bg-bg-main sticky top-0 z-10 flex items-center gap-2">
-        <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
-          <span className="material-symbols-outlined text-text-muted">arrow_back</span>
-        </button>
-        <h1 className="text-xl font-bold text-white">Клиенттер</h1>
-      </header>
-      <main className="flex-1 overflow-y-auto p-4 pb-24">
-        <div className="relative mb-4">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
-            <span className="material-symbols-outlined text-lg">search</span>
-          </span>
+      <header className="sticky top-0 z-10 bg-bg-main/95 backdrop-blur border-b border-border-color/70 px-4 pt-3 pb-3 space-y-3">
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => navigate(-1)} className="icon-btn -ml-1" aria-label="Артқа">
+            <span className="material-symbols-outlined text-[22px]">arrow_back</span>
+          </button>
+          <h1 className="text-xl font-bold text-ink flex-1">Клиенттер</h1>
+          {!loading && <span className="text-sm text-text-muted tabular-nums">{list.length}</span>}
+        </div>
+        <div className="relative">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-lg pointer-events-none">search</span>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Аты, телефон немесе мемлекеттік нөмір"
-            className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-white placeholder-text-muted focus:ring-1 focus:ring-primary"
+            className="field !py-2.5 pl-10"
           />
         </div>
-        {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+      </header>
+      <main className="flex-1 p-3 pb-24">
+        <ErrorNote>{error}</ErrorNote>
         {loading ? (
-          <p className="text-text-muted">Жүктелуде...</p>
+          <Loading />
         ) : list.length === 0 ? (
-          <p className="text-text-muted">{search.trim() ? 'Ештеңе табылмады' : 'Клиенттер тізімі бос'}</p>
+          <EmptyState icon="group" title={search.trim() ? 'Ештеңе табылмады' : 'Клиенттер тізімі бос'} />
         ) : (
-          <div className="space-y-3">
+          <ul className="card divide-y divide-border-color/60 overflow-hidden">
             {list.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => navigate(`/clients/${c.id}`)}
-                className="w-full bg-card-bg border border-border-color rounded-xl p-4 text-left hover:bg-[#252525] transition-colors"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="font-semibold text-white">{c.name}</div>
-                    <div className="text-primary text-sm mt-0.5">{c.phone}</div>
-                  </div>
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-border-color text-text-muted">
-                    {SOURCE_LABEL[c.source] || c.source}
+              <li key={c.id}>
+                <button type="button" onClick={() => navigate(`/clients/${c.id}`)} className="w-full flex items-center gap-3 px-3.5 py-3 text-left active:bg-raised">
+                  <span className="w-11 h-11 rounded-full bg-primary/15 text-primary flex items-center justify-center text-sm font-bold shrink-0">
+                    {(c.name || '?').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()}
                   </span>
-                </div>
-                {(c.matched_plate || c.last_plate_number || c.last_vehicle_name) && (
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <span className="flex-1 min-w-0">
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-ink truncate">{c.name}</span>
+                      {c.source === 'whatsapp' && <span className="material-symbols-outlined text-[15px] text-ok" title="WhatsApp">chat</span>}
+                    </span>
+                    <span className="block text-xs text-text-muted tabular-nums truncate">{c.phone}{c.last_vehicle_name ? ` · ${c.last_vehicle_name}` : ''}</span>
                     {(c.matched_plate || c.last_plate_number) && (
-                      <span className="font-mono text-xs font-semibold tracking-wider px-2 py-0.5 rounded border border-white/20 bg-white/5 text-white">
-                        {c.matched_plate || c.last_plate_number}
-                      </span>
+                      <span className="block mt-1.5"><Plate number={c.matched_plate || c.last_plate_number} size="sm" /></span>
                     )}
-                    {c.last_vehicle_name && <span className="text-text-muted text-xs">{c.last_vehicle_name}</span>}
-                  </div>
-                )}
-                {c.last_visit_date && (
-                  <div className="text-text-muted text-xs mt-2">Соңғы келу: {c.last_visit_date}</div>
-                )}
-              </button>
+                  </span>
+                  {c.last_visit_date && (
+                    <span className="text-right shrink-0">
+                      <span className="block text-[13px] text-ink tabular-nums">{dayMonth(c.last_visit_date)}</span>
+                      <span className="block text-[11px] text-faint">соңғы келу</span>
+                    </span>
+                  )}
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </main>
     </div>

@@ -2,24 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getClient, getClientVisits, getClientWarranties } from '../lib/api';
+import { longDate } from '../lib/dates';
 import { DOOR_SIDE_LABELS } from '../lib/doorSide';
 
 const SOURCE_LABEL = { whatsapp: 'WhatsApp', live: 'Жиі' };
 
 function formatDate(s) {
-  if (!s) return '';
-  const str = String(s).trim();
-  const iso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) {
-    const y = parseInt(iso[1], 10);
-    const m = parseInt(iso[2], 10) - 1;
-    const d = parseInt(iso[3], 10);
-    const date = new Date(y, m, d);
-    if (Number.isFinite(date.getTime())) {
-      return date.toLocaleDateString('kk-KZ', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
-  }
-  return new Date(str).toLocaleDateString('kk-KZ', { day: 'numeric', month: 'short', year: 'numeric' });
+  return longDate(s) || '—';
 }
 
 function formatTime(t) {
@@ -80,7 +69,7 @@ export default function ClientProfile() {
   if (error) {
     return (
       <div className="p-4">
-        <p className="text-red-400">{error}</p>
+        <p className="text-danger">{error}</p>
         <button type="button" onClick={() => navigate(-1)} className="mt-2 text-primary">Артқа</button>
       </div>
     );
@@ -91,14 +80,14 @@ export default function ClientProfile() {
   return (
     <div className="flex flex-col min-h-full">
       <header className="px-4 py-4 border-b border-border-color bg-bg-main sticky top-0 z-10 flex items-center gap-2">
-        <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card-bg border border-border-color flex items-center justify-center">
+        <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
           <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>
-        <h1 className="text-lg font-bold text-white">Клиент</h1>
+        <h1 className="text-lg font-bold text-ink">Клиент</h1>
       </header>
       <main className="flex-1 overflow-y-auto p-4 pb-24">
-        <div className="bg-card-bg rounded-xl border border-border-color p-4 mb-4">
-          <h2 className="text-xl font-bold text-white">{client.name}</h2>
+        <div className="card p-4 mb-4">
+          <h2 className="text-xl font-bold text-ink">{client.name}</h2>
           <a href={`tel:${client.phone}`} className="text-primary font-medium text-lg mt-1 flex items-center gap-2">
             <span className="material-symbols-outlined">call</span>
             {client.phone}
@@ -108,12 +97,12 @@ export default function ClientProfile() {
           </span>
         </div>
         <div className="flex gap-4 mb-6">
-          <div className="flex-1 bg-card-bg rounded-xl border border-border-color p-3 text-center">
+          <div className="flex-1 card p-3 text-center">
             <div className="text-2xl font-bold text-primary">{stats.total_visits}</div>
             <div className="text-xs text-text-muted">келу саны</div>
           </div>
-          <div className="flex-1 bg-card-bg rounded-xl border border-border-color p-3 text-center">
-            <div className="text-lg font-bold text-white">{stats.last_visit_date ? formatDate(stats.last_visit_date) : '—'}</div>
+          <div className="flex-1 card p-3 text-center">
+            <div className="text-lg font-bold text-ink">{stats.last_visit_date ? formatDate(stats.last_visit_date) : '—'}</div>
             <div className="text-xs text-text-muted">соңғы келу</div>
           </div>
         </div>
@@ -122,14 +111,14 @@ export default function ClientProfile() {
           <button
             type="button"
             onClick={() => setTab('visits')}
-            className={`flex-1 py-2 text-sm font-medium rounded-md ${tab === 'visits' ? 'bg-card-bg text-white' : 'text-text-muted'}`}
+            className={`flex-1 py-2 text-sm font-medium rounded-md ${tab === 'visits' ? 'bg-card-bg text-ink' : 'text-text-muted'}`}
           >
             Тарих
           </button>
           <button
             type="button"
             onClick={() => setTab('warranties')}
-            className={`flex-1 py-2 text-sm font-medium rounded-md ${tab === 'warranties' ? 'bg-card-bg text-white' : 'text-text-muted'}`}
+            className={`flex-1 py-2 text-sm font-medium rounded-md ${tab === 'warranties' ? 'bg-card-bg text-ink' : 'text-text-muted'}`}
           >
             Кепілдік
           </button>
@@ -145,10 +134,10 @@ export default function ClientProfile() {
                   key={v.id}
                   type="button"
                   onClick={() => navigate(`/booking/${v.id}`)}
-                  className="w-full bg-card-bg border border-border-color rounded-xl p-4 text-left hover:bg-[#252525] transition-colors"
+                  className="w-full card p-4 text-left hover:bg-raised transition-colors"
                 >
                   <div className="flex justify-between items-start">
-                    <span className="font-semibold text-white">{formatDate(v.date)}</span>
+                    <span className="font-semibold text-ink">{formatDate(v.date)}</span>
                     <span className="text-text-muted text-sm">{formatTime(v.start_time)}</span>
                   </div>
                   <div className="text-sm text-text-muted mt-1">{v.vehicle_name} {v.plate_number && `• ${v.plate_number}`}</div>
@@ -173,10 +162,10 @@ export default function ClientProfile() {
               warranties.map((w) => (
                 <div
                   key={w.id}
-                  className="bg-card-bg border border-border-color rounded-xl p-4"
+                  className="card p-4"
                 >
                   <div className="flex justify-between items-start">
-                    <span className="font-medium text-white">{w.service_name}</span>
+                    <span className="font-medium text-ink">{w.service_name}</span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded ${w.status === 'active' ? 'bg-status-completed/20 text-status-completed' : 'bg-status-no-show/20 text-status-no-show'}`}>
                       {w.status === 'active' ? 'Белсенді' : 'Бітті'}
                     </span>

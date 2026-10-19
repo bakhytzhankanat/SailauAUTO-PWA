@@ -14,7 +14,7 @@ export default function Placeholder() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold text-white tracking-tight">{label}</h1>
+      <h1 className="text-[22px] font-bold text-ink tracking-tight">{label}</h1>
       <p className="text-text-muted mt-2 text-sm">Бұл бет келесі фазада толықтырылады.</p>
     </div>
   );
