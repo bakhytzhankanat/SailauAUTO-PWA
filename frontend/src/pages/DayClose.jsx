@@ -374,21 +374,21 @@ export default function DayClose() {
             <div className="card p-4 space-y-4">
               <div>
                 <label className="text-xs text-text-muted block mb-1">Қызмет кірісі</label>
-                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                <div className="flex items-center bg-card-bg rounded-lg border border-border-color px-3 py-2.5">
                   <input type="number" min="0" value={manualServiceIncome} onChange={(e) => setManualServiceIncome(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
                   <span className="text-text-muted ml-2">₸</span>
                 </div>
               </div>
               <div>
                 <label className="text-xs text-text-muted block mb-1">Бөлшек сатылымы</label>
-                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                <div className="flex items-center bg-card-bg rounded-lg border border-border-color px-3 py-2.5">
                   <input type="number" min="0" value={manualPartSales} onChange={(e) => setManualPartSales(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
                   <span className="text-text-muted ml-2">₸</span>
                 </div>
               </div>
               <div>
                 <label className="text-xs text-text-muted block mb-1">Материал шығыны</label>
-                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                <div className="flex items-center bg-card-bg rounded-lg border border-border-color px-3 py-2.5">
                   <input type="number" min="0" value={manualMaterialExpense} onChange={(e) => setManualMaterialExpense(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
                   <span className="text-text-muted ml-2">₸</span>
                 </div>
@@ -426,7 +426,7 @@ export default function DayClose() {
               <div className="card p-4 space-y-4">
                 <div>
                   <label className="text-xs text-text-muted block mb-2">KaspiPay *</label>
-                  <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                  <div className="flex items-center bg-card-bg rounded-lg border border-border-color px-3 py-2.5">
                     <input
                       type="number"
                       min="0"
@@ -440,7 +440,7 @@ export default function DayClose() {
                 </div>
                 <div>
                   <label className="text-xs text-text-muted block mb-2">Қолма-қол (бос қалдырсаңыз — автоматты)</label>
-                  <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                  <div className="flex items-center bg-card-bg rounded-lg border border-border-color px-3 py-2.5">
                     <input
                       type="number"
                       min="0"
@@ -469,21 +469,21 @@ export default function DayClose() {
               <div className="card p-4 space-y-3">
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-sm text-ink w-1/3">Түскі ас</span>
-                  <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
+                  <div className="flex-1 flex items-center bg-card-bg rounded-lg border border-border-color px-3 py-2">
                     <input type="number" min="0" value={opexLunch} onChange={(e) => setOpexLunch(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
                     <span className="text-text-muted ml-2">₸</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-sm text-ink w-1/3">Транспорт</span>
-                  <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
+                  <div className="flex-1 flex items-center bg-card-bg rounded-lg border border-border-color px-3 py-2">
                     <input type="number" min="0" value={opexTransport} onChange={(e) => setOpexTransport(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
                     <span className="text-text-muted ml-2">₸</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-sm text-ink w-1/3">Аренда</span>
-                  <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
+                  <div className="flex-1 flex items-center bg-card-bg rounded-lg border border-border-color px-3 py-2">
                     <input type="number" min="0" value={opexRent} onChange={(e) => setOpexRent(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
                     <span className="text-text-muted ml-2">₸</span>
                   </div>
