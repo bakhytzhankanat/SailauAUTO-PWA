@@ -169,9 +169,9 @@ export default function Reminders() {
         type="button"
         aria-label="Ескертпе қосу"
         onClick={() => setModalOpen(true)}
-        className="fixed bottom-24 right-4 w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center z-20 hover:scale-105 active:scale-95 transition-transform"
+        className="fixed bottom-[92px] right-4 w-14 h-14 bg-primary text-on-primary rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center z-20 active:scale-95 transition-transform"
       >
-        <span className="material-symbols-outlined text-ink text-3xl">add</span>
+        <span className="material-symbols-outlined text-3xl">add</span>
       </button>
       {modalOpen && (
         <AddReminderModal

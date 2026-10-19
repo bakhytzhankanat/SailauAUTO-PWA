@@ -222,7 +222,7 @@ export default function ServicesManage() {
       </main>
 
       {!showAdd && (
-        <div className="fixed bottom-20 right-4 z-40">
+        <div className="fixed bottom-[92px] right-4 z-40">
           <button
             type="button"
             onClick={() => setShowAdd(true)}
