@@ -176,13 +176,24 @@ export async function listVisits(clientId, serviceId) {
 
   const result = [];
   for (const b of bookings) {
-    const { rows: services } = await pool.query(
-      `SELECT bs.quantity, s.name AS service_name
-       FROM booking_service bs
-       JOIN service_catalog s ON s.id = bs.service_catalog_id
-       WHERE bs.booking_id = $1`,
-      [b.id]
-    );
+    let services;
+    try {
+      ({ rows: services } = await pool.query(
+        `SELECT bs.quantity, bs.door_side, s.name AS service_name
+         FROM booking_service bs
+         JOIN service_catalog s ON s.id = bs.service_catalog_id
+         WHERE bs.booking_id = $1`,
+        [b.id]
+      ));
+    } catch (_) {
+      ({ rows: services } = await pool.query(
+        `SELECT bs.quantity, s.name AS service_name
+         FROM booking_service bs
+         JOIN service_catalog s ON s.id = bs.service_catalog_id
+         WHERE bs.booking_id = $1`,
+        [b.id]
+      ));
+    }
     const { rows: partRows } = await pool.query(
       'SELECT COALESCE(SUM(quantity * unit_price), 0) AS total FROM part_sale WHERE booking_id = $1',
       [b.id]
@@ -197,7 +208,7 @@ export async function listVisits(clientId, serviceId) {
       body_type: b.body_type,
       vehicle_year: b.year,
       plate_number: b.plate_number,
-      services: services.map((s) => ({ service_name: s.service_name, quantity: s.quantity })),
+      services: services.map((s) => ({ service_name: s.service_name, quantity: s.quantity, door_side: s.door_side ?? null })),
       service_payment_amount: b.service_payment_amount != null ? Number(b.service_payment_amount) : null,
       payment_type: b.payment_type,
       material_expense: b.material_expense != null ? Number(b.material_expense) : null,

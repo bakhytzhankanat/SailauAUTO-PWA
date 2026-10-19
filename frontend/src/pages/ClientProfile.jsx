@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getClient, getClientVisits, getClientWarranties } from '../lib/api';
+import { DOOR_SIDE_LABELS } from '../lib/doorSide';
 
 const SOURCE_LABEL = { whatsapp: 'WhatsApp', live: 'Жиі' };
 
@@ -152,7 +153,7 @@ export default function ClientProfile() {
                   </div>
                   <div className="text-sm text-text-muted mt-1">{v.vehicle_name} {v.plate_number && `• ${v.plate_number}`}</div>
                   <div className="text-xs text-text-muted mt-1">
-                    {v.services?.map((s) => s.service_name).join(', ')}
+                    {v.services?.map((s) => (s.door_side ? `${s.service_name} (${DOOR_SIDE_LABELS[s.door_side]})` : s.service_name)).join(', ')}
                   </div>
                   <div className="flex gap-4 mt-2 text-xs">
                     {v.service_payment_amount != null && <span>{Number(v.service_payment_amount).toLocaleString()} ₸</span>}

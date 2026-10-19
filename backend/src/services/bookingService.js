@@ -148,6 +148,13 @@ export async function getById(id, serviceId = null) {
     );
     serviceRows = (res.rows || []).map((s) => ({ ...s, warranty_mode: false }));
   }
+  try {
+    const res = await pool.query('SELECT id, door_side FROM booking_service WHERE booking_id = $1', [id]);
+    const doorById = new Map(res.rows.map((r) => [r.id, r.door_side]));
+    serviceRows = serviceRows.map((s) => ({ ...s, door_side: doorById.get(s.id) ?? null }));
+  } catch (_) {
+    serviceRows = serviceRows.map((s) => ({ ...s, door_side: null }));
+  }
   let masterRows = [];
   try {
     const res = await pool.query(

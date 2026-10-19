@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getBooking, getInventoryItems, getServiceCategoriesWithServices, updateBookingCompletion } from '../lib/api';
+import DoorSidePicker from '../components/DoorSidePicker';
 
 const PAYMENT_TYPES = [
   { value: 'cash', label: 'Қолма-қол', icon: 'payments' },
@@ -52,6 +53,7 @@ export default function EditCompletion() {
             quantity: s.quantity ?? 1,
             service_name: s.service_name,
             warranty_mode: !!s.warranty_mode,
+            door_side: s.door_side ?? null,
           })));
         }
       })
@@ -164,7 +166,7 @@ export default function EditCompletion() {
         payment_type: paymentType,
         material_expense: materialExpense === '' ? null : Number(materialExpense),
         part_sales: partSales.map((p) => ({ inventory_item_id: p.inventory_item_id, quantity: p.quantity, unit_price: p.unit_price })),
-        services: services.map((s) => ({ service_catalog_id: s.service_catalog_id, quantity: s.quantity ?? 1, warranty_mode: !!s.warranty_mode })),
+        services: services.map((s) => ({ service_catalog_id: s.service_catalog_id, quantity: s.quantity ?? 1, warranty_mode: !!s.warranty_mode, door_side: s.door_side ?? null })),
       });
       navigate(`/booking/${id}`, { replace: true });
     } catch (err) {
@@ -258,6 +260,13 @@ export default function EditCompletion() {
                   />
                   <span className="text-text-muted text-xs">Кепілдік берілді (осы қызметке)</span>
                 </label>
+                <div>
+                  <div className="text-text-muted text-xs mb-1">Есік (қажет болса)</div>
+                  <DoorSidePicker
+                    value={s.door_side ?? null}
+                    onChange={(side) => setServices((prev) => prev.map((x) => (x.service_catalog_id === s.service_catalog_id ? { ...x, door_side: side } : x)))}
+                  />
+                </div>
               </div>
             ))}
           </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getBooking, getInventoryItems, completeBooking, getWorkers } from '../lib/api';
+import DoorSidePicker from '../components/DoorSidePicker';
 
 const PAYMENT_TYPES = [
   { value: 'cash', label: 'Қолма-қол', icon: 'payments' },
@@ -27,6 +28,7 @@ export default function PaymentEntry() {
   const [addPartPriceError, setAddPartPriceError] = useState('');
   const [workers, setWorkers] = useState([]);
   const [selectedMasterIds, setSelectedMasterIds] = useState([]);
+  const [doorSides, setDoorSides] = useState({});
 
   useEffect(() => {
     getWorkers().then(setWorkers).catch(() => setWorkers([]));
@@ -117,6 +119,9 @@ export default function PaymentEntry() {
         part_sales: partSales.map((p) => ({ inventory_item_id: p.inventory_item_id, quantity: p.quantity, unit_price: p.unit_price })),
         warranty_service_ids: warrantyServiceIds,
         master_user_ids: selectedMasterIds.length > 0 ? selectedMasterIds : undefined,
+        service_doors: Object.entries(doorSides)
+          .filter(([, side]) => side)
+          .map(([bookingServiceId, side]) => ({ booking_service_id: bookingServiceId, door_side: side })),
       });
       navigate(`/booking/${id}/done`, { replace: true, state: { booking: updated } });
     } catch (err) {
@@ -328,6 +333,23 @@ export default function PaymentEntry() {
                   />
                   <span className="text-white text-sm">{s.service_name}</span>
                 </label>
+              ))}
+            </div>
+          </div>
+        )}
+        {booking.services?.some((s) => s.id) && (
+          <div className="space-y-3 pt-2">
+            <label className="text-text-muted text-xs uppercase font-semibold tracking-wider ml-1">Есік (қажет болса)</label>
+            <p className="text-[#555] text-xs ml-1">Бір жағын таңдасаңыз — 1 есік, екеуін де таңдасаңыз — екі есік.</p>
+            <div className="space-y-2">
+              {booking.services.filter((s) => s.id).map((s) => (
+                <div key={s.id} className="p-3 rounded-xl border border-border-color bg-card-bg space-y-2">
+                  <div className="text-white text-sm">{s.service_name}</div>
+                  <DoorSidePicker
+                    value={doorSides[s.id] ?? null}
+                    onChange={(side) => setDoorSides((prev) => ({ ...prev, [s.id]: side }))}
+                  />
+                </div>
               ))}
             </div>
           </div>
