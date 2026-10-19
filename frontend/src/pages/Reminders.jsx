@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { dateTime, clockTime } from '../lib/dates';
 import {
   getReminders,
   createReminder,
@@ -42,7 +43,7 @@ function formatReminderTime(createdAt) {
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
   const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const timeStr = d.toLocaleTimeString('kk-KZ', { hour: '2-digit', minute: '2-digit' });
+  const timeStr = clockTime(createdAt);
   if (day.getTime() === today.getTime()) {
     const diffMin = Math.floor((now - d) / 60000);
     if (diffMin < 1) return 'Жаңа';
@@ -50,7 +51,7 @@ function formatReminderTime(createdAt) {
     return `Бүгін ${timeStr}`;
   }
   if (day.getTime() === yesterday.getTime()) return `Кеше ${timeStr}`;
-  return d.toLocaleDateString('kk-KZ', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return dateTime(createdAt);
 }
 
 export default function Reminders() {

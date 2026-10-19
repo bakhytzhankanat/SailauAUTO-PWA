@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { getSettings, getDayClose, getDayCloseWorkers, createDayClose, updateDayClose, deleteDayClose } from '../lib/api';
 
 function fmt(n) {
-  return Number(n).toLocaleString('kk-KZ') + ' ₸';
+  return Number(n).toLocaleString('ru-RU') + ' ₸';
 }
 
 function formatDateForPrint(val) {

@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { dayMonth, longDate, weekday } from '../lib/dates';
 import { getAnalyticsSummary, getDayCloseWorkers } from '../lib/api';
 
 function fmt(n) {
-  return Number(n).toLocaleString('kk-KZ') + ' ₸';
+  return Number(n).toLocaleString('ru-RU') + ' ₸';
 }
 
 function formatDayCloseDate(val) {
@@ -65,44 +66,44 @@ function getPrintReportHtml(payload) {
     <section>
       <div class="section-title">1. Кірістер</div>
       <table>
-        <tr><td>Қызмет кассасы</td><td class="num">${Number(m.service_income_total || 0).toLocaleString('kk-KZ')} ₸</td></tr>
-        <tr><td>Бөлшек сатылымы (есепке кірмейді)</td><td class="num">${Number(m.part_sales_total || 0).toLocaleString('kk-KZ')} ₸</td></tr>
-        <tr class="total"><td>Негізгі есептелетін сома</td><td class="num">${Number(m.service_income_total || 0).toLocaleString('kk-KZ')} ₸</td></tr>
+        <tr><td>Қызмет кассасы</td><td class="num">${Number(m.service_income_total || 0).toLocaleString('ru-RU')} ₸</td></tr>
+        <tr><td>Бөлшек сатылымы (есепке кірмейді)</td><td class="num">${Number(m.part_sales_total || 0).toLocaleString('ru-RU')} ₸</td></tr>
+        <tr class="total"><td>Негізгі есептелетін сома</td><td class="num">${Number(m.service_income_total || 0).toLocaleString('ru-RU')} ₸</td></tr>
       </table>
     </section>
     <section>
       <div class="section-title">2. Шығындар</div>
       <table>
-        <tr><td>Материал</td><td class="num">− ${Number(m.material_expense_total || 0).toLocaleString('kk-KZ')} ₸</td></tr>
-        <tr><td>Түскі ас</td><td class="num">− ${Number(opex.lunch || 0).toLocaleString('kk-KZ')} ₸</td></tr>
-        <tr><td>Транспорт</td><td class="num">− ${Number(opex.transport || 0).toLocaleString('kk-KZ')} ₸</td></tr>
-        <tr><td>Аренда</td><td class="num">− ${Number(opex.rent || 0).toLocaleString('kk-KZ')} ₸</td></tr>
-        <tr><td>Салық (KaspiPay 4%)</td><td class="num">− ${Number(m.kaspi_tax_total || 0).toLocaleString('kk-KZ')} ₸</td></tr>
-        <tr class="total"><td>Жалпы шығыс</td><td class="num">− ${Number(totalExpenses || 0).toLocaleString('kk-KZ')} ₸</td></tr>
+        <tr><td>Материал</td><td class="num">− ${Number(m.material_expense_total || 0).toLocaleString('ru-RU')} ₸</td></tr>
+        <tr><td>Түскі ас</td><td class="num">− ${Number(opex.lunch || 0).toLocaleString('ru-RU')} ₸</td></tr>
+        <tr><td>Транспорт</td><td class="num">− ${Number(opex.transport || 0).toLocaleString('ru-RU')} ₸</td></tr>
+        <tr><td>Аренда</td><td class="num">− ${Number(opex.rent || 0).toLocaleString('ru-RU')} ₸</td></tr>
+        <tr><td>Салық (KaspiPay 4%)</td><td class="num">− ${Number(m.kaspi_tax_total || 0).toLocaleString('ru-RU')} ₸</td></tr>
+        <tr class="total"><td>Жалпы шығыс</td><td class="num">− ${Number(totalExpenses || 0).toLocaleString('ru-RU')} ₸</td></tr>
       </table>
     </section>
     <section>
       <div class="section-title">3. Таза есеп · 4. Қайырымдылық</div>
       <table>
-        <tr><td>Кіріс − Шығыс (таза есеп)</td><td class="num">${Number(netBeforeCharity || 0).toLocaleString('kk-KZ')} ₸</td></tr>
-        <tr><td>Қайырымдылық (10%)</td><td class="num">${Number(m.charity_total_rounded || 0).toLocaleString('kk-KZ')} ₸</td></tr>
+        <tr><td>Кіріс − Шығыс (таза есеп)</td><td class="num">${Number(netBeforeCharity || 0).toLocaleString('ru-RU')} ₸</td></tr>
+        <tr><td>Қайырымдылық (10%)</td><td class="num">${Number(m.charity_total_rounded || 0).toLocaleString('ru-RU')} ₸</td></tr>
       </table>
     </section>
     <section>
       <div class="section-title">5. Жалақы бөлу логикасы</div>
       <table>
-        <tr><td>Бөлінетін табыс</td><td class="num">${Number(distributable || 0).toLocaleString('kk-KZ')} ₸</td></tr>
+        <tr><td>Бөлінетін табыс</td><td class="num">${Number(distributable || 0).toLocaleString('ru-RU')} ₸</td></tr>
       </table>
     </section>
     <section>
       <div class="section-title">6–7. Төлем кестесі</div>
       <table>
-        <tr><td>Менеджер (8%)</td><td class="num">${Number(managerAmount || 0).toLocaleString('kk-KZ')} ₸</td></tr>
-        <tr><td>Шеберлер қоры (60%)</td><td class="num">${Number(mastersTotal || 0).toLocaleString('kk-KZ')} ₸</td></tr>
+        <tr><td>Менеджер (8%)</td><td class="num">${Number(managerAmount || 0).toLocaleString('ru-RU')} ₸</td></tr>
+        <tr><td>Шеберлер қоры (60%)</td><td class="num">${Number(mastersTotal || 0).toLocaleString('ru-RU')} ₸</td></tr>
         ${(mastersList || []).map((master) => `
-        <tr class="row-sub"><td>${String(master.master_name || '').replace(/</g, '&lt;')}</td><td class="num">${Number(master.amount || 0).toLocaleString('kk-KZ')} ₸</td></tr>
+        <tr class="row-sub"><td>${String(master.master_name || '').replace(/</g, '&lt;')}</td><td class="num">${Number(master.amount || 0).toLocaleString('ru-RU')} ₸</td></tr>
         `).join('')}
-        <tr class="total"><td>Иегер (40%)</td><td class="num">${Number(ownerAmount || 0).toLocaleString('kk-KZ')} ₸</td></tr>
+        <tr class="total"><td>Иегер (40%)</td><td class="num">${Number(ownerAmount || 0).toLocaleString('ru-RU')} ₸</td></tr>
       </table>
     </section>
     <p class="meta" style="margin-top: 24px;">SailauAUTO · ${new Date().toLocaleDateString('kk-KZ')}</p>
@@ -282,7 +283,7 @@ export default function Analytics() {
       </div>
       {data && period !== 'day' && (
         <p className="px-3 pt-1.5 text-[11px] text-text-muted shrink-0">
-          {data.start_date} — {data.end_date} · {data.days_count} күн
+          {dayMonth(data.start_date)} — {longDate(data.end_date)} · {data.days_count} күн
         </p>
       )}
 
@@ -383,7 +384,7 @@ export default function Analytics() {
                   <tbody>
                     {productivityDrill.map((row) => (
                       <tr key={row.id} className="border-b border-border-color last:border-0 hover:bg-raised/50">
-                        <td className="px-3 py-2.5 text-ink">{row.date}</td>
+                        <td className="px-3 py-2.5 text-ink whitespace-nowrap">{dayMonth(row.date)}</td>
                         <td className="px-3 py-2.5 text-text-muted">{row.start_time} – {row.end_time}</td>
                         <td className="px-3 py-2.5 text-right text-ink">{row.duration_minutes ?? '—'}</td>
                         <td className="px-3 py-2.5 text-right text-ink">{row.service_payment_amount != null ? fmt(row.service_payment_amount) : '—'}</td>
@@ -442,7 +443,7 @@ export default function Analytics() {
               <tbody>
                 {dailyRows.map((row) => (
                   <tr key={row.date} className="border-b border-border-color last:border-0 hover:bg-raised/50">
-                    <td className="px-3 py-2.5 text-ink">{row.date}</td>
+                    <td className="px-3 py-2.5 text-ink whitespace-nowrap">{dayMonth(row.date)}</td>
                     <td className="px-3 py-2.5 text-right text-ink">{fmt(row.service_income)}</td>
                     <td className="px-3 py-2.5 text-right text-ink">{fmt(row.part_sales)}</td>
                     <td className="px-3 py-2.5 text-right text-ink">{fmt(row.net)}</td>
@@ -460,7 +461,7 @@ export default function Analytics() {
               if (records.length === 0) return null;
               return (
                 <div key={row.date}>
-                  <p className="px-3 py-2 text-text-muted text-xs font-medium border-b border-border-color">{row.date}</p>
+                  <p className="px-3 py-2 text-text-muted text-xs font-medium border-b border-border-color">{longDate(row.date)}, {weekday(row.date)}</p>
                   <div className="w-full overflow-x-auto">
                     <table className="w-full min-w-[640px] text-xs text-left">
                       <thead>

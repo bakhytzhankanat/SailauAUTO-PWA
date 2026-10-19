@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { longDate } from '../lib/dates';
 import { getClients } from '../lib/api';
 
 const SOURCE_LABEL = { whatsapp: 'WhatsApp', live: 'Жиі' };
@@ -98,7 +99,7 @@ export default function ClientsList() {
                   </div>
                 )}
                 {c.last_visit_date && (
-                  <div className="text-text-muted text-xs mt-2">Соңғы келу: {c.last_visit_date}</div>
+                  <div className="text-text-muted text-xs mt-2">Соңғы келу: {longDate(c.last_visit_date)}</div>
                 )}
               </button>
             ))}

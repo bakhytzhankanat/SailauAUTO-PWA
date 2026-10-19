@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { dateTime } from '../lib/dates';
 import { getAdminOwners, createOwner } from '../lib/api';
 
 export default function Admin() {
@@ -101,7 +102,7 @@ export default function Admin() {
                     <div className="font-medium text-ink">{o.display_name}</div>
                     <div className="text-xs text-text-muted font-mono">{o.phone}</div>
                     {o.service_name && <div className="text-xs text-text-muted">Сервис: {o.service_name}</div>}
-                    {o.created_at && <div className="text-xs text-text-muted">Тіркелген: {new Date(o.created_at).toLocaleString('kk-KZ')}</div>}
+                    {o.created_at && <div className="text-xs text-text-muted">Тіркелген: {dateTime(o.created_at)}</div>}
                   </div>
                 </div>
               ))}

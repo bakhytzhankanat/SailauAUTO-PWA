@@ -219,14 +219,14 @@ export default function EditCompletion() {
         </div>
         <div className="space-y-3">
           <label className="section-label">Төлем түрі</label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {PAYMENT_TYPES.map((pt) => (
               <label
                 key={pt.value}
-                className={`cursor-pointer rounded-xl p-4 flex flex-col items-center justify-center gap-2 border-2 transition-all ${
+                className={`cursor-pointer rounded-xl py-3 flex flex-col items-center justify-center gap-1.5 border transition-colors ${
                   paymentType === pt.value
                     ? pt.accent ? 'border-danger bg-danger/10' : 'border-primary bg-primary/10'
-                    : 'border-border-color bg-card-bg hover:border-border-color'
+                    : 'border-border-color bg-raised/40'
                 }`}
               >
                 <input type="radio" name="payment_type" value={pt.value} checked={paymentType === pt.value} onChange={() => setPaymentType(pt.value)} className="sr-only" />

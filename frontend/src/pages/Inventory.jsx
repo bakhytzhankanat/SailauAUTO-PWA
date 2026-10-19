@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getInventory, createInventoryItem, createInventoryMovement, deleteInventoryItem } from '../lib/api';
+import { Sheet, Loading, EmptyState, ErrorNote } from '../components/ui';
 
 const canEdit = (user) => user?.role === 'owner' || user?.role === 'manager' || user?.is_senior_worker === true;
 
@@ -16,6 +17,7 @@ export default function Inventory() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [movementModalOpen, setMovementModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [onlyLow, setOnlyLow] = useState(false);
 
   useEffect(() => {
     if (itemIdFromUrl && items.length > 0) {
@@ -64,35 +66,42 @@ export default function Inventory() {
     }
   };
 
+  const lowCount = items.filter((i) => i.low_stock === true).length;
+  const shown = onlyLow ? items.filter((i) => i.low_stock === true) : items;
+
   return (
     <div className="flex flex-col min-h-full">
-      <header className="px-4 pt-4 pb-4 flex flex-col gap-4 bg-bg-main border-b border-border-color sticky top-0 z-10">
-        <div className="flex justify-between items-center">
-          <h1 className="text-[22px] font-bold text-ink tracking-tight">Қойма</h1>
+      <header className="sticky top-0 z-20 bg-bg-main/95 backdrop-blur border-b border-border-color/70 px-4 pt-4 pb-3 space-y-3">
+        <div>
+          <h1 className="text-[26px] leading-tight font-bold text-ink tracking-tight">Қойма</h1>
+          {!loading && <p className="text-sm text-text-muted">{items.length} тауар{lowCount > 0 ? ` · ${lowCount} аз қалды` : ''}</p>}
         </div>
         <div className="relative w-full">
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
-            <span className="material-symbols-outlined text-lg">search</span>
-          </span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-lg pointer-events-none">search</span>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Іздеу (атауы бойынша)"
-            className="block w-full pl-10 pr-3 py-2.5 border border-border-color rounded-lg bg-card-bg text-ink placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+            className="field !py-2.5 pl-10"
           />
         </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setOnlyLow(false)} className={`chip !py-1.5 ${!onlyLow ? 'chip-on' : ''}`}>Барлығы</button>
+          <button type="button" onClick={() => setOnlyLow(true)} className={`chip !py-1.5 ${onlyLow ? 'chip-on !border-danger !bg-danger/10' : ''}`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-danger" />
+            Аз қалды {lowCount > 0 && <span className="tabular-nums">{lowCount}</span>}
+          </button>
+        </div>
       </header>
-      <main className="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
-        {error && (
-          <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>
-        )}
+      <main className="flex-1 p-4 pb-28 space-y-2.5">
+        <ErrorNote>{error}</ErrorNote>
         {loading ? (
-          <p className="text-text-muted">Жүктелуде...</p>
-        ) : items.length === 0 ? (
-          <p className="text-text-muted">Тауарлар тізімі бос</p>
+          <Loading />
+        ) : shown.length === 0 ? (
+          <EmptyState icon="inventory_2" title={onlyLow ? 'Аз қалған тауар жоқ' : 'Тауарлар тізімі бос'} hint={editable && !onlyLow ? 'Жаңа тауарды + батырмасымен қосыңыз.' : null} />
         ) : (
-          items.map((item) => (
+          shown.map((item) => (
             <ItemCard
               key={item.id}
               item={item}
@@ -109,9 +118,9 @@ export default function Inventory() {
           type="button"
           aria-label="Тауар қосу"
           onClick={() => setAddModalOpen(true)}
-          className="fixed bottom-24 right-4 w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center z-20 hover:scale-105 active:scale-95 transition-transform"
+          className="fixed bottom-[92px] right-4 w-14 h-14 bg-primary text-on-primary rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center z-20 active:scale-95 transition-transform"
         >
-          <span className="material-symbols-outlined text-ink text-3xl">add</span>
+          <span className="material-symbols-outlined text-3xl">add</span>
         </button>
       )}
       {addModalOpen && (
@@ -140,67 +149,43 @@ export default function Inventory() {
 
 function ItemCard({ item, canEdit, onAdd, onOut, onDelete }) {
   const lowStock = item.low_stock === true;
-  const borderClass = lowStock
-    ? 'border-status-danger/40'
-    : 'border-border-color';
-  const qtyColor = lowStock ? 'text-status-danger' : 'text-primary';
+  const qty = Number(item.quantity) || 0;
+  const min = item.min_quantity != null ? Number(item.min_quantity) : null;
+  const fill = min ? Math.min(100, (qty / (min * 3)) * 100) : 100;
+  const price = `${Number(item.sale_price_min).toLocaleString('ru-RU')}${item.sale_price_min !== item.sale_price_max ? `–${Number(item.sale_price_max).toLocaleString('ru-RU')}` : ''} ₸`;
 
   return (
-    <div className={`bg-card-bg border ${borderClass} rounded-xl p-4 shadow-sm relative overflow-hidden`}>
-      {lowStock && (
-        <div className="absolute top-0 right-0 bg-status-danger/10 text-status-danger text-[10px] font-bold px-2 py-1 rounded-bl-lg border-b border-l border-status-danger/20 flex items-center gap-1">
-          <span className="material-symbols-outlined text-[12px]">warning</span>
-          Аз қалды
+    <div className={`card p-4 ${lowStock ? '!border-danger/40' : ''}`}>
+      <div className="flex items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[15px] font-semibold text-ink leading-snug">{item.name}</h3>
+          {item.sku && <p className="text-[11px] text-text-muted">Артикул: {item.sku}</p>}
+          <p className="text-sm text-text-muted mt-0.5 tabular-nums">{price} <span className="text-faint">/ {item.unit || 'дана'}</span></p>
         </div>
-      )}
-      <div className="flex justify-between items-start mb-2 pr-20">
-        <div>
-          <h3 className="text-base font-semibold text-ink mb-0.5">{item.name}</h3>
-          {item.sku && <p className="text-[11px] text-text-muted font-mono">Артикул: {item.sku}</p>}
+        <div className="text-right shrink-0">
+          <div className={`text-2xl leading-none font-bold tabular-nums ${lowStock ? 'text-danger' : 'text-ink'}`}>{qty}</div>
+          <div className="text-[11px] text-text-muted mt-1">қалды</div>
         </div>
       </div>
-      <div className="flex items-end justify-between mb-4">
-        <div>
-          <span className="block text-lg font-bold text-ink">
-            {Number(item.sale_price_min).toLocaleString()}
-            {item.sale_price_min !== item.sale_price_max ? `–${Number(item.sale_price_max).toLocaleString()}` : ''} ₸
-          </span>
-          <span className="text-[10px] text-text-muted">дана бағасы</span>
+      <div className="mt-3 flex items-center gap-2">
+        <div className="h-1.5 flex-1 rounded-full bg-raised overflow-hidden">
+          <div className={`h-full rounded-full ${lowStock ? 'bg-danger' : 'bg-primary'}`} style={{ width: `${Math.max(4, fill)}%` }} />
         </div>
-        <div className="text-right">
-          <div className={`text-sm font-medium ${qtyColor}`}>Қалған саны: {item.quantity}</div>
-          {item.min_quantity != null && (
-            <div className="text-[10px] text-text-muted">Минималды қалдық: {item.min_quantity}</div>
-          )}
-        </div>
+        {min != null && <span className={`text-[11px] tabular-nums ${lowStock ? 'text-danger font-semibold' : 'text-faint'}`}>{lowStock ? 'Аз қалды · ' : ''}мин {min}</span>}
       </div>
       {canEdit && (
-        <div className="flex flex-wrap gap-2 pt-3 border-t border-border-color">
-          <button
-            type="button"
-            onClick={onOut}
-            className="flex-1 min-w-[80px] py-3 px-3 bg-status-danger hover:bg-danger rounded-lg text-xs font-bold text-on-primary flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined text-sm">remove</span>
+        <div className="flex gap-2 mt-3.5">
+          <button type="button" onClick={onOut} className="btn flex-1 py-2.5 text-sm bg-raised text-ink border border-border-color">
+            <span className="material-symbols-outlined text-[18px] text-danger">remove</span>
             Шығару
           </button>
-          <button
-            type="button"
-            onClick={onAdd}
-            className="flex-1 min-w-[80px] py-3 px-3 bg-primary hover:bg-primary/90 rounded-lg text-xs font-bold text-on-primary flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined text-sm">add</span>
+          <button type="button" onClick={onAdd} className="btn flex-1 py-2.5 text-sm bg-primary/15 text-primary border border-primary/30">
+            <span className="material-symbols-outlined text-[18px]">add</span>
             Қосу
           </button>
           {onDelete && (
-            <button
-              type="button"
-              onClick={onDelete}
-              className="py-3 px-3 rounded-lg text-xs font-bold text-text-muted border border-border-color hover:bg-danger/10 hover:text-danger hover:border-danger/30 flex items-center justify-center gap-1"
-              title="Тауарды жою"
-            >
-              <span className="material-symbols-outlined text-sm">delete</span>
-              Жою
+            <button type="button" onClick={onDelete} className="icon-btn w-11 h-auto rounded-xl border border-border-color hover:!text-danger" title="Тауарды жою" aria-label="Тауарды жою">
+              <span className="material-symbols-outlined text-[18px]">delete</span>
             </button>
           )}
         </div>
@@ -255,20 +240,11 @@ function AddItemModal({ onClose, onSaved }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden />
-      <div className="bg-card-bg w-full sm:w-[400px] rounded-t-2xl sm:rounded-2xl border-t sm:border border-border-color shadow-2xl relative z-10 p-6 pb-safe">
-        <div className="w-12 h-1 bg-border-color rounded-full mx-auto mb-6" />
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-ink">Тауар қосу</h2>
-          <button type="button" onClick={onClose} className="p-2 text-text-muted hover:text-ink bg-border-color rounded-full">
-            <span className="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        {err && <div className="mb-4 p-2 rounded-lg bg-danger/10 text-danger text-sm">{err}</div>}
+    <Sheet title="Тауар қосу" onClose={onClose} busy={submitting}>
+        {err && <div className="mb-4"><ErrorNote>{err}</ErrorNote></div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-text-muted mb-1">Атауы *</label>
+            <label className="block text-xs text-text-muted mb-1.5">Атауы *</label>
             <input
               type="text"
               value={name}
@@ -279,7 +255,7 @@ function AddItemModal({ onClose, onSaved }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-text-muted mb-1">Сату бағасы мин (₸)</label>
+              <label className="block text-xs text-text-muted mb-1.5">Сату бағасы мин (₸)</label>
               <input
                 type="number"
                 min="1"
@@ -291,7 +267,7 @@ function AddItemModal({ onClose, onSaved }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-muted mb-1">Сату бағасы макс (₸)</label>
+              <label className="block text-xs text-text-muted mb-1.5">Сату бағасы макс (₸)</label>
               <input
                 type="number"
                 min="1"
@@ -304,7 +280,7 @@ function AddItemModal({ onClose, onSaved }) {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-muted mb-1">Бастапқы саны</label>
+            <label className="block text-xs text-text-muted mb-1.5">Бастапқы саны</label>
             <input
               type="number"
               min="0"
@@ -314,7 +290,7 @@ function AddItemModal({ onClose, onSaved }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-muted mb-1">Минималды қалдық</label>
+            <label className="block text-xs text-text-muted mb-1.5">Минималды қалдық</label>
             <input
               type="number"
               min="0"
@@ -325,7 +301,7 @@ function AddItemModal({ onClose, onSaved }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-muted mb-1">Өлшем бірлігі</label>
+            <label className="block text-xs text-text-muted mb-1.5">Өлшем бірлігі</label>
             <input
               type="text"
               value={unit}
@@ -337,13 +313,12 @@ function AddItemModal({ onClose, onSaved }) {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 bg-primary hover:bg-primary/90 rounded-xl text-base font-bold text-on-primary disabled:opacity-50"
+            className="btn-primary w-full"
           >
             {submitting ? 'Сақталуда...' : 'Қосу'}
           </button>
         </form>
-      </div>
-    </div>
+    </Sheet>
   );
 }
 
@@ -383,20 +358,12 @@ function MovementModal({ item, type, onClose, onSaved }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden />
-      <div className={`bg-card-bg w-full sm:w-[400px] rounded-t-2xl sm:rounded-2xl border-t sm:border border-border-color shadow-2xl relative z-10 p-6 pb-safe ${isIn ? '' : 'border-status-danger/30'}`}>
-        <div className="w-12 h-1 bg-border-color rounded-full mx-auto mb-6" />
-        <div className="flex justify-between items-center mb-6">
-          <h2 className={`text-xl font-bold ${isIn ? 'text-ink' : 'text-status-danger'}`}>
-            {isIn ? 'Қоймаға қосу' : 'Шығару'}
-          </h2>
-          <button type="button" onClick={onClose} className="p-2 text-text-muted hover:text-ink bg-border-color rounded-full">
-            <span className="material-symbols-outlined">close</span>
-          </button>
+    <Sheet title={isIn ? 'Қоймаға қосу' : 'Шығару'} onClose={onClose} busy={submitting}>
+        <div className="flex items-center justify-between rounded-xl bg-raised/50 px-3.5 py-3 mb-4 -mt-1">
+          <span className="text-ink text-sm font-medium">{item.name}</span>
+          <span className="text-text-muted text-xs tabular-nums">Қалды: {item.quantity}</span>
         </div>
-        <p className="text-text-muted text-sm mb-4">{item.name}</p>
-        {err && <div className="mb-4 p-2 rounded-lg bg-danger/10 text-danger text-sm">{err}</div>}
+        {err && <div className="mb-4"><ErrorNote>{err}</ErrorNote></div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-text-muted mb-4 text-center">Саны</label>
@@ -404,7 +371,7 @@ function MovementModal({ item, type, onClose, onSaved }) {
               <button
                 type="button"
                 onClick={() => setQuantity((q) => Math.max(1, (q || 1) - 1))}
-                className="w-14 h-14 rounded-xl bg-border-color text-ink hover:bg-raised flex items-center justify-center border border-border-color"
+                className="w-14 h-14 rounded-2xl bg-raised text-ink flex items-center justify-center border border-border-color active:scale-95"
               >
                 <span className="material-symbols-outlined text-2xl">remove</span>
               </button>
@@ -419,14 +386,14 @@ function MovementModal({ item, type, onClose, onSaved }) {
               <button
                 type="button"
                 onClick={() => setQuantity((q) => (q || 0) + 1)}
-                className="w-14 h-14 rounded-xl bg-border-color text-ink hover:bg-raised flex items-center justify-center border border-border-color"
+                className="w-14 h-14 rounded-2xl bg-raised text-ink flex items-center justify-center border border-border-color active:scale-95"
               >
                 <span className="material-symbols-outlined text-2xl">add</span>
               </button>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-muted mb-1">Ескерту (міндетті емес)</label>
+            <label className="block text-xs text-text-muted mb-1.5">Ескерту (міндетті емес)</label>
             <input
               type="text"
               value={note}
@@ -438,12 +405,11 @@ function MovementModal({ item, type, onClose, onSaved }) {
           <button
             type="submit"
             disabled={submitting}
-            className={`w-full py-4 rounded-xl text-base font-bold text-ink disabled:opacity-50 ${isIn ? 'bg-primary hover:bg-primary/90' : 'bg-status-danger hover:bg-danger'}`}
+            className={`btn w-full py-4 text-base text-on-primary ${isIn ? 'bg-primary' : 'bg-danger'}`}
           >
             {submitting ? 'Жіберілуде...' : isIn ? 'Қосу' : 'Шығару'}
           </button>
         </form>
-      </div>
-    </div>
+    </Sheet>
   );
 }

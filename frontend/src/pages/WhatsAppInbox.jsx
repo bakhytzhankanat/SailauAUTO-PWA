@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { dayMonth, localIso } from '../lib/dates';
 import { getWhatsappInbound } from '../lib/api';
 
 function formatTime(val) {
@@ -12,7 +13,7 @@ function formatTime(val) {
   yesterday.setDate(yesterday.getDate() - 1);
   if (d.toDateString() === today) return d.toLocaleTimeString('kk-KZ', { hour: '2-digit', minute: '2-digit' });
   if (d.toDateString() === yesterday.toDateString()) return 'Кеше';
-  return d.toLocaleDateString('kk-KZ', { day: 'numeric', month: 'short' });
+  return dayMonth(localIso(d));
 }
 
 export default function WhatsAppInbox() {

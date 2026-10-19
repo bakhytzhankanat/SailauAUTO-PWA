@@ -2,24 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getClient, getClientVisits, getClientWarranties } from '../lib/api';
+import { longDate } from '../lib/dates';
 import { DOOR_SIDE_LABELS } from '../lib/doorSide';
 
 const SOURCE_LABEL = { whatsapp: 'WhatsApp', live: 'Жиі' };
 
 function formatDate(s) {
-  if (!s) return '';
-  const str = String(s).trim();
-  const iso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) {
-    const y = parseInt(iso[1], 10);
-    const m = parseInt(iso[2], 10) - 1;
-    const d = parseInt(iso[3], 10);
-    const date = new Date(y, m, d);
-    if (Number.isFinite(date.getTime())) {
-      return date.toLocaleDateString('kk-KZ', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
-  }
-  return new Date(str).toLocaleDateString('kk-KZ', { day: 'numeric', month: 'short', year: 'numeric' });
+  return longDate(s) || '—';
 }
 
 function formatTime(t) {
