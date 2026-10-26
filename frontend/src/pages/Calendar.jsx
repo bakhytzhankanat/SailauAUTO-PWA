@@ -167,7 +167,7 @@ export default function Calendar() {
           <div className="min-w-0">
             {viewMode !== 'week' ? (
               <>
-                <h1 className="text-[26px] leading-tight font-bold text-ink tracking-tight whitespace-nowrap">{dayMonth(date)}</h1>
+                <h1 className={`${dayMonth(date).length > 8 ? "text-[22px]" : "text-[26px]"} leading-tight font-bold text-ink tracking-tight whitespace-nowrap`}>{dayMonth(date)}</h1>
                 <p className="text-sm text-text-muted mt-0.5 flex items-center gap-2 whitespace-nowrap">
                   <span className="capitalize">{weekday(date)}</span>
                   {isToday ? (

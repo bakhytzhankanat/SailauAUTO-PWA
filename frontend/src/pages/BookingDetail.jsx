@@ -168,7 +168,7 @@ export default function BookingDetail() {
               <span className="text-ink tabular-nums">{dateTime(booking.started_at)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-text-muted">{tx("Аяқталды")}</span>
+              <span className="text-text-muted">{tx("Аяқталу")}</span>
               <span className="text-ink tabular-nums">{booking.completed_at ? dateTime(booking.completed_at) : '—'}</span>
             </div>
           </section>

@@ -10,7 +10,7 @@ import {
   clearDoneReminders,
   getInventory,
 } from '../lib/api';
-import { tx } from '../i18n/index.js';
+import { tx, txData } from '../i18n/index.js';
 
 const FILTERS = [
   { key: 'all', label: tx("Барлығы") },
@@ -235,7 +235,7 @@ function ReminderCard({ reminder, onToggle, onDelete, onGoInventory }) {
         )}
         <div className="flex justify-between items-center mt-3 pt-3 border-t border-border-color/50">
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${roleBadgeCls}`}>{role_label || '—'}</span>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${roleBadgeCls}`}>{txData(role_label) || '—'}</span>
             <span className={`text-[10px] font-medium ${priorityTextCls}`}>• {priorityLabel}</span>
           </div>
           <span className={`text-xs font-medium ${isDone ? 'text-faint' : 'text-text-muted'}`}>{formatReminderTime(created_at)}</span>
