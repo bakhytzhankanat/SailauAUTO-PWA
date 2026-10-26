@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { tx } from '../i18n/index.js';
 
 export default function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -7,9 +8,9 @@ export default function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-main">
-        <p className="text-text-muted">Жүктелуде...</p>
-      </div>
+      (<div className="min-h-screen flex items-center justify-center bg-bg-main">
+        <p className="text-text-muted">{tx("Жүктелуде...")}</p>
+      </div>)
     );
   }
 

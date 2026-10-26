@@ -24,15 +24,16 @@ import Reminders from './pages/Reminders';
 import WhatsAppInbox from './pages/WhatsAppInbox';
 import Analytics from './pages/Analytics';
 import ServicesManage from './pages/ServicesManage';
+import { tx } from './i18n/index.js';
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-main">
-        <p className="text-text-muted">Жүктелуде...</p>
-      </div>
+      (<div className="min-h-screen flex items-center justify-center bg-bg-main">
+        <p className="text-text-muted">{tx("Жүктелуде...")}</p>
+      </div>)
     );
   }
 

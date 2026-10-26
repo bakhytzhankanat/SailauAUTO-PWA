@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getSettings, getDayClose, getDayCloseWorkers, createDayClose, updateDayClose, deleteDayClose } from '../lib/api';
+import { tx } from '../i18n/index.js';
 
 function fmt(n) {
   return Number(n).toLocaleString('ru-RU') + ' ₸';
@@ -30,41 +31,41 @@ function getDayClosePrintHtml(payload) {
     .dc-print .total { font-weight: bold; }
   </style>
   <div class="dc-print">
-    <h1>Ауысымды жабу</h1>
+    <h1>${tx("Ауысымды жабу")}</h1>
     <p class="meta">${formatDateForPrint(date)}</p>
     <section>
-      <div class="section-title">Қайырымдылық (${dc.charity_percent}%)</div>
+      <div class="section-title">${tx("Қайырымдылық")} (${dc.charity_percent}%)</div>
       <table>
-        <tr><td>Есептелді</td><td class="num">${fmt(dc.charity_raw)}</td></tr>
-        <tr class="total"><td>Дөңгелектелді</td><td class="num">${fmt(dc.charity_rounded)}</td></tr>
+        <tr><td>${tx("Есептелді")}</td><td class="num">${fmt(dc.charity_raw)}</td></tr>
+        <tr class="total"><td>${tx("Дөңгелектелді")}</td><td class="num">${fmt(dc.charity_rounded)}</td></tr>
       </table>
     </section>
     <section>
-      <div class="section-title">Бөлінетін табыс</div>
+      <div class="section-title">${tx("Бөлінетін табыс")}</div>
       <p class="total" style="font-size: 16px;">${fmt(dc.distributable_after_charity)}</p>
     </section>
     <section>
-      <div class="section-title">Жалақы бөлу</div>
+      <div class="section-title">${tx("Жалақы бөлу")}</div>
       <table>
-        <tr><th>Рөл</th><th class="num">Үлес</th><th class="num">Сома</th></tr>
-        <tr><td>Менеджер</td><td class="num">${dc.manager_percent}%</td><td class="num">${fmt(dc.manager_amount)}</td></tr>
+        <tr><th>${tx("Рөл")}</th><th class="num">${tx("Үлес")}</th><th class="num">${tx("Сома")}</th></tr>
+        <tr><td>${tx("Менеджер")}</td><td class="num">${dc.manager_percent}%</td><td class="num">${fmt(dc.manager_amount)}</td></tr>
         ${(masters || []).map((m) => `<tr><td>${String(m.master_name || '').replace(/</g, '&lt;')}</td><td class="num">—</td><td class="num">${fmt(m.amount)}</td></tr>`).join('')}
-        <tr><td>Иесі (қызмет)</td><td class="num">${dc.owner_percent}%</td><td class="num">${fmt(dc.owner_service_dividend)}</td></tr>
-        <tr><td>Иесі (бөлшектер)</td><td class="num">—</td><td class="num">${fmt(dc.owner_parts_dividend)}</td></tr>
+        <tr><td>${tx("Иесі (қызмет)")}</td><td class="num">${dc.owner_percent}%</td><td class="num">${fmt(dc.owner_service_dividend)}</td></tr>
+        <tr><td>${tx("Иесі (бөлшектер)")}</td><td class="num">—</td><td class="num">${fmt(dc.owner_parts_dividend)}</td></tr>
       </table>
     </section>
     <section>
-      <div class="section-title">Қорытынды</div>
+      <div class="section-title">${tx("Қорытынды")}</div>
       <table>
-        <tr><td>Барлық кіріс</td><td class="num">${fmt(serviceTotal + partSalesTotal)}</td></tr>
-        <tr><td style="padding-left: 16px;">Материал</td><td class="num">− ${fmt(materialTotal)}</td></tr>
-        <tr><td style="padding-left: 16px;">Түскі ас</td><td class="num">− ${fmt(dc.opex_lunch)}</td></tr>
-        <tr><td style="padding-left: 16px;">Транспорт</td><td class="num">− ${fmt(dc.opex_transport)}</td></tr>
-        <tr><td style="padding-left: 16px;">Аренда</td><td class="num">− ${fmt(dc.opex_rent)}</td></tr>
-        <tr><td style="padding-left: 16px;">Салық (KaspiPay)</td><td class="num">− ${fmt(dc.kaspi_tax_amount)}</td></tr>
-        <tr><td>Барлық шығын</td><td class="num">− ${fmt(totalExpenses)}</td></tr>
-        <tr><td>Қайырымдылық</td><td class="num">${fmt(dc.charity_rounded)}</td></tr>
-        <tr class="total"><td>Таза табыс</td><td class="num">${fmt(dc.distributable_after_charity)}</td></tr>
+        <tr><td>${tx("Барлық кіріс")}</td><td class="num">${fmt(serviceTotal + partSalesTotal)}</td></tr>
+        <tr><td style="padding-left: 16px;">${tx("Материал")}</td><td class="num">− ${fmt(materialTotal)}</td></tr>
+        <tr><td style="padding-left: 16px;">${tx("Түскі ас")}</td><td class="num">− ${fmt(dc.opex_lunch)}</td></tr>
+        <tr><td style="padding-left: 16px;">${tx("Транспорт")}</td><td class="num">− ${fmt(dc.opex_transport)}</td></tr>
+        <tr><td style="padding-left: 16px;">${tx("Аренда")}</td><td class="num">− ${fmt(dc.opex_rent)}</td></tr>
+        <tr><td style="padding-left: 16px;">${tx("Салық (KaspiPay)")}</td><td class="num">− ${fmt(dc.kaspi_tax_amount)}</td></tr>
+        <tr><td>${tx("Барлық шығын")}</td><td class="num">− ${fmt(totalExpenses)}</td></tr>
+        <tr><td>${tx("Қайырымдылық")}</td><td class="num">${fmt(dc.charity_rounded)}</td></tr>
+        <tr class="total"><td>${tx("Таза табыс")}</td><td class="num">${fmt(dc.distributable_after_charity)}</td></tr>
       </table>
     </section>
     <p class="meta" style="margin-top: 20px;">SailauAUTO · ${new Date().toLocaleDateString('kk-KZ')}</p>
@@ -144,7 +145,7 @@ export default function DayClose() {
         setMasterPercents({});
       }
     } catch (e) {
-      setError(e.message || 'Жүктеу сәтсіз');
+      setError(e.message || tx("Жүктеу сәтсіз"));
     } finally {
       setLoading(false);
     }
@@ -176,7 +177,7 @@ export default function DayClose() {
   const showForm = showNewShiftForm || !snapshot || editMode;
 
   const handleDeleteShift = async () => {
-    if (!snapshot?.id || !confirm('Бұл ауысымды жоюға сенімдісіз бе? Кері алынбайды.')) return;
+    if (!snapshot?.id || !confirm(tx("Бұл ауысымды жоюға сенімдісіз бе? Кері алынбайды."))) return;
     setDeletingShiftId(snapshot.id);
     setError('');
     try {
@@ -184,7 +185,7 @@ export default function DayClose() {
       setSelectedShiftIndex(0);
       await load();
     } catch (err) {
-      setError(err.message || 'Ауысымды жою сәтсіз');
+      setError(err.message || tx("Ауысымды жою сәтсіз"));
     } finally {
       setDeletingShiftId(null);
     }
@@ -200,7 +201,7 @@ export default function DayClose() {
     const effPartSales = isExtraShift ? (Number(manualPartSales) || 0) : (derived?.part_sales_total ?? 0);
     const incomeTotal = effServiceIncome + effPartSales;
     if (kaspi > incomeTotal && !isExtraShift) {
-      setError('KaspiPay сомасы қызмет пен бөлшек кірісінен аспауы керек');
+      setError(tx("KaspiPay сомасы қызмет пен бөлшек кірісінен аспауы керек"));
       setSubmitting(false);
       return;
     }
@@ -222,7 +223,7 @@ export default function DayClose() {
       }
       if (manualMasterDistribution && presentMasterIds.length > 0) {
         if (Math.abs(masterPercentsSum - 100) > 0.01) {
-          setError('Мастерлер үлесінің қосындысы 100% болуы керек');
+          setError(tx("Мастерлер үлесінің қосындысы 100% болуы керек"));
           setSubmitting(false);
           return;
         }
@@ -242,7 +243,7 @@ export default function DayClose() {
       setSelectedShiftIndex(dayClosesForDate.length);
       load();
     } catch (e) {
-      setError(e.message || 'Сақтау сәтсіз');
+      setError(e.message || tx("Сақтау сәтсіз"));
     } finally {
       setSubmitting(false);
     }
@@ -250,9 +251,9 @@ export default function DayClose() {
 
   if (loading) {
     return (
-      <div className="p-4">
-        <p className="text-text-muted">Жүктелуде...</p>
-      </div>
+      (<div className="p-4">
+        <p className="text-text-muted">{tx("Жүктелуде...")}</p>
+      </div>)
     );
   }
 
@@ -292,454 +293,434 @@ export default function DayClose() {
     window.print();
   };
 
-  return (
-    <>
-      <div
-        ref={printRef}
-        className="hidden print:block fixed inset-0 z-[9999] bg-white text-gray-900 overflow-auto p-6"
-        style={{ fontFamily: 'Arial, sans-serif' }}
-        aria-hidden
-      />
-      <div className="print:hidden flex flex-col min-h-full">
-      <header className="px-4 pt-4 pb-4 bg-bg-main border-b border-border-color sticky top-0 z-10 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
-            <span className="material-symbols-outlined text-text-muted">arrow_back</span>
-          </button>
-          <h1 className="text-[22px] font-bold text-ink tracking-tight">Ауысымды жабу</h1>
-        </div>
-        <button type="button" className="icon-btn bg-card-bg border border-border-color">
-          <span className="material-symbols-outlined text-text-muted">history</span>
+  return (<>
+    <div
+      ref={printRef}
+      className="hidden print:block fixed inset-0 z-[9999] bg-white text-gray-900 overflow-auto p-6"
+      style={{ fontFamily: 'Arial, sans-serif' }}
+      aria-hidden
+    />
+    <div className="print:hidden flex flex-col min-h-full">
+    <header className="px-4 pt-4 pb-4 bg-bg-main border-b border-border-color sticky top-0 z-10 flex justify-between items-center">
+      <div className="flex items-center gap-2">
+        <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
+          <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>
-      </header>
+        <h1 className="text-[22px] font-bold text-ink tracking-tight">{tx("Ауысымды жабу")}</h1>
+      </div>
+      <button type="button" className="icon-btn bg-card-bg border border-border-color">
+        <span className="material-symbols-outlined text-text-muted">history</span>
+      </button>
+    </header>
 
-      <main className="flex-1 overflow-y-auto p-4 pb-32 space-y-6">
-        {error && (
-          <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>
+    <main className="flex-1 overflow-y-auto p-4 pb-32 space-y-6">
+      {error && (
+        <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>
+      )}
+
+      {dayClosesForDate.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-xs font-semibold text-text-muted">{tx("Сменалар")}</h2>
+          <div className="flex flex-wrap gap-2">
+            {dayClosesForDate.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => { setShowNewShiftForm(false); setSelectedShiftIndex(s.shift_index); load(); }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  !showNewShiftForm && snapshot?.shift_index === s.shift_index
+                    ? 'bg-primary text-on-primary border-primary'
+                    : 'bg-card-bg border-border-color text-ink hover:border-primary'
+                }`}
+              >
+                {(() => { const d = new Date(date + 'T00:00:00'); const day = d.getDate(); const months = [tx("ЯНВ"),tx("ФЕВ"),tx("МАР"),tx("АПР"),tx("МАЙ"),tx("ИЮН"),tx("ИЮЛ"),tx("АВГ"),tx("СЕН"),tx("ОКТ"),tx("НОЯ"),tx("ДЕК")]; return `${day}${months[d.getMonth()]}(${s.shift_index + 1})`; })()}
+              </button>
+            ))}
+            {canCreate && (
+              <button
+                type="button"
+                onClick={() => { setShowNewShiftForm(true); setSnapshot(null); setSelectedShiftIndex(dayClosesForDate.length); setManualServiceIncome(''); setManualPartSales(''); setManualMaterialExpense(''); load(); }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium border border-dashed border-border-color text-text-muted hover:border-primary hover:text-primary ${
+                  showNewShiftForm ? 'border-primary text-primary' : ''
+                }`}
+              >{tx("+ Жаңа смена")}</button>
+            )}
+          </div>
+        </section>
+      )}
+
+      {isExtraShift && (
+        <div className="bg-warn/10 border border-warn/30 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined text-warn text-xl">info</span>
+            <div>
+              <div className="font-semibold text-warn text-sm">{tx("Қосымша смена")}</div>
+              <div className="text-warn/80 text-xs mt-1">{tx(
+                "Бұл смена бірінші сменаға тәуелсіз. Кірістер мен шығындарды қолмен енгізіңіз."
+              )}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <section className="space-y-3">
+        <h2 className="section-label flex items-center gap-2">
+          <span className="material-symbols-outlined text-lg">account_balance_wallet</span>{tx("Кірістер")} {isExtraShift ? tx("(қолмен)") : ''}
+        </h2>
+        {isExtraShift ? (
+          <div className="card p-4 space-y-4">
+            <div>
+              <label className="text-xs text-text-muted block mb-1">{tx("Қызмет кірісі")}</label>
+              <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                <input type="number" min="0" value={manualServiceIncome} onChange={(e) => setManualServiceIncome(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
+                <span className="text-text-muted ml-2">₸</span>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-text-muted block mb-1">{tx("Бөлшек сатылымы")}</label>
+              <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                <input type="number" min="0" value={manualPartSales} onChange={(e) => setManualPartSales(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
+                <span className="text-text-muted ml-2">₸</span>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-text-muted block mb-1">{tx("Материал шығыны")}</label>
+              <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                <input type="number" min="0" value={manualMaterialExpense} onChange={(e) => setManualMaterialExpense(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
+                <span className="text-text-muted ml-2">₸</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="card p-4 space-y-3">
+            <div className="flex justify-between items-center pb-2 border-b border-border-color">
+              <span className="text-text-muted text-sm">{tx("Қызмет кассасы")}</span>
+              <span className="font-bold text-lg">{fmt(serviceTotal)}</span>
+            </div>
+            <div className="flex justify-between items-center pb-2 border-b border-border-color">
+              <span className="text-text-muted text-sm">{tx("Бөлшек сатылымы")}</span>
+              <span className="font-bold text-lg">{fmt(partSalesTotal)}</span>
+            </div>
+            <div className="flex justify-between items-center pt-1">
+              <span className="text-text-muted text-sm">{tx("Материал шығыны")}</span>
+              <span className="font-bold text-lg text-danger">- {fmt(materialTotal)}</span>
+            </div>
+          </div>
         )}
+      </section>
 
-        {dayClosesForDate.length > 0 && (
-          <section className="space-y-2">
-            <h2 className="text-xs font-semibold text-text-muted">Сменалар</h2>
-            <div className="flex flex-wrap gap-2">
-              {dayClosesForDate.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => { setShowNewShiftForm(false); setSelectedShiftIndex(s.shift_index); load(); }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                    !showNewShiftForm && snapshot?.shift_index === s.shift_index
-                      ? 'bg-primary text-on-primary border-primary'
-                      : 'bg-card-bg border-border-color text-ink hover:border-primary'
-                  }`}
-                >
-                  {(() => { const d = new Date(date + 'T00:00:00'); const day = d.getDate(); const months = ['ЯНВ','ФЕВ','МАР','АПР','МАЙ','ИЮН','ИЮЛ','АВГ','СЕН','ОКТ','НОЯ','ДЕК']; return `${day}${months[d.getMonth()]}(${s.shift_index + 1})`; })()}
-                </button>
+      {!canCreate && !snapshot && (
+        <p className="text-text-muted text-sm">{tx("Ауысымды жабуға тек иесі немесе аға шебер рұқсат етеді.")}</p>
+      )}
+
+      {showForm && canCreate && (
+        <>
+          <section className="space-y-3">
+            <h2 className="section-label flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">payments</span>{tx("Төлем түрі")}</h2>
+            <div className="card p-4 space-y-4">
+              <div>
+                <label className="text-xs text-text-muted block mb-2">KaspiPay *</label>
+                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                  <input
+                    type="number"
+                    min="0"
+                    value={kaspiAmount}
+                    onChange={(e) => setKaspiAmount(e.target.value)}
+                    className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right"
+                    placeholder={tx("Сома")}
+                  />
+                  <span className="text-text-muted ml-2">₸</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-text-muted block mb-2">{tx("Қолма-қол (бос қалдырсаңыз — автоматты)")}</label>
+                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
+                  <input
+                    type="number"
+                    min="0"
+                    value={cashAmount}
+                    onChange={(e) => setCashAmount(e.target.value)}
+                    className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right"
+                    placeholder={tx("Автоматты есептеледі")}
+                  />
+                  <span className="text-text-muted ml-2">₸</span>
+                </div>
+              </div>
+              <div className="pt-2 flex justify-between items-center">
+                <span className="text-xs text-text-muted">{tx("Салық (")}{kaspiTaxPercent}{tx("% тек Kaspi Pay)")}</span>
+                <span className="text-sm font-bold text-danger">
+                  - {fmt((Number(kaspiAmount) || 0) * (kaspiTaxPercent / 100))}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="section-label flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">receipt_long</span>{tx("Операциялық шығын")}</h2>
+            <div className="card p-4 space-y-3">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm text-ink w-1/3">{tx("Түскі ас")}</span>
+                <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
+                  <input type="number" min="0" value={opexLunch} onChange={(e) => setOpexLunch(e.target.value)} placeholder={tx("Сома")} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
+                  <span className="text-text-muted ml-2">₸</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm text-ink w-1/3">{tx("Транспорт")}</span>
+                <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
+                  <input type="number" min="0" value={opexTransport} onChange={(e) => setOpexTransport(e.target.value)} placeholder={tx("Сома")} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
+                  <span className="text-text-muted ml-2">₸</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm text-ink w-1/3">{tx("Аренда")}</span>
+                <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
+                  <input type="number" min="0" value={opexRent} onChange={(e) => setOpexRent(e.target.value)} placeholder={tx("Сома")} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
+                  <span className="text-text-muted ml-2">₸</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="section-label flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg">groups</span>{tx("Ауысымда кім болды")}</h2>
+              {isOwner && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={manualMasterDistribution}
+                    onChange={(e) => setManualMasterDistribution(e.target.checked)}
+                    className="w-5 h-5 rounded accent-[rgb(var(--primary))]"
+                  />
+                  <span className="text-xs text-text-muted">{tx("Қолмен %")}</span>
+                </label>
+              )}
+            </div>
+            <div className="card p-4 space-y-3">
+              {workers.map((w) => (
+                <div key={w.id} className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-border-color flex items-center justify-center text-xs font-bold text-text-muted shrink-0">
+                      {(w.display_name || '?').slice(0, 2).toUpperCase()}
+                    </div>
+                    <span className="text-sm text-ink truncate">{w.display_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {manualMasterDistribution && presentMasterIds.includes(w.id) && (
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.5"
+                          value={masterPercents[w.id] ?? ''}
+                          onChange={(e) => setMasterPercent(w.id, e.target.value)}
+                          className="w-16 bg-bg-main border border-border-color rounded-lg px-2 py-1.5 text-ink text-sm text-right"
+                        />
+                        <span className="text-text-muted text-xs">%</span>
+                      </div>
+                    )}
+                    <label className="relative inline-block w-12 h-7 rounded-full cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={presentMasterIds.includes(w.id)}
+                        onChange={() => toggleMaster(w.id)}
+                        className="sr-only peer"
+                      />
+                      <span className={`block w-12 h-7 rounded-full transition-colors peer-checked:bg-primary bg-border-color`} />
+                      <span className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform pointer-events-none block peer-checked:translate-x-5" />
+                    </label>
+                  </div>
+                </div>
               ))}
-              {canCreate && (
-                <button
-                  type="button"
-                  onClick={() => { setShowNewShiftForm(true); setSnapshot(null); setSelectedShiftIndex(dayClosesForDate.length); setManualServiceIncome(''); setManualPartSales(''); setManualMaterialExpense(''); load(); }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border border-dashed border-border-color text-text-muted hover:border-primary hover:text-primary ${
-                    showNewShiftForm ? 'border-primary text-primary' : ''
-                  }`}
-                >
-                  + Жаңа смена
-                </button>
+              {manualMasterDistribution && presentMasterIds.length > 0 && (
+                <div className="pt-2 border-t border-border-color flex justify-between text-sm">
+                  <span className="text-text-muted">{tx("Қосынды")}</span>
+                  <span className={Math.abs(masterPercentsSum - 100) < 0.01 ? 'text-status-completed font-medium' : 'text-danger font-medium'}>
+                    {masterPercentsSum.toFixed(1)}% {Math.abs(masterPercentsSum - 100) < 0.01 ? '' : tx("(100% болуы керек)")}
+                  </span>
+                </div>
               )}
             </div>
           </section>
-        )}
 
-        {isExtraShift && (
-          <div className="bg-warn/10 border border-warn/30 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-warn text-xl">info</span>
+          {editMode && (
+            <section className="space-y-2">
+              <label className="text-sm font-medium text-text-muted">{tx("Түзету себебі *")}</label>
+              <input
+                type="text"
+                value={editReason}
+                onChange={(e) => setEditReason(e.target.value)}
+                className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-ink"
+                placeholder={tx("Мысалы: Касса түзету")}
+              />
+            </section>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={
+              submitting ||
+              (editMode && !editReason.trim()) ||
+              (manualMasterDistribution && presentMasterIds.length > 0 && Math.abs(masterPercentsSum - 100) > 0.01)
+            }
+            className="btn-primary w-full"
+          >
+            {submitting ? tx("Сақталуда...") : editMode ? tx("Өзгерістерді сақтау") : tx("Ауысымды жабу")}
+          </button>
+        </>
+      )}
+
+      {snapshot && !editMode && (
+        <>
+          <section className="space-y-3">
+            <h2 className="section-label flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">volunteer_activism</span>{tx("Қайырымдылық (")}{dc.charity_percent}%)
+            </h2>
+            <div className="card p-4 flex justify-between items-center">
               <div>
-                <div className="font-semibold text-warn text-sm">Қосымша смена</div>
-                <div className="text-warn/80 text-xs mt-1">
-                  Бұл смена бірінші сменаға тәуелсіз. Кірістер мен шығындарды қолмен енгізіңіз.
-                </div>
+                <span className="text-xs text-text-muted block">{tx("Есептелді")}</span>
+                <span className="text-sm text-ink font-medium line-through decoration-red-400">{fmt(dc.charity_raw)}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-text-muted block">{tx("Дөңгелектелді")}</span>
+                <span className="text-xl font-bold text-primary">{fmt(dc.charity_rounded)}</span>
               </div>
             </div>
-          </div>
-        )}
+          </section>
 
-        <section className="space-y-3">
-          <h2 className="section-label flex items-center gap-2">
-            <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
-            Кірістер {isExtraShift ? '(қолмен)' : ''}
-          </h2>
-          {isExtraShift ? (
-            <div className="card p-4 space-y-4">
-              <div>
-                <label className="text-xs text-text-muted block mb-1">Қызмет кірісі</label>
-                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
-                  <input type="number" min="0" value={manualServiceIncome} onChange={(e) => setManualServiceIncome(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
-                  <span className="text-text-muted ml-2">₸</span>
+          <section className="bg-gradient-to-r from-primary/20 to-primary/5 rounded-xl border border-primary/30 p-4 flex justify-between items-center">
+            <span className="text-sm font-bold text-primary">{tx("Бөлінетін табыс")}</span>
+            <span className="text-2xl font-bold text-ink">{fmt(dc.distributable_after_charity)}</span>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="section-label flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">pie_chart</span>{tx("Жалақы бөлу")}</h2>
+            <div className="card overflow-hidden">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-border-color text-text-muted font-medium">
+                  <tr>
+                    <th className="px-4 py-2">{tx("Рөл")}</th>
+                    <th className="px-4 py-2 text-right">{tx("Үлес")}</th>
+                    <th className="px-4 py-2 text-right">{tx("Сома")}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-color">
+                  <tr>
+                    <td className="px-4 py-3 font-medium">{tx("Менеджер")}</td>
+                    <td className="px-4 py-3 text-right text-text-muted">{dc.manager_percent}%</td>
+                    <td className="px-4 py-3 text-right font-bold">{fmt(dc.manager_amount)}</td>
+                  </tr>
+                  {masters.map((m) => (
+                    <tr key={m.id}>
+                      <td className="px-4 py-3 font-medium">{m.master_name}</td>
+                      <td className="px-4 py-3 text-right text-text-muted">—</td>
+                      <td className="px-4 py-3 text-right font-bold">{fmt(m.amount)}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td className="px-4 py-3 font-medium text-primary">{tx("Иесі (қызмет)")}</td>
+                    <td className="px-4 py-3 text-right text-text-muted">{dc.owner_percent}%</td>
+                    <td className="px-4 py-3 text-right font-bold text-primary">{fmt(dc.owner_service_dividend)}</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-medium text-primary">{tx("Иесі (бөлшектер)")}</td>
+                    <td className="px-4 py-3 text-right text-text-muted">—</td>
+                    <td className="px-4 py-3 text-right font-bold text-primary">{fmt(dc.owner_parts_dividend)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="section-label flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">summarize</span>{tx("Қорытынды")}</h2>
+            <div className="card p-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-text-muted">{tx("Барлық кіріс")}</span>
+                <span className="font-medium text-ink">{fmt(serviceTotal + partSalesTotal)}</span>
+              </div>
+              <div className="pt-1 space-y-1">
+                <div className="flex justify-between text-text-muted">
+                  <span className="pl-2">{tx("Материал")}</span>
+                  <span className="text-danger">− {fmt(materialTotal)}</span>
+                </div>
+                <div className="flex justify-between text-text-muted">
+                  <span className="pl-2">{tx("Түскі ас")}</span>
+                  <span className="text-danger">− {fmt(dc.opex_lunch)}</span>
+                </div>
+                <div className="flex justify-between text-text-muted">
+                  <span className="pl-2">{tx("Транспорт")}</span>
+                  <span className="text-danger">− {fmt(dc.opex_transport)}</span>
+                </div>
+                <div className="flex justify-between text-text-muted">
+                  <span className="pl-2">{tx("Аренда")}</span>
+                  <span className="text-danger">− {fmt(dc.opex_rent)}</span>
+                </div>
+                <div className="flex justify-between text-text-muted">
+                  <span className="pl-2">{tx("Салық (KaspiPay)")}</span>
+                  <span className="text-danger">− {fmt(dc.kaspi_tax_amount)}</span>
                 </div>
               </div>
-              <div>
-                <label className="text-xs text-text-muted block mb-1">Бөлшек сатылымы</label>
-                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
-                  <input type="number" min="0" value={manualPartSales} onChange={(e) => setManualPartSales(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
-                  <span className="text-text-muted ml-2">₸</span>
-                </div>
+              <div className="flex justify-between border-t border-border-color pt-2">
+                <span className="text-text-muted">{tx("Барлық шығын")}</span>
+                <span className="font-medium text-danger">− {fmt(materialTotal + Number(dc.opex_lunch) + Number(dc.opex_transport) + Number(dc.opex_rent) + Number(dc.kaspi_tax_amount))}</span>
               </div>
-              <div>
-                <label className="text-xs text-text-muted block mb-1">Материал шығыны</label>
-                <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
-                  <input type="number" min="0" value={manualMaterialExpense} onChange={(e) => setManualMaterialExpense(e.target.value)} className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right" placeholder="0" />
-                  <span className="text-text-muted ml-2">₸</span>
-                </div>
+              <div className="flex justify-between">
+                <span className="text-text-muted">{tx("Қайырымдылық")}</span>
+                <span className="font-medium text-ink">{fmt(dc.charity_rounded)}</span>
+              </div>
+              <div className="border-t border-border-color my-2 pt-2 flex justify-between text-base">
+                <span className="font-bold text-ink">{tx("Таза табыс")}</span>
+                <span className="font-bold text-primary">{fmt(dc.distributable_after_charity)}</span>
               </div>
             </div>
-          ) : (
-            <div className="card p-4 space-y-3">
-              <div className="flex justify-between items-center pb-2 border-b border-border-color">
-                <span className="text-text-muted text-sm">Қызмет кассасы</span>
-                <span className="font-bold text-lg">{fmt(serviceTotal)}</span>
+          </section>
+
+          {canEdit && (
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditMode(true)}
+                  className="flex-1 py-3 border border-primary text-primary font-bold rounded-xl"
+                >{tx("Түзету")}</button>
+                <button
+                  type="button"
+                  onClick={runPrintReport}
+                  className="flex-1 py-3 bg-card-bg border border-border-color text-ink font-bold rounded-xl hover:bg-border-color hover:border-primary/50 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
+                  PDF
+                </button>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-border-color">
-                <span className="text-text-muted text-sm">Бөлшек сатылымы</span>
-                <span className="font-bold text-lg">{fmt(partSalesTotal)}</span>
-              </div>
-              <div className="flex justify-between items-center pt-1">
-                <span className="text-text-muted text-sm">Материал шығыны</span>
-                <span className="font-bold text-lg text-danger">- {fmt(materialTotal)}</span>
-              </div>
+              {canDeleteShift && (
+                <button
+                  type="button"
+                  onClick={handleDeleteShift}
+                  disabled={!!deletingShiftId}
+                  className="w-full py-3 border border-danger/50 text-danger font-bold rounded-xl hover:bg-danger/10 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">delete</span>
+                  {deletingShiftId ? tx("Жойылуда...") : tx("Ауысымды жою")}
+                </button>
+              )}
             </div>
           )}
-        </section>
+        </>
+      )}
 
-        {!canCreate && !snapshot && (
-          <p className="text-text-muted text-sm">Ауысымды жабуға тек иесі немесе аға шебер рұқсат етеді.</p>
-        )}
-
-        {showForm && canCreate && (
-          <>
-            <section className="space-y-3">
-              <h2 className="section-label flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">payments</span>
-                Төлем түрі
-              </h2>
-              <div className="card p-4 space-y-4">
-                <div>
-                  <label className="text-xs text-text-muted block mb-2">KaspiPay *</label>
-                  <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
-                    <input
-                      type="number"
-                      min="0"
-                      value={kaspiAmount}
-                      onChange={(e) => setKaspiAmount(e.target.value)}
-                      className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right"
-                      placeholder="Сома"
-                    />
-                    <span className="text-text-muted ml-2">₸</span>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs text-text-muted block mb-2">Қолма-қол (бос қалдырсаңыз — автоматты)</label>
-                  <div className="flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2.5">
-                    <input
-                      type="number"
-                      min="0"
-                      value={cashAmount}
-                      onChange={(e) => setCashAmount(e.target.value)}
-                      className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink font-medium text-right"
-                      placeholder="Автоматты есептеледі"
-                    />
-                    <span className="text-text-muted ml-2">₸</span>
-                  </div>
-                </div>
-                <div className="pt-2 flex justify-between items-center">
-                  <span className="text-xs text-text-muted">Салық ({kaspiTaxPercent}% тек Kaspi Pay)</span>
-                  <span className="text-sm font-bold text-danger">
-                    - {fmt((Number(kaspiAmount) || 0) * (kaspiTaxPercent / 100))}
-                  </span>
-                </div>
-              </div>
-            </section>
-
-            <section className="space-y-3">
-              <h2 className="section-label flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">receipt_long</span>
-                Операциялық шығын
-              </h2>
-              <div className="card p-4 space-y-3">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-ink w-1/3">Түскі ас</span>
-                  <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
-                    <input type="number" min="0" value={opexLunch} onChange={(e) => setOpexLunch(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
-                    <span className="text-text-muted ml-2">₸</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-ink w-1/3">Транспорт</span>
-                  <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
-                    <input type="number" min="0" value={opexTransport} onChange={(e) => setOpexTransport(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
-                    <span className="text-text-muted ml-2">₸</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-ink w-1/3">Аренда</span>
-                  <div className="flex-1 flex items-center bg-bg-main rounded-lg border border-border-color px-3 py-2">
-                    <input type="number" min="0" value={opexRent} onChange={(e) => setOpexRent(e.target.value)} placeholder="Сома" className="w-full bg-transparent p-0 border-none focus:ring-0 text-ink text-right font-medium" />
-                    <span className="text-text-muted ml-2">₸</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="section-label flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg">groups</span>
-                  Ауысымда кім болды
-                </h2>
-                {isOwner && (
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={manualMasterDistribution}
-                      onChange={(e) => setManualMasterDistribution(e.target.checked)}
-                      className="w-5 h-5 rounded accent-[rgb(var(--primary))]"
-                    />
-                    <span className="text-xs text-text-muted">Қолмен %</span>
-                  </label>
-                )}
-              </div>
-              <div className="card p-4 space-y-3">
-                {workers.map((w) => (
-                  <div key={w.id} className="flex items-center justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-border-color flex items-center justify-center text-xs font-bold text-text-muted shrink-0">
-                        {(w.display_name || '?').slice(0, 2).toUpperCase()}
-                      </div>
-                      <span className="text-sm text-ink truncate">{w.display_name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {manualMasterDistribution && presentMasterIds.includes(w.id) && (
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.5"
-                            value={masterPercents[w.id] ?? ''}
-                            onChange={(e) => setMasterPercent(w.id, e.target.value)}
-                            className="w-16 bg-bg-main border border-border-color rounded-lg px-2 py-1.5 text-ink text-sm text-right"
-                          />
-                          <span className="text-text-muted text-xs">%</span>
-                        </div>
-                      )}
-                      <label className="relative inline-block w-12 h-7 rounded-full cursor-pointer shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={presentMasterIds.includes(w.id)}
-                          onChange={() => toggleMaster(w.id)}
-                          className="sr-only peer"
-                        />
-                        <span className={`block w-12 h-7 rounded-full transition-colors peer-checked:bg-primary bg-border-color`} />
-                        <span className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform pointer-events-none block peer-checked:translate-x-5" />
-                      </label>
-                    </div>
-                  </div>
-                ))}
-                {manualMasterDistribution && presentMasterIds.length > 0 && (
-                  <div className="pt-2 border-t border-border-color flex justify-between text-sm">
-                    <span className="text-text-muted">Қосынды</span>
-                    <span className={Math.abs(masterPercentsSum - 100) < 0.01 ? 'text-status-completed font-medium' : 'text-danger font-medium'}>
-                      {masterPercentsSum.toFixed(1)}% {Math.abs(masterPercentsSum - 100) < 0.01 ? '' : '(100% болуы керек)'}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {editMode && (
-              <section className="space-y-2">
-                <label className="text-sm font-medium text-text-muted">Түзету себебі *</label>
-                <input
-                  type="text"
-                  value={editReason}
-                  onChange={(e) => setEditReason(e.target.value)}
-                  className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-ink"
-                  placeholder="Мысалы: Касса түзету"
-                />
-              </section>
-            )}
-
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={
-                submitting ||
-                (editMode && !editReason.trim()) ||
-                (manualMasterDistribution && presentMasterIds.length > 0 && Math.abs(masterPercentsSum - 100) > 0.01)
-              }
-              className="btn-primary w-full"
-            >
-              {submitting ? 'Сақталуда...' : editMode ? 'Өзгерістерді сақтау' : 'Ауысымды жабу'}
-            </button>
-          </>
-        )}
-
-        {snapshot && !editMode && (
-          <>
-            <section className="space-y-3">
-              <h2 className="section-label flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">volunteer_activism</span>
-                Қайырымдылық ({dc.charity_percent}%)
-              </h2>
-              <div className="card p-4 flex justify-between items-center">
-                <div>
-                  <span className="text-xs text-text-muted block">Есептелді</span>
-                  <span className="text-sm text-ink font-medium line-through decoration-red-400">{fmt(dc.charity_raw)}</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs text-text-muted block">Дөңгелектелді</span>
-                  <span className="text-xl font-bold text-primary">{fmt(dc.charity_rounded)}</span>
-                </div>
-              </div>
-            </section>
-
-            <section className="bg-gradient-to-r from-primary/20 to-primary/5 rounded-xl border border-primary/30 p-4 flex justify-between items-center">
-              <span className="text-sm font-bold text-primary">Бөлінетін табыс</span>
-              <span className="text-2xl font-bold text-ink">{fmt(dc.distributable_after_charity)}</span>
-            </section>
-
-            <section className="space-y-3">
-              <h2 className="section-label flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">pie_chart</span>
-                Жалақы бөлу
-              </h2>
-              <div className="card overflow-hidden">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-border-color text-text-muted font-medium">
-                    <tr>
-                      <th className="px-4 py-2">Рөл</th>
-                      <th className="px-4 py-2 text-right">Үлес</th>
-                      <th className="px-4 py-2 text-right">Сома</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border-color">
-                    <tr>
-                      <td className="px-4 py-3 font-medium">Менеджер</td>
-                      <td className="px-4 py-3 text-right text-text-muted">{dc.manager_percent}%</td>
-                      <td className="px-4 py-3 text-right font-bold">{fmt(dc.manager_amount)}</td>
-                    </tr>
-                    {masters.map((m) => (
-                      <tr key={m.id}>
-                        <td className="px-4 py-3 font-medium">{m.master_name}</td>
-                        <td className="px-4 py-3 text-right text-text-muted">—</td>
-                        <td className="px-4 py-3 text-right font-bold">{fmt(m.amount)}</td>
-                      </tr>
-                    ))}
-                    <tr>
-                      <td className="px-4 py-3 font-medium text-primary">Иесі (қызмет)</td>
-                      <td className="px-4 py-3 text-right text-text-muted">{dc.owner_percent}%</td>
-                      <td className="px-4 py-3 text-right font-bold text-primary">{fmt(dc.owner_service_dividend)}</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-3 font-medium text-primary">Иесі (бөлшектер)</td>
-                      <td className="px-4 py-3 text-right text-text-muted">—</td>
-                      <td className="px-4 py-3 text-right font-bold text-primary">{fmt(dc.owner_parts_dividend)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
-            <section className="space-y-3">
-              <h2 className="section-label flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">summarize</span>
-                Қорытынды
-              </h2>
-              <div className="card p-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-text-muted">Барлық кіріс</span>
-                  <span className="font-medium text-ink">{fmt(serviceTotal + partSalesTotal)}</span>
-                </div>
-                <div className="pt-1 space-y-1">
-                  <div className="flex justify-between text-text-muted">
-                    <span className="pl-2">Материал</span>
-                    <span className="text-danger">− {fmt(materialTotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-text-muted">
-                    <span className="pl-2">Түскі ас</span>
-                    <span className="text-danger">− {fmt(dc.opex_lunch)}</span>
-                  </div>
-                  <div className="flex justify-between text-text-muted">
-                    <span className="pl-2">Транспорт</span>
-                    <span className="text-danger">− {fmt(dc.opex_transport)}</span>
-                  </div>
-                  <div className="flex justify-between text-text-muted">
-                    <span className="pl-2">Аренда</span>
-                    <span className="text-danger">− {fmt(dc.opex_rent)}</span>
-                  </div>
-                  <div className="flex justify-between text-text-muted">
-                    <span className="pl-2">Салық (KaspiPay)</span>
-                    <span className="text-danger">− {fmt(dc.kaspi_tax_amount)}</span>
-                  </div>
-                </div>
-                <div className="flex justify-between border-t border-border-color pt-2">
-                  <span className="text-text-muted">Барлық шығын</span>
-                  <span className="font-medium text-danger">− {fmt(materialTotal + Number(dc.opex_lunch) + Number(dc.opex_transport) + Number(dc.opex_rent) + Number(dc.kaspi_tax_amount))}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">Қайырымдылық</span>
-                  <span className="font-medium text-ink">{fmt(dc.charity_rounded)}</span>
-                </div>
-                <div className="border-t border-border-color my-2 pt-2 flex justify-between text-base">
-                  <span className="font-bold text-ink">Таза табыс</span>
-                  <span className="font-bold text-primary">{fmt(dc.distributable_after_charity)}</span>
-                </div>
-              </div>
-            </section>
-
-            {canEdit && (
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setEditMode(true)}
-                    className="flex-1 py-3 border border-primary text-primary font-bold rounded-xl"
-                  >
-                    Түзету
-                  </button>
-                  <button
-                    type="button"
-                    onClick={runPrintReport}
-                    className="flex-1 py-3 bg-card-bg border border-border-color text-ink font-bold rounded-xl hover:bg-border-color hover:border-primary/50 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
-                    PDF
-                  </button>
-                </div>
-                {canDeleteShift && (
-                  <button
-                    type="button"
-                    onClick={handleDeleteShift}
-                    disabled={!!deletingShiftId}
-                    className="w-full py-3 border border-danger/50 text-danger font-bold rounded-xl hover:bg-danger/10 disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-lg">delete</span>
-                    {deletingShiftId ? 'Жойылуда...' : 'Ауысымды жою'}
-                  </button>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
-        {success && !showForm && (
-          <div className="p-3 rounded-xl bg-status-completed/10 border border-status-completed/30 text-status-completed text-sm">
-            Ауысым сәтті жабылды.
-          </div>
-        )}
-      </main>
-      </div>
-    </>
-  );
+      {success && !showForm && (
+        <div className="p-3 rounded-xl bg-status-completed/10 border border-status-completed/30 text-status-completed text-sm">{tx("Ауысым сәтті жабылды.")}</div>
+      )}
+    </main>
+    </div>
+  </>);
 }

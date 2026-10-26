@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getInventory, createInventoryItem, createInventoryMovement, deleteInventoryItem } from '../lib/api';
 import { Sheet, Loading, EmptyState, ErrorNote } from '../components/ui';
+import { tx } from '../i18n/index.js';
 
 const canEdit = (user) => user?.role === 'owner' || user?.role === 'manager' || user?.is_senior_worker === true;
 
@@ -33,7 +34,7 @@ export default function Inventory() {
       const data = await getInventory(search);
       setItems(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e.message || 'Жүктеу сәтсіз');
+      setError(e.message || tx("Жүктеу сәтсіз"));
     } finally {
       setLoading(false);
     }
@@ -56,13 +57,16 @@ export default function Inventory() {
 
   const handleDeleteItem = async (item) => {
     if (!editable) return;
-    if (!window.confirm(`«${item.name}» тауарын жоюды қалайсыз ба? Сатулар болса жою мүмкін емес.`)) return;
+    if (!window.confirm(tx(
+      "«{0}» тауарын жоюды қалайсыз ба? Сатулар болса жою мүмкін емес.",
+      [item.name]
+    ))) return;
     setError('');
     try {
       await deleteInventoryItem(item.id);
       load();
     } catch (e) {
-      setError(e.message || 'Жою сәтсіз');
+      setError(e.message || tx("Жою сәтсіз"));
     }
   };
 
@@ -70,11 +74,11 @@ export default function Inventory() {
   const shown = onlyLow ? items.filter((i) => i.low_stock === true) : items;
 
   return (
-    <div className="flex flex-col min-h-full">
+    (<div className="flex flex-col min-h-full">
       <header className="sticky top-0 z-20 bg-bg-main/95 backdrop-blur border-b border-border-color/70 px-4 pt-4 pb-3 space-y-3">
         <div>
-          <h1 className="text-[26px] leading-tight font-bold text-ink tracking-tight">Қойма</h1>
-          {!loading && <p className="text-sm text-text-muted">{items.length} тауар{lowCount > 0 ? ` · ${lowCount} аз қалды` : ''}</p>}
+          <h1 className="text-[26px] leading-tight font-bold text-ink tracking-tight">{tx("Қойма")}</h1>
+          {!loading && <p className="text-sm text-text-muted">{items.length} {tx("тауар")}{lowCount > 0 ? tx(" · {0} аз қалды", [lowCount]) : ''}</p>}
         </div>
         <div className="relative w-full">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-lg pointer-events-none">search</span>
@@ -82,15 +86,14 @@ export default function Inventory() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Іздеу (атауы бойынша)"
+            placeholder={tx("Іздеу (атауы бойынша)")}
             className="field !py-2.5 pl-10"
           />
         </div>
         <div className="flex gap-2">
-          <button type="button" onClick={() => setOnlyLow(false)} className={`chip !py-1.5 ${!onlyLow ? 'chip-on' : ''}`}>Барлығы</button>
+          <button type="button" onClick={() => setOnlyLow(false)} className={`chip !py-1.5 ${!onlyLow ? 'chip-on' : ''}`}>{tx("Барлығы")}</button>
           <button type="button" onClick={() => setOnlyLow(true)} className={`chip !py-1.5 ${onlyLow ? 'chip-on !border-danger !bg-danger/10' : ''}`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-danger" />
-            Аз қалды {lowCount > 0 && <span className="tabular-nums">{lowCount}</span>}
+            <span className="w-1.5 h-1.5 rounded-full bg-danger" />{tx("Аз қалды")} {lowCount > 0 && <span className="tabular-nums">{lowCount}</span>}
           </button>
         </div>
       </header>
@@ -99,7 +102,7 @@ export default function Inventory() {
         {loading ? (
           <Loading />
         ) : shown.length === 0 ? (
-          <EmptyState icon="inventory_2" title={onlyLow ? 'Аз қалған тауар жоқ' : 'Тауарлар тізімі бос'} hint={editable && !onlyLow ? 'Жаңа тауарды + батырмасымен қосыңыз.' : null} />
+          <EmptyState icon="inventory_2" title={onlyLow ? tx("Аз қалған тауар жоқ") : tx("Тауарлар тізімі бос")} hint={editable && !onlyLow ? tx("Жаңа тауарды + батырмасымен қосыңыз.") : null} />
         ) : (
           <ul className="card divide-y divide-border-color/60 overflow-hidden">
             {shown.map((item) => (
@@ -118,7 +121,7 @@ export default function Inventory() {
       {editable && (
         <button
           type="button"
-          aria-label="Тауар қосу"
+          aria-label={tx("Тауар қосу")}
           onClick={() => setAddModalOpen(true)}
           className="fixed bottom-[92px] right-4 w-14 h-14 bg-primary text-on-primary rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center z-20 active:scale-95 transition-transform"
         >
@@ -145,7 +148,7 @@ export default function Inventory() {
           }}
         />
       )}
-    </div>
+    </div>)
   );
 }
 
@@ -156,37 +159,37 @@ function ItemCard({ item, canEdit, onAdd, onOut, onDelete }) {
   const price = `${Number(item.sale_price_min).toLocaleString('ru-RU')}${item.sale_price_min !== item.sale_price_max ? `–${Number(item.sale_price_max).toLocaleString('ru-RU')}` : ''} ₸`;
 
   return (
-    <li className={`flex items-center gap-3 px-3.5 py-3 ${lowStock ? 'bg-danger/[0.06]' : ''}`}>
+    (<li className={`flex items-center gap-3 px-3.5 py-3 ${lowStock ? 'bg-danger/[0.06]' : ''}`}>
       <span className={`w-1 self-stretch rounded-full ${lowStock ? 'bg-danger' : 'bg-transparent'}`} />
       <div className="flex-1 min-w-0">
         <h3 className="text-[15px] font-medium text-ink leading-snug truncate">{item.name}</h3>
         <p className="text-xs text-text-muted tabular-nums truncate">
           {price}
-          {min != null && <span className={lowStock ? 'text-danger font-semibold' : 'text-faint'}> · мин {min}</span>}
+          {min != null && <span className={lowStock ? 'text-danger font-semibold' : 'text-faint'}> {tx("· мин")} {min}</span>}
           {item.sku && <span className="text-faint"> · {item.sku}</span>}
         </p>
       </div>
       {canEdit ? (
         <div className="flex items-center rounded-xl border border-border-color bg-bg-main/60 shrink-0">
-          <button type="button" onClick={onOut} className="w-10 h-10 flex items-center justify-center text-text-muted active:text-danger" title="Шығару">
+          <button type="button" onClick={onOut} className="w-10 h-10 flex items-center justify-center text-text-muted active:text-danger" title={tx("Шығару")}>
             <span className="material-symbols-outlined text-[20px]">remove</span>
-            <span className="sr-only">Шығару</span>
+            <span className="sr-only">{tx("Шығару")}</span>
           </button>
           <span className={`min-w-[34px] text-center text-[17px] font-bold tabular-nums ${lowStock ? 'text-danger' : 'text-ink'}`}>{qty}</span>
-          <button type="button" onClick={onAdd} className="w-10 h-10 flex items-center justify-center text-primary" title="Қосу">
+          <button type="button" onClick={onAdd} className="w-10 h-10 flex items-center justify-center text-primary" title={tx("Қосу")}>
             <span className="material-symbols-outlined text-[20px]">add</span>
-            <span className="sr-only">Қосу</span>
+            <span className="sr-only">{tx("Қосу")}</span>
           </button>
         </div>
       ) : (
         <span className={`text-[17px] font-bold tabular-nums shrink-0 ${lowStock ? 'text-danger' : 'text-ink'}`}>{qty}</span>
       )}
       {canEdit && onDelete && (
-        <button type="button" onClick={onDelete} className="icon-btn w-8 h-8 -mr-1 text-faint hover:!text-danger" title="Тауарды жою" aria-label="Тауарды жою">
+        <button type="button" onClick={onDelete} className="icon-btn w-8 h-8 -mr-1 text-faint hover:!text-danger" title={tx("Тауарды жою")} aria-label={tx("Тауарды жою")}>
           <span className="material-symbols-outlined text-[18px]">delete</span>
         </button>
       )}
-    </li>
+    </li>)
   );
 }
 
@@ -204,17 +207,17 @@ function AddItemModal({ onClose, onSaved }) {
     e.preventDefault();
     setErr('');
     if (!name.trim()) {
-      setErr('Атауы болуы керек');
+      setErr(tx("Атауы болуы керек"));
       return;
     }
     const minP = salePriceMin === '' ? 0 : Number(salePriceMin);
     const maxP = salePriceMax === '' ? 0 : Number(salePriceMax);
     if (!Number.isInteger(minP) || minP <= 0) {
-      setErr('Сату бағасы (мин) 0-ден үлкен бүтін сан болуы керек');
+      setErr(tx("Сату бағасы (мин) 0-ден үлкен бүтін сан болуы керек"));
       return;
     }
     if (!Number.isInteger(maxP) || maxP < minP) {
-      setErr('Сату бағасы (макс) мин-ден кем болмауы керек');
+      setErr(tx("Сату бағасы (макс) мин-ден кем болмауы керек"));
       return;
     }
     setSubmitting(true);
@@ -229,92 +232,92 @@ function AddItemModal({ onClose, onSaved }) {
       });
       onSaved();
     } catch (e) {
-      setErr(e.message || 'Сақтау сәтсіз');
+      setErr(e.message || tx("Сақтау сәтсіз"));
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Sheet title="Тауар қосу" onClose={onClose} busy={submitting}>
-        {err && <div className="mb-4"><ErrorNote>{err}</ErrorNote></div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
+    (<Sheet title={tx("Тауар қосу")} onClose={onClose} busy={submitting}>
+      {err && <div className="mb-4"><ErrorNote>{err}</ErrorNote></div>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-xs text-text-muted mb-1.5">{tx("Атауы *")}</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="field !py-2.5"
+            placeholder={tx("Мысалы: Май сүзгісі")}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-text-muted mb-1.5">Атауы *</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="field !py-2.5"
-              placeholder="Мысалы: Май сүзгісі"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-text-muted mb-1.5">Сату бағасы мин (₸)</label>
-              <input
-                type="number"
-                min="1"
-                step="1"
-                value={salePriceMin}
-                onChange={(e) => setSalePriceMin(e.target.value)}
-                className="field !py-2.5"
-                placeholder="Сома"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-text-muted mb-1.5">Сату бағасы макс (₸)</label>
-              <input
-                type="number"
-                min="1"
-                step="1"
-                value={salePriceMax}
-                onChange={(e) => setSalePriceMax(e.target.value)}
-                className="field !py-2.5"
-                placeholder="Сома"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs text-text-muted mb-1.5">Бастапқы саны</label>
+            <label className="block text-xs text-text-muted mb-1.5">{tx("Сату бағасы мин (₸)")}</label>
             <input
               type="number"
-              min="0"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              min="1"
+              step="1"
+              value={salePriceMin}
+              onChange={(e) => setSalePriceMin(e.target.value)}
               className="field !py-2.5"
+              placeholder={tx("Сома")}
             />
           </div>
           <div>
-            <label className="block text-xs text-text-muted mb-1.5">Минималды қалдық</label>
+            <label className="block text-xs text-text-muted mb-1.5">{tx("Сату бағасы макс (₸)")}</label>
             <input
               type="number"
-              min="0"
-              value={minQuantity}
-              onChange={(e) => setMinQuantity(e.target.value)}
+              min="1"
+              step="1"
+              value={salePriceMax}
+              onChange={(e) => setSalePriceMax(e.target.value)}
               className="field !py-2.5"
-              placeholder="Бос қалдыруға болады"
+              placeholder={tx("Сома")}
             />
           </div>
-          <div>
-            <label className="block text-xs text-text-muted mb-1.5">Өлшем бірлігі</label>
-            <input
-              type="text"
-              value={unit}
-              onChange={(e) => setUnit(e.target.value)}
-              className="field !py-2.5"
-              placeholder="дана, л, кг..."
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn-primary w-full"
-          >
-            {submitting ? 'Сақталуда...' : 'Қосу'}
-          </button>
-        </form>
-    </Sheet>
+        </div>
+        <div>
+          <label className="block text-xs text-text-muted mb-1.5">{tx("Бастапқы саны")}</label>
+          <input
+            type="number"
+            min="0"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            className="field !py-2.5"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-text-muted mb-1.5">{tx("Минималды қалдық")}</label>
+          <input
+            type="number"
+            min="0"
+            value={minQuantity}
+            onChange={(e) => setMinQuantity(e.target.value)}
+            className="field !py-2.5"
+            placeholder={tx("Бос қалдыруға болады")}
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-text-muted mb-1.5">{tx("Өлшем бірлігі")}</label>
+          <input
+            type="text"
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+            className="field !py-2.5"
+            placeholder={tx("дана, л, кг...")}
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="btn-primary w-full"
+        >
+          {submitting ? tx("Сақталуда...") : tx("Қосу")}
+        </button>
+      </form>
+    </Sheet>)
   );
 }
 
@@ -330,11 +333,11 @@ function MovementModal({ item, type, onClose, onSaved }) {
     setErr('');
     const q = Number(quantity);
     if (!Number.isInteger(q) || q <= 0) {
-      setErr('Саны 0-ден үлкен бүтін сан болуы керек');
+      setErr(tx("Саны 0-ден үлкен бүтін сан болуы керек"));
       return;
     }
     if (!isIn && q > item.quantity) {
-      setErr('Қалдық жеткіліксіз. Қалдық: ' + item.quantity);
+      setErr(tx("Қалдық жеткіліксіз. Қалдық: ") + item.quantity);
       return;
     }
     setSubmitting(true);
@@ -347,65 +350,65 @@ function MovementModal({ item, type, onClose, onSaved }) {
       });
       onSaved();
     } catch (e) {
-      setErr(e.message || 'Сәтсіз');
+      setErr(e.message || tx("Сәтсіз"));
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Sheet title={isIn ? 'Қоймаға қосу' : 'Шығару'} onClose={onClose} busy={submitting}>
-        <div className="flex items-center justify-between rounded-xl bg-raised/50 px-3.5 py-3 mb-4 -mt-1">
-          <span className="text-ink text-sm font-medium">{item.name}</span>
-          <span className="text-text-muted text-xs tabular-nums">Қалды: {item.quantity}</span>
-        </div>
-        {err && <div className="mb-4"><ErrorNote>{err}</ErrorNote></div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-text-muted mb-4 text-center">Саны</label>
-            <div className="flex items-center justify-center gap-6">
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => Math.max(1, (q || 1) - 1))}
-                className="w-14 h-14 rounded-2xl bg-raised text-ink flex items-center justify-center border border-border-color active:scale-95"
-              >
-                <span className="material-symbols-outlined text-2xl">remove</span>
-              </button>
-              <input
-                type="number"
-                min="1"
-                max={isIn ? undefined : item.quantity}
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className={`w-24 text-center bg-transparent border-b-2 p-2 text-3xl font-bold text-ink focus:outline-none ${isIn ? 'border-primary focus:border-primary' : 'border-status-danger focus:border-status-danger'}`}
-              />
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => (q || 0) + 1)}
-                className="w-14 h-14 rounded-2xl bg-raised text-ink flex items-center justify-center border border-border-color active:scale-95"
-              >
-                <span className="material-symbols-outlined text-2xl">add</span>
-              </button>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs text-text-muted mb-1.5">Ескерту (міндетті емес)</label>
+    (<Sheet title={isIn ? tx("Қоймаға қосу") : tx("Шығару")} onClose={onClose} busy={submitting}>
+      <div className="flex items-center justify-between rounded-xl bg-raised/50 px-3.5 py-3 mb-4 -mt-1">
+        <span className="text-ink text-sm font-medium">{item.name}</span>
+        <span className="text-text-muted text-xs tabular-nums">{tx("Қалды:")} {item.quantity}</span>
+      </div>
+      {err && <div className="mb-4"><ErrorNote>{err}</ErrorNote></div>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-text-muted mb-4 text-center">{tx("Саны")}</label>
+          <div className="flex items-center justify-center gap-6">
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, (q || 1) - 1))}
+              className="w-14 h-14 rounded-2xl bg-raised text-ink flex items-center justify-center border border-border-color active:scale-95"
+            >
+              <span className="material-symbols-outlined text-2xl">remove</span>
+            </button>
             <input
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="field !py-2.5"
-              placeholder="Мысалы: Закуп, шығару себебі"
+              type="number"
+              min="1"
+              max={isIn ? undefined : item.quantity}
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              className={`w-24 text-center bg-transparent border-b-2 p-2 text-3xl font-bold text-ink focus:outline-none ${isIn ? 'border-primary focus:border-primary' : 'border-status-danger focus:border-status-danger'}`}
             />
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => (q || 0) + 1)}
+              className="w-14 h-14 rounded-2xl bg-raised text-ink flex items-center justify-center border border-border-color active:scale-95"
+            >
+              <span className="material-symbols-outlined text-2xl">add</span>
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`btn w-full py-4 text-base text-on-primary ${isIn ? 'bg-primary' : 'bg-danger'}`}
-          >
-            {submitting ? 'Жіберілуде...' : isIn ? 'Қосу' : 'Шығару'}
-          </button>
-        </form>
-    </Sheet>
+        </div>
+        <div>
+          <label className="block text-xs text-text-muted mb-1.5">{tx("Ескерту (міндетті емес)")}</label>
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            className="field !py-2.5"
+            placeholder={tx("Мысалы: Закуп, шығару себебі")}
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={submitting}
+          className={`btn w-full py-4 text-base text-on-primary ${isIn ? 'bg-primary' : 'bg-danger'}`}
+        >
+          {submitting ? tx("Жіберілуде...") : isIn ? tx("Қосу") : tx("Шығару")}
+        </button>
+      </form>
+    </Sheet>)
   );
 }

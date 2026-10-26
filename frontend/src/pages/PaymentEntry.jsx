@@ -5,10 +5,12 @@ import DoorSidePicker from '../components/DoorSidePicker';
 import { PageHeader, Loading, ErrorNote, CheckRow } from '../components/ui';
 import { clockTime, money } from '../lib/dates';
 
+import { tx, txData } from '../i18n/index.js';
+
 const PAYMENT_TYPES = [
-  { value: 'cash', label: 'Қолма-қол', icon: 'payments' },
+  { value: 'cash', label: tx("Қолма-қол"), icon: 'payments' },
   { value: 'kaspipay', label: 'Kaspi', icon: 'qr_code_2', accent: true },
-  { value: 'mixed', label: 'Аралас', icon: 'account_balance' },
+  { value: 'mixed', label: tx("Аралас"), icon: 'account_balance' },
 ];
 
 export default function PaymentEntry() {
@@ -46,7 +48,7 @@ export default function PaymentEntry() {
         }
       })
       .catch((err) => {
-        if (!cancelled) setError(err.message || 'Жүктеу сәтсіз');
+        if (!cancelled) setError(err.message || tx("Жүктеу сәтсіз"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -82,7 +84,10 @@ export default function PaymentEntry() {
     } else {
       const raw = addPartUnitPrice === '' ? NaN : Number(addPartUnitPrice);
       if (!Number.isFinite(raw) || raw < min || raw > max) {
-        setAddPartPriceError(`Баға ${min.toLocaleString()}–${max.toLocaleString()} аралығында болуы керек`);
+        setAddPartPriceError(tx(
+          "Баға {0}–{1} аралығында болуы керек",
+          [min.toLocaleString(), max.toLocaleString()]
+        ));
         return;
       }
       unitPrice = raw;
@@ -127,19 +132,17 @@ export default function PaymentEntry() {
       });
       navigate(`/booking/${id}/done`, { replace: true, state: { booking: updated } });
     } catch (err) {
-      setError(err.message || 'Сақтау сәтсіз');
+      setError(err.message || tx("Сақтау сәтсіз"));
     } finally {
       setSubmitting(false);
     }
   };
 
   if (loading || !booking) {
-    return (
-      <>
-        <PageHeader title="Төлем енгізу" />
-        <Loading />
-      </>
-    );
+    return (<>
+      <PageHeader title={tx("Төлем енгізу")} />
+      <Loading />
+    </>);
   }
   if (booking.status !== 'in_progress') {
     navigate(`/booking/${id}`, { replace: true });
@@ -150,14 +153,17 @@ export default function PaymentEntry() {
   const total = (Number(servicePaymentAmount) || 0) + partsTotal;
 
   return (
-    <div className="flex flex-col min-h-full">
-      <PageHeader title="Төлем енгізу" subtitle={`${booking.vehicle_name} · басталды ${clockTime(booking.started_at)}`} />
+    (<div className="flex flex-col min-h-full">
+      <PageHeader title={tx("Төлем енгізу")} subtitle={tx(
+        "{0} · басталды {1}",
+        [booking.vehicle_name, clockTime(booking.started_at)]
+      )} />
       <form id="payment-form" onSubmit={handleSubmit} className="flex-1 px-4 pt-4 pb-48 space-y-4">
         <ErrorNote>{error}</ErrorNote>
 
         <section className="card p-4 space-y-4">
           <div>
-            <label className="section-label block mb-2" htmlFor="pay-amount">Қызмет үшін төлем</label>
+            <label className="section-label block mb-2" htmlFor="pay-amount">{tx("Қызмет үшін төлем")}</label>
             <div className="relative">
               <input
                 id="pay-amount"
@@ -174,7 +180,7 @@ export default function PaymentEntry() {
             </div>
           </div>
           <div>
-            <span className="section-label block mb-2">Төлем түрі</span>
+            <span className="section-label block mb-2">{tx("Төлем түрі")}</span>
             <div className="grid grid-cols-3 gap-2">
               {PAYMENT_TYPES.map((pt) => {
                 const on = paymentType === pt.value;
@@ -194,7 +200,7 @@ export default function PaymentEntry() {
             </div>
           </div>
           <div>
-            <label className="section-label block mb-2" htmlFor="pay-material">Материал шығыны <span className="font-normal text-faint">(қосымша)</span></label>
+            <label className="section-label block mb-2" htmlFor="pay-material">{tx("Материал шығыны")} <span className="font-normal text-faint">{tx("(қосымша)")}</span></label>
             <div className="relative">
               <input
                 id="pay-material"
@@ -209,12 +215,12 @@ export default function PaymentEntry() {
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted">₸</span>
             </div>
-            <p className="text-faint text-xs mt-1.5">Жұмыс барысында қолданылған шығын материалдарының құны.</p>
+            <p className="text-faint text-xs mt-1.5">{tx("Жұмыс барысында қолданылған шығын материалдарының құны.")}</p>
           </div>
         </section>
 
         <section className="card p-4 space-y-3">
-          <h2 className="section-label">Сатылған бөлшектер</h2>
+          <h2 className="section-label">{tx("Сатылған бөлшектер")}</h2>
           {partSales.length > 0 && (
             <ul className="divide-y divide-border-color/70 -mx-1">
               {partSales.map((p) => (
@@ -224,7 +230,7 @@ export default function PaymentEntry() {
                     <div className="text-text-muted text-xs tabular-nums">{money(p.unit_price)} × {p.quantity}</div>
                   </div>
                   <span className="text-ink text-sm font-semibold tabular-nums">{money(p.unit_price * p.quantity)}</span>
-                  <button type="button" onClick={() => removePartSale(p.inventory_item_id)} className="icon-btn w-8 h-8 hover:!text-danger" aria-label="Жою">
+                  <button type="button" onClick={() => removePartSale(p.inventory_item_id)} className="icon-btn w-8 h-8 hover:!text-danger" aria-label={tx("Жою")}>
                     <span className="material-symbols-outlined text-[18px]">delete</span>
                   </button>
                 </li>
@@ -240,18 +246,17 @@ export default function PaymentEntry() {
             }}
             className="field !py-2.5 text-sm"
           >
-            <option value="">Бөлшек таңдаңыз</option>
+            <option value="">{tx("Бөлшек таңдаңыз")}</option>
             {items.map((i) => (
-              <option key={i.id} value={i.id}>{i.name}{i.quantity != null ? ` (қалд. ${i.quantity})` : ''}</option>
+              <option key={i.id} value={i.id}>{i.name}{i.quantity != null ? tx(" (қалд. {0})", [i.quantity]) : ''}</option>
             ))}
           </select>
           {items.length === 0 && !loading && (
-            <p className="text-text-muted text-xs">Қоймада бөлшектер жоқ. Алдымен Қойма бөлімінен бөлшек қосыңыз.</p>
+            <p className="text-text-muted text-xs">{tx("Қоймада бөлшектер жоқ. Алдымен Қойма бөлімінен бөлшек қосыңыз.")}</p>
           )}
           {selectedItem && (
             <div className="rounded-xl bg-raised/50 p-3 space-y-2.5">
-              <p className="text-text-muted text-xs">
-                Баға: <span className="text-ink tabular-nums">{minP === maxP ? money(minP) : `${minP.toLocaleString('ru-RU')}–${maxP.toLocaleString('ru-RU')} ₸`}</span>
+              <p className="text-text-muted text-xs">{tx("Баға:")} <span className="text-ink tabular-nums">{minP === maxP ? money(minP) : `${minP.toLocaleString('ru-RU')}–${maxP.toLocaleString('ru-RU')} ₸`}</span>
               </p>
               {!isFixedPrice && (
                 <>
@@ -274,15 +279,13 @@ export default function PaymentEntry() {
               )}
               <div className="flex items-center gap-2">
                 <div className="flex items-center rounded-xl border border-border-color bg-card-bg">
-                  <button type="button" onClick={() => setAddPartQty(Math.max(1, addPartQty - 1))} className="w-10 h-10 text-ink text-lg" aria-label="Азайту">−</button>
+                  <button type="button" onClick={() => setAddPartQty(Math.max(1, addPartQty - 1))} className="w-10 h-10 text-ink text-lg" aria-label={tx("Азайту")}>−</button>
                   <span className="w-8 text-center text-ink font-semibold tabular-nums">{addPartQty}</span>
-                  <button type="button" onClick={() => setAddPartQty(addPartQty + 1)} className="w-10 h-10 text-ink text-lg" aria-label="Көбейту">+</button>
+                  <button type="button" onClick={() => setAddPartQty(addPartQty + 1)} className="w-10 h-10 text-ink text-lg" aria-label={tx("Көбейту")}>+</button>
                 </div>
-                <span className="text-text-muted text-sm">дана</span>
+                <span className="text-text-muted text-sm">{tx("дана")}</span>
                 <button type="button" onClick={addPartSale} className="ml-auto btn bg-primary/15 text-primary px-4 py-2.5 text-sm">
-                  <span className="material-symbols-outlined text-lg">add</span>
-                  Қосу
-                </button>
+                  <span className="material-symbols-outlined text-lg">add</span>{tx("Қосу")}</button>
               </div>
             </div>
           )}
@@ -290,15 +293,15 @@ export default function PaymentEntry() {
 
         {booking.services?.length > 0 && (
           <section className="card p-4">
-            <h2 className="section-label mb-1">Кепілдік (3 ай)</h2>
-            <p className="text-faint text-xs mb-3">Кепілдік берілетін қызметтерді белгілеңіз.</p>
+            <h2 className="section-label mb-1">{tx("Кепілдік (3 ай)")}</h2>
+            <p className="text-faint text-xs mb-3">{tx("Кепілдік берілетін қызметтерді белгілеңіз.")}</p>
             <div className="space-y-2">
               {booking.services.map((s) => (
                 <CheckRow
                   key={s.service_catalog_id}
                   checked={warrantyServiceIds.includes(s.service_catalog_id)}
                   onChange={() => toggleWarranty(s.service_catalog_id)}
-                  label={s.service_name}
+                  label={txData(s.service_name)}
                   icon="verified_user"
                 />
               ))}
@@ -308,12 +311,12 @@ export default function PaymentEntry() {
 
         {booking.services?.some((s) => s.id) && (
           <section className="card p-4">
-            <h2 className="section-label mb-1">Есік <span className="font-normal text-faint">(қажет болса)</span></h2>
-            <p className="text-faint text-xs mb-3">Бір жағын таңдасаңыз — 1 есік, екеуін де таңдасаңыз — екі есік.</p>
+            <h2 className="section-label mb-1">{tx("Есік")} <span className="font-normal text-faint">{tx("(қажет болса)")}</span></h2>
+            <p className="text-faint text-xs mb-3">{tx("Бір жағын таңдасаңыз — 1 есік, екеуін де таңдасаңыз — екі есік.")}</p>
             <div className="space-y-3">
               {booking.services.filter((s) => s.id).map((s) => (
                 <div key={s.id} className="space-y-2">
-                  <div className="text-ink text-sm">{s.service_name}</div>
+                  <div className="text-ink text-sm">{txData(s.service_name)}</div>
                   <DoorSidePicker
                     value={doorSides[s.id] ?? null}
                     onChange={(side) => setDoorSides((prev) => ({ ...prev, [s.id]: side }))}
@@ -325,7 +328,7 @@ export default function PaymentEntry() {
         )}
 
         <section className="card p-4">
-          <h2 className="section-label mb-3">Қай шебер(лер) жұмыс жасады?</h2>
+          <h2 className="section-label mb-3">{tx("Қай шебер(лер) жұмыс жасады?")}</h2>
           <div className="flex flex-wrap gap-2">
             {workers.map((w) => {
               const on = selectedMasterIds.includes(w.id);
@@ -342,14 +345,13 @@ export default function PaymentEntry() {
                 </button>
               );
             })}
-            {workers.length === 0 && <p className="text-text-muted text-xs">Шеберлер тізімі бос</p>}
+            {workers.length === 0 && <p className="text-text-muted text-xs">{tx("Шеберлер тізімі бос")}</p>}
           </div>
         </section>
       </form>
-
       <div className="fixed left-0 right-0 bottom-[76px] z-20 px-4 pt-3 pb-3 bg-gradient-to-t from-bg-main via-bg-main/95 to-bg-main/0">
         <div className="flex items-center justify-between text-sm mb-2 px-1">
-          <span className="text-text-muted">Барлығы{partsTotal > 0 ? ' (бөлшектермен)' : ''}</span>
+          <span className="text-text-muted">{tx("Барлығы")}{partsTotal > 0 ? tx(" (бөлшектермен)") : ''}</span>
           <span className="text-ink font-bold text-lg tabular-nums">{money(total)}</span>
         </div>
         <button
@@ -359,9 +361,9 @@ export default function PaymentEntry() {
           className="btn-primary w-full text-base"
         >
           <span className="material-symbols-outlined">task_alt</span>
-          {submitting ? 'Сақталуда...' : 'Аяқтау'}
+          {submitting ? tx("Сақталуда...") : tx("Аяқтау")}
         </button>
       </div>
-    </div>
+    </div>)
   );
 }

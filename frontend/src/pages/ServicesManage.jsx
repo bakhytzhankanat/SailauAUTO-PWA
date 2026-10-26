@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getServiceCategoriesWithServices, getServiceCategories, getVehicleCatalog, createServiceCatalogItem, deleteServiceCatalogItem } from '../lib/api';
 
+import { tx, txData } from '../i18n/index.js';
+
 export default function ServicesManage() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
@@ -33,7 +35,7 @@ export default function ServicesManage() {
 
   const handleAdd = async () => {
     if (!form.category_id || !form.name.trim()) {
-      setError('Категория мен атауды толтырыңыз');
+      setError(tx("Категория мен атауды толтырыңыз"));
       return;
     }
     setSubmitting(true);
@@ -57,7 +59,7 @@ export default function ServicesManage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Жоюға сенімдісіз бе?')) return;
+    if (!confirm(tx("Жоюға сенімдісіз бе?"))) return;
     setDeleting(id);
     try {
       await deleteServiceCatalogItem(id);
@@ -78,21 +80,20 @@ export default function ServicesManage() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <p className="text-text-muted">Жүктелуде...</p>
-      </div>
+      (<div className="p-6">
+        <p className="text-text-muted">{tx("Жүктелуде...")}</p>
+      </div>)
     );
   }
 
   return (
-    <div className="flex flex-col min-h-full">
+    (<div className="flex flex-col min-h-full">
       <header className="px-4 py-4 flex items-center gap-3 bg-bg-main border-b border-border-color sticky top-0 z-10">
         <button type="button" onClick={() => navigate(-1)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-card-bg">
           <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>
-        <h1 className="text-lg font-bold text-ink">Қызметтер басқару</h1>
+        <h1 className="text-lg font-bold text-ink">{tx("Қызметтер басқару")}</h1>
       </header>
-
       <main className="flex-1 overflow-y-auto px-4 py-4 pb-32 space-y-4">
         {error && (
           <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>
@@ -101,16 +102,16 @@ export default function ServicesManage() {
         {categories.map((cat) => (
           <section key={cat.id} className="card overflow-hidden">
             <div className="px-4 py-3 border-b border-border-color">
-              <h2 className="text-ink font-semibold text-sm">{cat.name}</h2>
-              <span className="text-text-muted text-xs">{cat.services?.length || 0} қызмет</span>
+              <h2 className="text-ink font-semibold text-sm">{txData(cat.name)}</h2>
+              <span className="text-text-muted text-xs">{cat.services?.length || 0} {tx("қызмет")}</span>
             </div>
             <div className="divide-y divide-border-color">
               {(cat.services || []).map((s) => (
                 <div key={s.id} className="px-4 py-3 flex items-center justify-between">
                   <div>
-                    <div className="text-ink text-sm">{s.name}</div>
-                    {s.subgroup && <div className="text-text-muted text-xs">{s.subgroup}</div>}
-                    {s.warranty_mode && <span className="text-xs text-warn">Гарантия</span>}
+                    <div className="text-ink text-sm">{txData(s.name)}</div>
+                    {s.subgroup && <div className="text-text-muted text-xs">{txData(s.subgroup)}</div>}
+                    {s.warranty_mode && <span className="text-xs text-warn">{tx("Гарантия")}</span>}
                   </div>
                   <button
                     type="button"
@@ -123,7 +124,7 @@ export default function ServicesManage() {
                 </div>
               ))}
               {(!cat.services || cat.services.length === 0) && (
-                <div className="px-4 py-3 text-text-muted text-sm">Қызметтер жоқ</div>
+                <div className="px-4 py-3 text-text-muted text-sm">{tx("Қызметтер жоқ")}</div>
               )}
             </div>
           </section>
@@ -131,16 +132,16 @@ export default function ServicesManage() {
 
         {showAdd && (
           <section className="bg-card-bg rounded-xl border border-primary/30 p-4 space-y-4">
-            <h2 className="text-ink font-semibold text-sm">Жаңа қызмет қосу</h2>
+            <h2 className="text-ink font-semibold text-sm">{tx("Жаңа қызмет қосу")}</h2>
 
             <div>
-              <label className="text-xs text-text-muted block mb-1">Категория *</label>
+              <label className="text-xs text-text-muted block mb-1">{tx("Категория *")}</label>
               <select
                 value={form.category_id}
                 onChange={(e) => setForm((p) => ({ ...p, category_id: e.target.value }))}
                 className="field !py-2.5 text-sm"
               >
-                <option value="">Таңдаңыз</option>
+                <option value="">{tx("Таңдаңыз")}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -148,24 +149,24 @@ export default function ServicesManage() {
             </div>
 
             <div>
-              <label className="text-xs text-text-muted block mb-1">Қызмет атауы *</label>
+              <label className="text-xs text-text-muted block mb-1">{tx("Қызмет атауы *")}</label>
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                 className="field !py-2.5 text-sm"
-                placeholder="Мысалы: Полировка"
+                placeholder={tx("Мысалы: Полировка")}
               />
             </div>
 
             <div>
-              <label className="text-xs text-text-muted block mb-1">Ішкі топ (қосымша)</label>
+              <label className="text-xs text-text-muted block mb-1">{tx("Ішкі топ (қосымша)")}</label>
               <input
                 type="text"
                 value={form.subgroup}
                 onChange={(e) => setForm((p) => ({ ...p, subgroup: e.target.value }))}
                 className="field !py-2.5 text-sm"
-                placeholder="Мысалы: Дири"
+                placeholder={tx("Мысалы: Дири")}
               />
             </div>
 
@@ -177,13 +178,13 @@ export default function ServicesManage() {
                   onChange={(e) => setForm((p) => ({ ...p, allVehicles: e.target.checked, vehicle_ids: [] }))}
                   className="w-5 h-5 rounded accent-[rgb(var(--primary))]"
                 />
-                <span className="text-ink text-sm">Барлық көліктерге</span>
+                <span className="text-ink text-sm">{tx("Барлық көліктерге")}</span>
               </label>
             </div>
 
             {!form.allVehicles && (
               <div className="space-y-2">
-                <label className="text-xs text-text-muted block">Қай көліктерге:</label>
+                <label className="text-xs text-text-muted block">{tx("Қай көліктерге:")}</label>
                 <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
                   {vehicles.map((v) => (
                     <label key={v.id} className="flex items-center gap-2 p-2 rounded-lg border border-border-color bg-bg-main cursor-pointer text-sm">
@@ -207,20 +208,17 @@ export default function ServicesManage() {
                 disabled={submitting}
                 className="flex-1 bg-primary text-on-primary font-semibold py-3 rounded-xl disabled:opacity-50"
               >
-                {submitting ? 'Сақталуда...' : 'Қосу'}
+                {submitting ? tx("Сақталуда...") : tx("Қосу")}
               </button>
               <button
                 type="button"
                 onClick={() => setShowAdd(false)}
                 className="px-4 py-3 rounded-xl border border-border-color text-text-muted"
-              >
-                Болдырмау
-              </button>
+              >{tx("Болдырмау")}</button>
             </div>
           </section>
         )}
       </main>
-
       {!showAdd && (
         <div className="fixed bottom-[92px] right-4 z-40">
           <button
@@ -228,11 +226,9 @@ export default function ServicesManage() {
             onClick={() => setShowAdd(true)}
             className="bg-primary text-on-primary font-semibold px-6 py-4 rounded-full shadow-2xl shadow-primary/40 flex items-center gap-2"
           >
-            <span className="material-symbols-outlined">add</span>
-            Қызмет қосу
-          </button>
+            <span className="material-symbols-outlined">add</span>{tx("Қызмет қосу")}</button>
         </div>
       )}
-    </div>
+    </div>)
   );
 }

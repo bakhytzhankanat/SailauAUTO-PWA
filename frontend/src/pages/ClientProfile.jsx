@@ -5,7 +5,9 @@ import { getClient, getClientVisits, getClientWarranties } from '../lib/api';
 import { longDate } from '../lib/dates';
 import { DOOR_SIDE_LABELS } from '../lib/doorSide';
 
-const SOURCE_LABEL = { whatsapp: 'WhatsApp', live: 'Жиі' };
+import { tx, txData } from '../i18n/index.js';
+
+const SOURCE_LABEL = { whatsapp: 'WhatsApp', live: tx("Жиі") };
 
 function formatDate(s) {
   return longDate(s) || '—';
@@ -31,7 +33,7 @@ export default function ClientProfile() {
   const isWorker = user?.role === 'worker' && user?.is_senior_worker !== true;
   useEffect(() => {
     if (isWorker) {
-      navigate('/', { replace: true, state: { message: 'Клиенттерге рұқсат жоқ.' } });
+      navigate('/', { replace: true, state: { message: tx("Клиенттерге рұқсат жоқ.") } });
       return;
     }
   }, [isWorker, navigate]);
@@ -51,39 +53,39 @@ export default function ClientProfile() {
           setWarranties(Array.isArray(w) ? w : []);
           setError('');
         } else {
-          setError(profileRes.reason?.message || visitsRes.reason?.message || 'Жүктеу сәтсіз');
+          setError(profileRes.reason?.message || visitsRes.reason?.message || tx("Жүктеу сәтсіз"));
         }
       })
-      .catch((e) => setError(e?.message || 'Жүктеу сәтсіз'))
+      .catch((e) => setError(e?.message || tx("Жүктеу сәтсіз")))
       .finally(() => setLoading(false));
   }, [id, isWorker]);
 
   if (isWorker) return null;
   if (loading || !data) {
     return (
-      <div className="p-4">
-        <p className="text-text-muted">{loading ? 'Жүктелуде...' : 'Клиент табылмады'}</p>
-      </div>
+      (<div className="p-4">
+        <p className="text-text-muted">{loading ? tx("Жүктелуде...") : tx("Клиент табылмады")}</p>
+      </div>)
     );
   }
   if (error) {
     return (
-      <div className="p-4">
+      (<div className="p-4">
         <p className="text-danger">{error}</p>
-        <button type="button" onClick={() => navigate(-1)} className="mt-2 text-primary">Артқа</button>
-      </div>
+        <button type="button" onClick={() => navigate(-1)} className="mt-2 text-primary">{tx("Артқа")}</button>
+      </div>)
     );
   }
 
   const { client, stats } = data;
 
   return (
-    <div className="flex flex-col min-h-full">
+    (<div className="flex flex-col min-h-full">
       <header className="px-4 py-4 border-b border-border-color bg-bg-main sticky top-0 z-10 flex items-center gap-2">
         <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
           <span className="material-symbols-outlined text-text-muted">arrow_back</span>
         </button>
-        <h1 className="text-lg font-bold text-ink">Клиент</h1>
+        <h1 className="text-lg font-bold text-ink">{tx("Клиент")}</h1>
       </header>
       <main className="flex-1 overflow-y-auto p-4 pb-24">
         <div className="card p-4 mb-4">
@@ -99,11 +101,11 @@ export default function ClientProfile() {
         <div className="flex gap-4 mb-6">
           <div className="flex-1 card p-3 text-center">
             <div className="text-2xl font-bold text-primary">{stats.total_visits}</div>
-            <div className="text-xs text-text-muted">келу саны</div>
+            <div className="text-xs text-text-muted">{tx("келу саны")}</div>
           </div>
           <div className="flex-1 card p-3 text-center">
             <div className="text-lg font-bold text-ink">{stats.last_visit_date ? formatDate(stats.last_visit_date) : '—'}</div>
-            <div className="text-xs text-text-muted">соңғы келу</div>
+            <div className="text-xs text-text-muted">{tx("соңғы келу")}</div>
           </div>
         </div>
 
@@ -112,22 +114,18 @@ export default function ClientProfile() {
             type="button"
             onClick={() => setTab('visits')}
             className={`flex-1 py-2 text-sm font-medium rounded-md ${tab === 'visits' ? 'bg-card-bg text-ink' : 'text-text-muted'}`}
-          >
-            Тарих
-          </button>
+          >{tx("Тарих")}</button>
           <button
             type="button"
             onClick={() => setTab('warranties')}
             className={`flex-1 py-2 text-sm font-medium rounded-md ${tab === 'warranties' ? 'bg-card-bg text-ink' : 'text-text-muted'}`}
-          >
-            Кепілдік
-          </button>
+          >{tx("Кепілдік")}</button>
         </div>
 
         {tab === 'visits' && (
           <div className="space-y-3">
             {visits.length === 0 ? (
-              <p className="text-text-muted text-sm">Келулер тізімі бос</p>
+              <p className="text-text-muted text-sm">{tx("Келулер тізімі бос")}</p>
             ) : (
               visits.map((v) => (
                 <button
@@ -142,11 +140,11 @@ export default function ClientProfile() {
                   </div>
                   <div className="text-sm text-text-muted mt-1">{v.vehicle_name} {v.plate_number && `• ${v.plate_number}`}</div>
                   <div className="text-xs text-text-muted mt-1">
-                    {v.services?.map((s) => (s.door_side ? `${s.service_name} (${DOOR_SIDE_LABELS[s.door_side]})` : s.service_name)).join(', ')}
+                    {v.services?.map((s) => (s.door_side ? `${txData(s.service_name)} (${DOOR_SIDE_LABELS[s.door_side]})` : txData(s.service_name))).join(', ')}
                   </div>
                   <div className="flex gap-4 mt-2 text-xs">
                     {v.service_payment_amount != null && <span>{Number(v.service_payment_amount).toLocaleString()} ₸</span>}
-                    {v.part_sales_total_for_booking > 0 && <span>Бөлшек: {v.part_sales_total_for_booking.toLocaleString()} ₸</span>}
+                    {v.part_sales_total_for_booking > 0 && <span>{tx("Бөлшек:")} {v.part_sales_total_for_booking.toLocaleString()}₸</span>}
                   </div>
                 </button>
               ))
@@ -157,7 +155,7 @@ export default function ClientProfile() {
         {tab === 'warranties' && (
           <div className="space-y-3">
             {warranties.length === 0 ? (
-              <p className="text-text-muted text-sm">Кепілдік жоқ</p>
+              <p className="text-text-muted text-sm">{tx("Кепілдік жоқ")}</p>
             ) : (
               warranties.map((w) => (
                 <div
@@ -165,16 +163,15 @@ export default function ClientProfile() {
                   className="card p-4"
                 >
                   <div className="flex justify-between items-start">
-                    <span className="font-medium text-ink">{w.service_name}</span>
+                    <span className="font-medium text-ink">{txData(w.service_name)}</span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded ${w.status === 'active' ? 'bg-status-completed/20 text-status-completed' : 'bg-status-no-show/20 text-status-no-show'}`}>
-                      {w.status === 'active' ? 'Белсенді' : 'Бітті'}
+                      {w.status === 'active' ? tx("Белсенді") : tx("Бітті")}
                     </span>
                   </div>
-                  <div className="text-text-muted text-xs mt-2">
-                    Аяқталды: {formatDate(w.completed_at)} • Бітуі: {formatDate(w.expires_at)}
+                  <div className="text-text-muted text-xs mt-2">{tx("Аяқталды:")} {formatDate(w.completed_at)} {tx("• Бітуі:")} {formatDate(w.expires_at)}
                   </div>
                   {w.master_name && (
-                    <div className="text-text-muted text-xs mt-1">Шебер: {w.master_name}</div>
+                    <div className="text-text-muted text-xs mt-1">{tx("Шебер:")} {w.master_name}</div>
                   )}
                 </div>
               ))
@@ -182,6 +179,6 @@ export default function ClientProfile() {
           </div>
         )}
       </main>
-    </div>
+    </div>)
   );
 }

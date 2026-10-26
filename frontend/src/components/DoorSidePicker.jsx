@@ -1,14 +1,15 @@
 import { toggleDoorSide } from '../lib/doorSide';
+import { tx } from '../i18n/index.js';
 
 const SIDES = [
-  { value: 'left', label: 'Сол жақ' },
-  { value: 'right', label: 'Оң жақ' },
+  { value: 'left', label: tx("Сол жақ") },
+  { value: 'right', label: tx("Оң жақ") },
 ];
 
 /** Optional door choice: one side, or both when both buttons are on. */
 export default function DoorSidePicker({ value, onChange }) {
   return (
-    <div className="flex items-center gap-2">
+    (<div className="flex items-center gap-2">
       {SIDES.map((side) => {
         const active = value === side.value || value === 'both';
         return (
@@ -29,8 +30,8 @@ export default function DoorSidePicker({ value, onChange }) {
         );
       })}
       <span className={`text-[11px] font-medium w-16 text-right ${value === 'both' ? 'text-primary' : 'text-text-muted'}`}>
-        {value === 'both' ? 'Екі есік' : value ? '1 есік' : '—'}
+        {value === 'both' ? tx("Екі есік") : value ? tx("1 есік") : '—'}
       </span>
-    </div>
+    </div>)
   );
 }

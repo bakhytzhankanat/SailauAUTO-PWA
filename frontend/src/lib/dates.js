@@ -1,7 +1,8 @@
+import { tx } from '../i18n/index.js';
 // Kazakh date wording. Browsers render 'kk-KZ' inconsistently ("2026 M10 19"), so names are spelled out here.
-const MONTHS = ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан'];
-const WEEKDAYS = ['жексенбі', 'дүйсенбі', 'сейсенбі', 'сәрсенбі', 'бейсенбі', 'жұма', 'сенбі'];
-const WEEKDAYS_SHORT = ['Жс', 'Дс', 'Сс', 'Ср', 'Бс', 'Жм', 'Сб'];
+const MONTHS = [tx("қаңтар"), tx("ақпан"), tx("наурыз"), tx("сәуір"), tx("мамыр"), tx("маусым"), tx("шілде"), tx("тамыз"), tx("қыркүйек"), tx("қазан"), tx("қараша"), tx("желтоқсан")];
+const WEEKDAYS = [tx("жексенбі"), tx("дүйсенбі"), tx("сейсенбі"), tx("сәрсенбі"), tx("бейсенбі"), tx("жұма"), tx("сенбі")];
+const WEEKDAYS_SHORT = [tx("Жс"), tx("Дс"), tx("Сс"), tx("Ср"), tx("Бс"), tx("Жм"), tx("Сб")];
 
 /** YYYY-MM-DD of the device's local day (toISOString would give yesterday before 05:00 in Kazakhstan). */
 export function localIso(d = new Date()) {

@@ -10,11 +10,12 @@ import {
   clearDoneReminders,
   getInventory,
 } from '../lib/api';
+import { tx } from '../i18n/index.js';
 
 const FILTERS = [
-  { key: 'all', label: 'Барлығы' },
-  { key: 'active', label: 'Белсенді' },
-  { key: 'done', label: 'Орындалды' },
+  { key: 'all', label: tx("Барлығы") },
+  { key: 'active', label: tx("Белсенді") },
+  { key: 'done', label: tx("Орындалды") },
 ];
 
 const PRIORITY_COLOR = {
@@ -24,9 +25,9 @@ const PRIORITY_COLOR = {
 };
 
 const PRIORITY_LABEL = {
-  high: 'Жоғары',
-  medium: 'Орташа',
-  low: 'Төмен',
+  high: tx("Жоғары"),
+  medium: tx("Орташа"),
+  low: tx("Төмен"),
 };
 
 const PRIORITY_TEXT_COLOR = {
@@ -46,11 +47,11 @@ function formatReminderTime(createdAt) {
   const timeStr = clockTime(createdAt);
   if (day.getTime() === today.getTime()) {
     const diffMin = Math.floor((now - d) / 60000);
-    if (diffMin < 1) return 'Жаңа';
-    if (diffMin < 60) return `${diffMin} мин бұрын`;
-    return `Бүгін ${timeStr}`;
+    if (diffMin < 1) return tx("Жаңа");
+    if (diffMin < 60) return tx("{0} мин бұрын", [diffMin]);
+    return tx("Бүгін {0}", [timeStr]);
   }
-  if (day.getTime() === yesterday.getTime()) return `Кеше ${timeStr}`;
+  if (day.getTime() === yesterday.getTime()) return tx("Кеше {0}", [timeStr]);
   return dateTime(createdAt);
 }
 
@@ -70,7 +71,7 @@ export default function Reminders() {
     setError('');
     getReminders(filter)
       .then((data) => setList(Array.isArray(data) ? data : []))
-      .catch((e) => setError(e.message || 'Жүктеу сәтсіз'))
+      .catch((e) => setError(e.message || tx("Жүктеу сәтсіз")))
       .finally(() => setLoading(false));
   }, [filter]);
 
@@ -91,12 +92,12 @@ export default function Reminders() {
   const handleDelete = async (id, r) => {
     const canDelete = user?.role === 'owner' || user?.role === 'manager' || r.created_by_id === user?.id;
     if (!canDelete) return;
-    if (!window.confirm('Ескертпені жойғыңыз келе ме?')) return;
+    if (!window.confirm(tx("Ескертпені жойғыңыз келе ме?"))) return;
     try {
       await deleteReminder(id);
       setList((prev) => prev.filter((item) => item.id !== id));
     } catch (e) {
-      setError(e.message || 'Жою сәтсіз');
+      setError(e.message || tx("Жою сәтсіз"));
     }
   };
 
@@ -107,7 +108,7 @@ export default function Reminders() {
       await clearDoneReminders();
       load();
     } catch (e) {
-      setError(e.message || 'Тазалау сәтсіз');
+      setError(e.message || tx("Тазалау сәтсіз"));
     } finally {
       setClearDoneLoading(false);
     }
@@ -116,17 +117,17 @@ export default function Reminders() {
   const canDelete = (r) => user?.role === 'owner' || user?.role === 'manager' || r.created_by_id === user?.id;
 
   return (
-    <div className="flex flex-col min-h-full">
+    (<div className="flex flex-col min-h-full">
       <header className="px-4 pt-4 pb-4 flex flex-col gap-4 bg-bg-main sticky top-0 z-10 border-b border-border-color">
         <div className="flex justify-between items-center">
-          <h1 className="text-[22px] font-bold text-ink tracking-tight">Ескертпелер</h1>
+          <h1 className="text-[22px] font-bold text-ink tracking-tight">{tx("Ескертпелер")}</h1>
           {canClearDone && (
             <button
               type="button"
               onClick={handleClearDone}
               disabled={clearDoneLoading}
               className="icon-btn bg-card-bg border border-border-color hover:bg-raised disabled:opacity-50"
-              aria-label="Орындалғандарды тазалау"
+              aria-label={tx("Орындалғандарды тазалау")}
             >
               <span className="material-symbols-outlined text-text-muted text-xl">cleaning_services</span>
             </button>
@@ -150,9 +151,9 @@ export default function Reminders() {
       <main className="flex-1 overflow-y-auto p-4 pb-32 space-y-3">
         {error && <p className="text-danger text-sm">{error}</p>}
         {loading ? (
-          <p className="text-text-muted">Жүктелуде...</p>
+          <p className="text-text-muted">{tx("Жүктелуде...")}</p>
         ) : list.length === 0 ? (
-          <p className="text-text-muted">Ескертпелер жоқ</p>
+          <p className="text-text-muted">{tx("Ескертпелер жоқ")}</p>
         ) : (
           list.map((r) => (
             <ReminderCard
@@ -167,7 +168,7 @@ export default function Reminders() {
       </main>
       <button
         type="button"
-        aria-label="Ескертпе қосу"
+        aria-label={tx("Ескертпе қосу")}
         onClick={() => setModalOpen(true)}
         className="fixed bottom-[92px] right-4 w-14 h-14 bg-primary text-on-primary rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center z-20 active:scale-95 transition-transform"
       >
@@ -182,7 +183,7 @@ export default function Reminders() {
           }}
         />
       )}
-    </div>
+    </div>)
   );
 }
 
@@ -190,12 +191,12 @@ function ReminderCard({ reminder, onToggle, onDelete, onGoInventory }) {
   const { title, priority, status, role_label, created_at } = reminder;
   const isDone = status === 'done';
   const stripColor = isDone ? 'bg-faint' : (PRIORITY_COLOR[priority] || 'bg-border-color');
-  const priorityLabel = isDone ? 'Орындалды' : (PRIORITY_LABEL[priority] || priority);
+  const priorityLabel = isDone ? tx("Орындалды") : (PRIORITY_LABEL[priority] || priority);
   const priorityTextCls = isDone ? 'text-text-muted' : (PRIORITY_TEXT_COLOR[priority] || 'text-text-muted');
   const roleBadgeCls = isDone ? 'bg-raised text-text-muted' : 'bg-primary/20 text-primary border border-primary/30';
 
   return (
-    <div className={`bg-card-bg border border-border-color rounded-xl overflow-hidden relative ${isDone ? 'opacity-60' : ''}`}>
+    (<div className={`bg-card-bg border border-border-color rounded-xl overflow-hidden relative ${isDone ? 'opacity-60' : ''}`}>
       <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${stripColor}`} />
       <div className="p-4 pl-5">
         <div className="flex justify-between items-start gap-3 mb-2">
@@ -207,7 +208,7 @@ function ReminderCard({ reminder, onToggle, onDelete, onGoInventory }) {
               type="button"
               onClick={onToggle}
               className="p-1 rounded-full hover:bg-border-color"
-              aria-label={isDone ? 'Белсенді ету' : 'Орындалды деп белгілеу'}
+              aria-label={isDone ? tx("Белсенді ету") : tx("Орындалды деп белгілеу")}
             >
               {isDone ? (
                 <span className="material-symbols-outlined text-primary text-xl">check_circle</span>
@@ -229,9 +230,7 @@ function ReminderCard({ reminder, onToggle, onDelete, onGoInventory }) {
               onClick={onGoInventory}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary text-xs font-medium"
             >
-              <span className="material-symbols-outlined text-sm">inventory_2</span>
-              Қоймаға өту
-            </button>
+              <span className="material-symbols-outlined text-sm">inventory_2</span>{tx("Қоймаға өту")}</button>
           </div>
         )}
         <div className="flex justify-between items-center mt-3 pt-3 border-t border-border-color/50">
@@ -242,7 +241,7 @@ function ReminderCard({ reminder, onToggle, onDelete, onGoInventory }) {
           <span className={`text-xs font-medium ${isDone ? 'text-faint' : 'text-text-muted'}`}>{formatReminderTime(created_at)}</span>
         </div>
       </div>
-    </div>
+    </div>)
   );
 }
 
@@ -264,11 +263,11 @@ function AddReminderModal({ onClose, onSaved }) {
     setError('');
     const t = title.trim();
     if (t.length < 3) {
-      setError('Тақырып 3 таңбадан кем болмауы керек');
+      setError(tx("Тақырып 3 таңбадан кем болмауы керек"));
       return;
     }
     if (t.length > 140) {
-      setError('Тақырып 140 таңбадан аспауы керек');
+      setError(tx("Тақырып 140 таңбадан аспауы керек"));
       return;
     }
     setSubmitting(true);
@@ -281,18 +280,18 @@ function AddReminderModal({ onClose, onSaved }) {
       await createReminder(body);
       onSaved();
     } catch (e) {
-      setError(e.message || 'Сақтау сәтсіз');
+      setError(e.message || tx("Сақтау сәтсіз"));
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    (<div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden />
       <div className="bg-card-bg w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl border-t sm:border border-border-color shadow-2xl relative z-10 p-6 pb-safe max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-ink">Ескертпе қосу</h2>
+          <h2 className="text-xl font-bold text-ink">{tx("Ескертпе қосу")}</h2>
           <button type="button" onClick={onClose} className="p-2 text-text-muted hover:text-ink rounded-full bg-border-color">
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -300,19 +299,19 @@ function AddReminderModal({ onClose, onSaved }) {
         {error && <p className="text-danger text-sm mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-text-muted mb-1">Тақырып *</label>
+            <label className="block text-sm font-medium text-text-muted mb-1">{tx("Тақырып *")}</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={140}
               className="field !py-2.5 placeholder-text-muted"
-              placeholder="Ескертпе мәтіні"
+              placeholder={tx("Ескертпе мәтіні")}
             />
             <p className="text-xs text-text-muted mt-1">{title.length}/140</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-muted mb-2">Приоритет</label>
+            <label className="block text-sm font-medium text-text-muted mb-2">{tx("Приоритет")}</label>
             <div className="flex gap-2">
               {(['high', 'medium', 'low']).map((p) => (
                 <button
@@ -337,7 +336,7 @@ function AddReminderModal({ onClose, onSaved }) {
           <div>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={linkInventory} onChange={(e) => setLinkInventory(e.target.checked)} className="w-5 h-5 rounded accent-[rgb(var(--primary))]" />
-              <span className="text-sm text-ink">Қоймаға қатысты</span>
+              <span className="text-sm text-ink">{tx("Қоймаға қатысты")}</span>
             </label>
             {linkInventory && (
               <select
@@ -345,7 +344,7 @@ function AddReminderModal({ onClose, onSaved }) {
                 onChange={(e) => setInventoryItemId(e.target.value)}
                 className="mt-2 field !py-2.5"
               >
-                <option value="">Тауарды таңдаңыз</option>
+                <option value="">{tx("Тауарды таңдаңыз")}</option>
                 {inventoryItems.map((i) => (
                   <option key={i.id} value={i.id}>{i.name}</option>
                 ))}
@@ -353,10 +352,10 @@ function AddReminderModal({ onClose, onSaved }) {
             )}
           </div>
           <button type="submit" disabled={submitting} className="btn-primary w-full">
-            {submitting ? 'Сақталуда...' : 'Қосу'}
+            {submitting ? tx("Сақталуда...") : tx("Қосу")}
           </button>
         </form>
       </div>
-    </div>
+    </div>)
   );
 }

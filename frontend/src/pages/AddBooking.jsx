@@ -16,6 +16,8 @@ import BrandLogo from '../components/BrandLogo';
 import { Plate } from '../components/ui';
 import { todayIso, longDate, dayMonth, weekday } from '../lib/dates';
 
+import { tx, txData } from '../i18n/index.js';
+
 const STEP_KEYS_BASE = ['client', 'vehicle', 'plate', 'services', 'note', 'summary'];
 /** Old drafts may still hold this placeholder id for "Другое". */
 const OTHER_VEHICLE_ID = '__other__';
@@ -27,13 +29,13 @@ function getStepKeys(selectedVehicle) {
 }
 
 const STEP_TITLES = {
-  client: 'Клиентті таңдау',
-  vehicle: 'Көлік',
-  body: 'Кузов',
-  plate: 'Нөмір белгісі',
-  services: 'Қызмет және уақыт',
-  note: 'Ескерту',
-  summary: 'Қорытынды',
+  client: tx("Клиентті таңдау"),
+  vehicle: tx("Көлік"),
+  body: tx("Кузов"),
+  plate: tx("Нөмір белгісі"),
+  services: tx("Қызмет және уақыт"),
+  note: tx("Ескерту"),
+  summary: tx("Қорытынды"),
 };
 
 function parseHour(str) {
@@ -52,7 +54,7 @@ export default function AddBooking() {
   useEffect(() => {
     const canAdd = user?.role === 'owner' || user?.role === 'manager' || (user?.role === 'worker' && user?.is_senior_worker);
     if (user && !canAdd) {
-      navigate('/', { replace: true, state: { message: 'Жазба қосуға тек иесі, менеджер немесе аға шебер рұқсат етеді.' } });
+      navigate('/', { replace: true, state: { message: tx("Жазба қосуға тек иесі, менеджер немесе аға шебер рұқсат етеді.") } });
     }
   }, [user?.role, user?.is_senior_worker, navigate]);
   const startHour = useMemo(() => parseHour(workingHoursStart), [workingHoursStart]);
@@ -254,7 +256,7 @@ export default function AddBooking() {
     const start = form.start_time;
     const end = form.end_time;
     if (!start || !end || !form.date || !form.box_id || !form.services?.length) {
-      setSubmitError('Қызметтер мен уақытты толтырыңыз');
+      setSubmitError(tx("Қызметтер мен уақытты толтырыңыз"));
       return;
     }
     // "Другое" must be saved as the catalogue's own "Басқа көлік" row, never as another model.
@@ -262,7 +264,9 @@ export default function AddBooking() {
     const isOtherVehicle = form.vehicle_catalog_id === OTHER_VEHICLE_ID || form.vehicle_catalog_id === otherVehicle?.id;
     const vehicleCatalogId = form.vehicle_catalog_id === OTHER_VEHICLE_ID ? otherVehicle?.id : form.vehicle_catalog_id;
     if (!vehicleCatalogId) {
-      setSubmitError('«Басқа көлік» каталогта жоқ. Серверде миграцияны іске қосыңыз (npm run migrate).');
+      setSubmitError(tx(
+        "«Басқа көлік» каталогта жоқ. Серверде миграцияны іске қосыңыз (npm run migrate)."
+      ));
       return;
     }
     setSubmitting(true);
@@ -276,7 +280,7 @@ export default function AddBooking() {
         return s < bEnd && e > bStart;
       });
       if (overlaps.length > 0) {
-        setConflictError('Бокс сол уақытта бос емес');
+        setConflictError(tx("Бокс сол уақытта бос емес"));
         setSubmitting(false);
         return;
       }
@@ -303,7 +307,7 @@ export default function AddBooking() {
       localStorage.removeItem('booking_draft');
       navigate('/', { replace: true });
     } catch (err) {
-      setSubmitError(err.message || 'Жазбаны сақтау сәтсіз');
+      setSubmitError(err.message || tx("Жазбаны сақтау сәтсіз"));
     } finally {
       setSubmitting(false);
     }
@@ -323,17 +327,17 @@ export default function AddBooking() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-bg-main">
+    (<div className="flex flex-col h-full bg-bg-main">
       <header className="sticky top-0 z-20 bg-bg-main/95 backdrop-blur border-b border-border-color/70 shrink-0">
         <div className="flex items-center gap-2 px-3 pt-3 pb-2">
-          <button type="button" onClick={goBack} className="icon-btn -ml-1" aria-label="Артқа">
+          <button type="button" onClick={goBack} className="icon-btn -ml-1" aria-label={tx("Артқа")}>
             <span className="material-symbols-outlined text-ink text-[22px]">arrow_back</span>
           </button>
           <div className="flex-1 min-w-0">
-            <h1 className="page-title">Жаңа жазба</h1>
+            <h1 className="page-title">{tx("Жаңа жазба")}</h1>
             <p className="text-xs text-text-muted">{STEP_TITLES[currentStep]}</p>
           </div>
-          <span className="text-xs font-semibold text-text-muted tabular-nums pr-1">Қадам {stepIndex + 1}/{totalSteps}</span>
+          <span className="text-xs font-semibold text-text-muted tabular-nums pr-1">{tx("Қадам")} {stepIndex + 1}/{totalSteps}</span>
         </div>
         <div className="flex gap-1 px-4 pb-3">
           {stepKeys.map((key, i) => (
@@ -341,7 +345,6 @@ export default function AddBooking() {
           ))}
         </div>
       </header>
-
       <main className="flex-1 px-4 pt-5 pb-44">
         {(conflictError || submitError) && (
           <div className="mb-4 rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">
@@ -365,12 +368,12 @@ export default function AddBooking() {
                 <div className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-warn text-2xl">verified_user</span>
                   <div className="flex-1">
-                    <p className="text-warn font-semibold text-sm mb-2">Клиенттің белсенді кепілдігі бар</p>
+                    <p className="text-warn font-semibold text-sm mb-2">{tx("Клиенттің белсенді кепілдігі бар")}</p>
                     {clientWarranties.map((w) => (
                       <div key={w.id} className="text-ink text-xs mb-2 last:mb-0 bg-bg-main/60 rounded-xl p-2.5">
-                        <p className="font-semibold text-sm">{w.service_name || 'Қызмет'}</p>
-                        <p className="text-text-muted mt-0.5">Мерзімі: {longDate(String(w.expires_at).slice(0, 10))}</p>
-                        {w.master_name && <p className="text-primary mt-0.5">Орындаған шебер: {w.master_name}</p>}
+                        <p className="font-semibold text-sm">{txData(w.service_name) || tx("Қызмет")}</p>
+                        <p className="text-text-muted mt-0.5">{tx("Мерзімі:")} {longDate(String(w.expires_at).slice(0, 10))}</p>
+                        {w.master_name && <p className="text-primary mt-0.5">{tx("Орындаған шебер:")} {w.master_name}</p>}
                       </div>
                     ))}
                   </div>
@@ -405,21 +408,20 @@ export default function AddBooking() {
           <StepSummary form={form} selectedVehicle={selectedVehicle} categoriesWithServices={categoriesWithServices} onEdit={goToStep} />
         )}
       </main>
-
       <div className="fixed left-0 right-0 bottom-[76px] z-30 px-4 pt-3 pb-3 bg-gradient-to-t from-bg-main via-bg-main/95 to-bg-main/0">
         <div className="flex gap-2">
           {stepIndex > 0 && (
-            <button type="button" onClick={goBack} className="btn-secondary w-14 shrink-0 !px-0 py-4" aria-label="Артқа">
+            <button type="button" onClick={goBack} className="btn-secondary w-14 shrink-0 !px-0 py-4" aria-label={tx("Артқа")}>
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
           )}
           <button type="button" onClick={handleNext} disabled={!canNext() || submitting} className="btn-primary flex-1 text-base">
-            {currentStep === 'summary' ? (submitting ? 'Сақталуда...' : 'Жазбаны сақтау') : 'Келесі'}
+            {currentStep === 'summary' ? (submitting ? tx("Сақталуда...") : tx("Жазбаны сақтау")) : tx("Келесі")}
             <span className="material-symbols-outlined text-xl">{currentStep === 'summary' ? 'check' : 'arrow_forward'}</span>
           </button>
         </div>
       </div>
-    </div>
+    </div>)
   );
 }
 
@@ -457,32 +459,29 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
   };
 
   return (
-    <div className="space-y-5">
+    (<div className="space-y-5">
       {prefillOnly ? (
         <div className="flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2.5 text-primary text-sm font-medium">
-          <span className="material-symbols-outlined text-lg">chat</span>
-          Көзі: WhatsApp — деректер толтырылды
-        </div>
+          <span className="material-symbols-outlined text-lg">chat</span>{tx("Көзі: WhatsApp — деректер толтырылды")}</div>
       ) : null}
-
       <section className="card p-4 space-y-4">
         <h2 className="section-label flex items-center gap-2">
           <span className="material-symbols-outlined text-lg">person</span>
-          {prefillOnly ? 'Клиент' : 'Клиент (қолмен)'}
+          {prefillOnly ? tx("Клиент") : tx("Клиент (қолмен)")}
         </h2>
         <div>
-          <label className="block text-xs text-text-muted mb-1.5" htmlFor="client-name">Аты</label>
+          <label className="block text-xs text-text-muted mb-1.5" htmlFor="client-name">{tx("Аты")}</label>
           <input
             id="client-name"
             type="text"
             value={form.client_name}
             onChange={(e) => updateForm({ client_name: e.target.value, client_id: null })}
             className="field"
-            placeholder="Клиент аты"
+            placeholder={tx("Клиент аты")}
           />
         </div>
         <div>
-          <label className="block text-xs text-text-muted mb-1.5" htmlFor="client-phone">Телефон</label>
+          <label className="block text-xs text-text-muted mb-1.5" htmlFor="client-phone">{tx("Телефон")}</label>
           <input
             id="client-phone"
             type="tel"
@@ -495,13 +494,11 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
         </div>
         {!prefillOnly && sourceLocked ? (
           <div className="flex items-center gap-2 text-primary text-sm font-medium">
-            <span className="material-symbols-outlined text-lg">chat</span>
-            Көзі: WhatsApp
-          </div>
+            <span className="material-symbols-outlined text-lg">chat</span>{tx("Көзі: WhatsApp")}</div>
         ) : null}
         {!prefillOnly && !sourceLocked ? (
           <div>
-            <span className="block text-xs text-text-muted mb-1.5">Көзі</span>
+            <span className="block text-xs text-text-muted mb-1.5">{tx("Көзі")}</span>
             <div className="segmented">
               <button type="button" aria-pressed={form.source === 'live'} onClick={() => updateForm({ source: 'live' })}>Live</button>
               <button type="button" aria-pressed={form.source === 'whatsapp'} onClick={() => updateForm({ source: 'whatsapp' })}>WhatsApp</button>
@@ -509,7 +506,6 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
           </div>
         ) : null}
       </section>
-
       {!prefillOnly ? (
         <section className="card overflow-hidden">
           <button
@@ -518,9 +514,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
             className="w-full flex items-center justify-between px-4 py-3.5 text-left"
           >
             <span className="flex items-center gap-2 text-sm font-semibold text-ink">
-              <span className="material-symbols-outlined text-lg text-text-muted">contacts</span>
-              Клиенттер базасы (қалауынша)
-            </span>
+              <span className="material-symbols-outlined text-lg text-text-muted">contacts</span>{tx("Клиенттер базасы (қалауынша)")}</span>
             <span className="material-symbols-outlined text-text-muted">{showClientBase ? 'expand_less' : 'expand_more'}</span>
           </button>
           {showClientBase ? (
@@ -531,13 +525,13 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
                   type="text"
                   value={clientSearch}
                   onChange={(e) => setClientSearch(e.target.value)}
-                  placeholder="Іздеу (аты, телефон немесе нөмір)"
+                  placeholder={tx("Іздеу (аты, телефон немесе нөмір)")}
                   className="field !py-2.5 pl-10 text-sm"
                 />
               </div>
               <div className="max-h-64 overflow-y-auto space-y-1.5">
                 {clients.length === 0 ? (
-                  <p className="text-text-muted text-sm px-1 py-2">Клиенттер жоқ немесе іздеу нәтижесі бос</p>
+                  <p className="text-text-muted text-sm px-1 py-2">{tx("Клиенттер жоқ немесе іздеу нәтижесі бос")}</p>
                 ) : (
                   clients.map((c) => {
                     const on = form.client_id === c.id;
@@ -567,7 +561,7 @@ function StepClient({ form, updateForm, clients, vehicles, loadClients, sourceLo
           ) : null}
         </section>
       ) : null}
-    </div>
+    </div>)
   );
 }
 
@@ -586,14 +580,14 @@ function StepVehicle({ form, updateForm, vehicles }) {
     </div>
   );
   return (
-    <div className="space-y-4 pb-24">
-      <h2 className="section-label mb-2">Танымал модельдер</h2>
+    (<div className="space-y-4 pb-24">
+      <h2 className="section-label mb-2">{tx("Танымал модельдер")}</h2>
       <div className="grid grid-cols-2 gap-3">
         {models.map((v) => {
           const isSelected = form.vehicle_catalog_id === v.id;
           const [brand, ...rest] = v.name.split(' ');
           return (
-            <button key={v.id} type="button" onClick={() => updateForm({ vehicle_catalog_id: v.id })} className={cardClass(isSelected)}>
+            (<button key={v.id} type="button" onClick={() => updateForm({ vehicle_catalog_id: v.id })} className={cardClass(isSelected)}>
               <VehiclePhoto name={v.name} className="w-full aspect-[3/2] shrink-0" />
               <div className="p-3 pt-2">
                 <div className="flex items-center gap-2">
@@ -604,26 +598,26 @@ function StepVehicle({ form, updateForm, vehicles }) {
                   </div>
                 </div>
                 <div className="text-xs text-text-muted mt-0.5">
-                  {v.body_options?.length ? `Кузов: ${v.body_options.join(', ')}` : (v.body_type || 'Минивэн')}
+                  {v.body_options?.length ? tx("Кузов: {0}", [v.body_options.join(', ')]) : (v.body_type || tx("Минивэн"))}
                 </div>
               </div>
               {isSelected && check}
-            </button>
+            </button>)
           );
         })}
         <button
           type="button"
-          onClick={() => updateForm({ vehicle_catalog_id: otherId, body_type: otherVehicle?.body_type || 'Другое' })}
+          onClick={() => updateForm({ vehicle_catalog_id: otherId, body_type: otherVehicle?.body_type || tx("Другое") })}
           className={cardClass(isOther)}
         >
           <div className="w-full aspect-[3/2] shrink-0 photo-stage flex flex-col items-center justify-center gap-1">
             <span className="material-symbols-outlined text-4xl text-primary/80">manage_search</span>
-            <span className="text-[11px] text-text-muted">Барлық маркалар</span>
+            <span className="text-[11px] text-text-muted">{tx("Барлық маркалар")}</span>
           </div>
           <div className="p-3 pt-2">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-text-muted font-semibold">Басқа</div>
-            <div className="font-semibold text-ink text-sm leading-tight truncate">{isOther && form.vehicle_custom_name ? form.vehicle_custom_name : 'Другое'}</div>
-            <div className="text-xs text-text-muted mt-0.5">Марка мен модельді таңдау</div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-muted font-semibold">{tx("Басқа")}</div>
+            <div className="font-semibold text-ink text-sm leading-tight truncate">{isOther && form.vehicle_custom_name ? form.vehicle_custom_name : tx("Другое")}</div>
+            <div className="text-xs text-text-muted mt-0.5">{tx("Марка мен модельді таңдау")}</div>
           </div>
           {isOther && check}
         </button>
@@ -634,7 +628,7 @@ function StepVehicle({ form, updateForm, vehicles }) {
           onChange={(name) => updateForm({ vehicle_custom_name: name })}
         />
       )}
-    </div>
+    </div>)
   );
 }
 
@@ -642,13 +636,13 @@ function StepBody({ form, updateForm, selectedVehicle }) {
   const options = selectedVehicle?.body_options || [];
   const preview = form.body_type || options[0];
   return (
-    <div className="space-y-4">
-      <h2 className="section-label mb-3">Кузов таңдау</h2>
+    (<div className="space-y-4">
+      <h2 className="section-label mb-3">{tx("Кузов таңдау")}</h2>
       <div className="rounded-2xl overflow-hidden border border-border-color">
         <VehiclePhoto name={selectedVehicle?.name} bodyType={preview} className="w-full aspect-[3/2]" />
         <div className="px-4 py-3 bg-card-bg flex items-baseline justify-between gap-2">
           <span className="text-ink font-semibold">{selectedVehicle?.name}</span>
-          {form.body_type && <span className="text-primary text-sm font-medium">Кузов {form.body_type}</span>}
+          {form.body_type && <span className="text-primary text-sm font-medium">{tx("Кузов")} {form.body_type}</span>}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
@@ -666,16 +660,16 @@ function StepBody({ form, updateForm, selectedVehicle }) {
           </button>
         ))}
       </div>
-    </div>
+    </div>)
   );
 }
 
 function StepPlate({ form, updateForm }) {
   return (
-    <div className="space-y-5">
+    (<div className="space-y-5">
       <div className="text-center">
-        <h2 className="text-xl font-bold text-ink">Мемлекеттік нөмір</h2>
-        <p className="text-text-muted text-sm mt-1">Еркін мәтін (міндетті емес)</p>
+        <h2 className="text-xl font-bold text-ink">{tx("Мемлекеттік нөмір")}</h2>
+        <p className="text-text-muted text-sm mt-1">{tx("Еркін мәтін (міндетті емес)")}</p>
       </div>
       <label className="mx-auto flex max-w-[300px] items-stretch overflow-hidden rounded-lg border-2 border-[#11161c] bg-white shadow-lg shadow-black/40">
         <span className="flex w-9 flex-col items-center justify-end bg-[#00A3D9] pb-1.5 text-[10px] font-bold text-white">KZ</span>
@@ -688,14 +682,14 @@ function StepPlate({ form, updateForm }) {
           autoCapitalize="characters"
         />
       </label>
-    </div>
+    </div>)
   );
 }
 
 const ALPHARD_ESTIMA_NAMES = ['Toyota Alphard', 'Toyota Estima'];
 
-const SERVOZHETEK_ALDY = 'Серв\u043Eжетек жөндеу (алды)';
-const SERVOZHETEK_ARTY = 'Серв\u043Eжетек жөндеу (арты)';
+const SERVOZHETEK_ALDY = tx("Сервожетек жөндеу (алды)");
+const SERVOZHETEK_ARTY = tx("Сервожетек жөндеу (арты)");
 function serviceDisplayName(s) {
   if (!s) return '';
   const id = String(s.id || '').toLowerCase();
@@ -706,7 +700,7 @@ function serviceDisplayName(s) {
   if (/жөндеу/.test(name) && /алды/.test(name) && (name.includes('tool_call') || /серв/i.test(name) || /ек\s*жөндеу/.test(name))) return SERVOZHETEK_ALDY;
   if (/жөндеу/.test(name) && /арты/.test(name) && (name.includes('tool_call') || /серв/i.test(name) || /ек\s*жөндеу/.test(name))) return SERVOZHETEK_ARTY;
   if (/жөндеу/.test(name) && (name.includes('tool_call') || name.includes('Серв') || /ек\s*жөндеу/.test(name))) return SERVOZHETEK_ALDY;
-  return name || '';
+  return txData(name) || '';
 }
 
 function StepServices({ form, updateForm, categoriesWithServices, selectedVehicle, boxIds = [1, 2], timeSlots: timeSlotsProp }) {
@@ -763,7 +757,7 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
   const renderServiceRow = (s) => {
     const selected = form.services?.find((x) => x.service_catalog_id === s.id);
     return (
-      <div
+      (<div
         key={s.id}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${selected ? 'bg-primary/15 ring-1 ring-primary/60' : ''}`}
       >
@@ -773,7 +767,7 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
           </span>
           <span className="text-[15px] text-ink leading-snug">
             {serviceDisplayName(s)}
-            {selected && selected.warranty_mode && <span className="ml-1.5 text-xs text-status-completed">Гарантия — 0 ₸</span>}
+            {selected && selected.warranty_mode && <span className="ml-1.5 text-xs text-status-completed">{tx("Гарантия — 0 ₸")}</span>}
           </span>
         </button>
         {selected && (
@@ -782,34 +776,34 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
               type="button"
               onClick={() => (selected.quantity || 1) <= 1 ? toggleService(s.id) : setQuantity(s.id, (selected.quantity || 1) - 1)}
               className="w-8 h-8 text-ink"
-              aria-label="Азайту немесе жою"
+              aria-label={tx("Азайту немесе жою")}
             >
               −
             </button>
             <span className="w-6 text-center font-semibold text-ink tabular-nums">{selected.quantity}</span>
-            <button type="button" onClick={() => setQuantity(s.id, (selected.quantity || 1) + 1)} className="w-8 h-8 text-ink" aria-label="Көбейту">+</button>
+            <button type="button" onClick={() => setQuantity(s.id, (selected.quantity || 1) + 1)} className="w-8 h-8 text-ink" aria-label={tx("Көбейту")}>+</button>
           </div>
         )}
-      </div>
+      </div>)
     );
   };
 
   return (
-    <div className="space-y-5">
+    (<div className="space-y-5">
       <section>
         <div className="flex items-baseline justify-between mb-2 px-1">
-          <h2 className="section-label">Қызметті таңдау</h2>
-          {form.services?.length > 0 && <span className="text-xs text-primary font-semibold">{form.services.length} таңдалды</span>}
+          <h2 className="section-label">{tx("Қызметті таңдау")}</h2>
+          {form.services?.length > 0 && <span className="text-xs text-primary font-semibold">{form.services.length} {tx("таңдалды")}</span>}
         </div>
         <div className="card p-1.5 space-y-1">
           {categoriesFiltered.map((cat) => (
             <div key={cat.id} className="pb-1">
-              <div className="px-3 pt-2.5 pb-1 text-[13px] font-semibold text-text-muted">{cat.name}</div>
+              <div className="px-3 pt-2.5 pb-1 text-[13px] font-semibold text-text-muted">{txData(cat.name)}</div>
               {cat.name === 'Есік қызметтері' && (cat.services || []).some((s) => s.subgroup) ? (
                 <>
                   {[...new Set((cat.services || []).map((s) => s.subgroup).filter(Boolean))].map((sub) => (
                     <div key={sub}>
-                      <div className="px-3 pt-1.5 text-[11px] text-faint">{sub}</div>
+                      <div className="px-3 pt-1.5 text-[11px] text-faint">{txData(sub)}</div>
                       {(cat.services || []).filter((s) => s.subgroup === sub).map(renderServiceRow)}
                     </div>
                   ))}
@@ -822,30 +816,28 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
           ))}
         </div>
       </section>
-
       <section>
-        <h2 className="section-label mb-2 px-1">Бокс</h2>
+        <h2 className="section-label mb-2 px-1">{tx("Бокс")}</h2>
         <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${boxIds.length}, minmax(0, 1fr))` }}>
           {boxIds.map((boxId) => {
             const on = form.box_id === boxId;
             return (
-              <button
+              (<button
                 key={boxId}
                 type="button"
                 onClick={() => updateForm({ box_id: boxId })}
                 className={`rounded-xl py-3 flex items-center justify-center gap-2 border transition-colors ${on ? 'border-primary bg-primary/15 text-ink' : 'border-border-color bg-card-bg text-text-muted'}`}
               >
                 <span className={`material-symbols-outlined text-[22px] ${on ? 'text-primary' : ''}`}>garage_home</span>
-                <span className="font-semibold text-sm">Бокс {boxId}</span>
-              </button>
+                <span className="font-semibold text-sm">{tx("Бокс")} {boxId}</span>
+              </button>)
             );
           })}
         </div>
       </section>
-
       <section className="card p-4 space-y-4">
         <div>
-          <label className="block text-xs text-text-muted mb-1.5" htmlFor="booking-date">Күн</label>
+          <label className="block text-xs text-text-muted mb-1.5" htmlFor="booking-date">{tx("Күн")}</label>
           <input
             id="booking-date"
             type="date"
@@ -856,18 +848,18 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
           />
         </div>
         <div>
-          <span className="block text-xs text-text-muted mb-1.5">Ұзақтығы</span>
+          <span className="block text-xs text-text-muted mb-1.5">{tx("Ұзақтығы")}</span>
           <div className="grid grid-cols-4 gap-2">
             {[60, 90, 120, 180].map((d) => (
               <button key={d} type="button" onClick={() => updateForm({ duration: d })} className={`chip !px-0 ${Number(form.duration) === d ? 'chip-on' : ''}`}>
-                {d < 120 ? `${d} мин` : `${d / 60} сағ`}
+                {d < 120 ? tx("{0} мин", [d]) : tx("{0} сағ", [d / 60])}
               </button>
             ))}
           </div>
         </div>
         <div>
           <div className="flex items-baseline justify-between mb-1.5">
-            <span className="text-xs text-text-muted">Басталу уақыты</span>
+            <span className="text-xs text-text-muted">{tx("Басталу уақыты")}</span>
             {form.start_time && form.end_time && <span className="text-xs text-ink tabular-nums">{form.start_time} – {form.end_time}</span>}
           </div>
           <div className="grid grid-cols-4 gap-2">
@@ -889,10 +881,10 @@ function StepServices({ form, updateForm, categoriesWithServices, selectedVehicl
               );
             })}
           </div>
-          {busy.length > 0 && <p className="text-[11px] text-faint mt-2">Сызылған уақыт — Бокс {form.box_id} бос емес.</p>}
+          {busy.length > 0 && <p className="text-[11px] text-faint mt-2">{tx("Сызылған уақыт — Бокс")} {form.box_id} {tx("бос емес.")}</p>}
         </div>
       </section>
-    </div>
+    </div>)
   );
 }
 
@@ -904,16 +896,16 @@ function minutesOf(t) {
 
 function StepNote({ form, updateForm }) {
   return (
-    <div className="space-y-3">
-      <label className="section-label block px-1" htmlFor="booking-note">Ескерту (міндетті емес)</label>
+    (<div className="space-y-3">
+      <label className="section-label block px-1" htmlFor="booking-note">{tx("Ескерту (міндетті емес)")}</label>
       <textarea
         id="booking-note"
         value={form.note}
         onChange={(e) => updateForm({ note: e.target.value })}
         className="field min-h-[160px] resize-none leading-relaxed"
-        placeholder="Мысалы: Клиент өз майымен келеді"
+        placeholder={tx("Мысалы: Клиент өз майымен келеді")}
       />
-    </div>
+    </div>)
   );
 }
 
@@ -930,21 +922,21 @@ function StepSummary({ form, selectedVehicle, categoriesWithServices, onEdit }) 
   );
 
   return (
-    <div className="space-y-3">
-      <h2 className="text-lg font-bold text-ink px-1">Жазбаны тексеру</h2>
+    (<div className="space-y-3">
+      <h2 className="text-lg font-bold text-ink px-1">{tx("Жазбаны тексеру")}</h2>
       <div className="card overflow-hidden divide-y divide-border-color/70">
-        <Row step="client" label="Клиент">
+        <Row step="client" label={tx("Клиент")}>
           <div className="text-ink font-semibold">{form.client_name}</div>
           <div className="text-text-muted text-sm tabular-nums">{form.phone}</div>
         </Row>
-        <Row step="vehicle" label="Көлік">
+        <Row step="vehicle" label={tx("Көлік")}>
           <div className="text-ink font-semibold">{form.vehicle_custom_name || selectedVehicle?.name || form.vehicle_name}</div>
           <div className="flex items-center gap-2 mt-1">
-            {form.body_type && <span className="text-text-muted text-sm">Кузов {form.body_type}</span>}
+            {form.body_type && <span className="text-text-muted text-sm">{tx("Кузов")} {form.body_type}</span>}
             <Plate number={form.plate_number} size="sm" />
           </div>
         </Row>
-        <Row step="services" label="Қызметтер">
+        <Row step="services" label={tx("Қызметтер")}>
           {(form.services || []).length === 0 ? (
             <div className="text-ink text-sm">—</div>
           ) : (
@@ -953,24 +945,24 @@ function StepSummary({ form, selectedVehicle, categoriesWithServices, onEdit }) 
                 const service = allServices.find((x) => x.id === s.service_catalog_id);
                 const name = serviceDisplayName(service || { id: s.service_catalog_id, name: s.service_name });
                 return (
-                  <li key={s.service_catalog_id} className="flex justify-between gap-2 text-ink">
+                  (<li key={s.service_catalog_id} className="flex justify-between gap-2 text-ink">
                     <span>{name} <span className="text-text-muted">×{s.quantity}</span></span>
-                    {s.warranty_mode && <span className="text-status-completed text-xs">0 ₸ (кепілдік)</span>}
-                  </li>
+                    {s.warranty_mode && <span className="text-status-completed text-xs">{tx("0 ₸ (кепілдік)")}</span>}
+                  </li>)
                 );
               })}
             </ul>
           )}
         </Row>
-        <Row step="services" label="Бокс және уақыт">
-          <div className="text-ink tabular-nums">Бокс {form.box_id} · {dayMonth(form.date)}, {weekday(form.date)} · {form.start_time}–{form.end_time}</div>
+        <Row step="services" label={tx("Бокс және уақыт")}>
+          <div className="text-ink tabular-nums">{tx("Бокс")} {form.box_id}· {dayMonth(form.date)}, {weekday(form.date)}· {form.start_time}–{form.end_time}</div>
         </Row>
         {form.note && (
-          <Row step="note" label="Ескерту">
+          <Row step="note" label={tx("Ескерту")}>
             <div className="text-ink text-sm">{form.note}</div>
           </Row>
         )}
       </div>
-    </div>
+    </div>)
   );
 }

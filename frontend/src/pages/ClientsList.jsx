@@ -4,8 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { dayMonth } from '../lib/dates';
 import { getClients } from '../lib/api';
 import { Plate, Loading, EmptyState, ErrorNote } from '../components/ui';
+import { tx } from '../i18n/index.js';
 
-const SOURCE_LABEL = { whatsapp: 'WhatsApp', live: 'Жиі' };
+const SOURCE_LABEL = { whatsapp: 'WhatsApp', live: tx("Жиі") };
 
 export default function ClientsList() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function ClientsList() {
   const isWorker = user?.role === 'worker' && user?.is_senior_worker !== true;
   useEffect(() => {
     if (isWorker) {
-      navigate('/', { replace: true, state: { message: 'Клиенттер тізіміне рұқсат жоқ.' } });
+      navigate('/', { replace: true, state: { message: tx("Клиенттер тізіміне рұқсат жоқ.") } });
       return;
     }
   }, [isWorker, navigate]);
@@ -28,7 +29,7 @@ export default function ClientsList() {
     setError('');
     getClients(q)
       .then((data) => { if (!isCancelled()) setList(Array.isArray(data) ? data : []); })
-      .catch((e) => { if (!isCancelled()) setError(e.message || 'Жүктеу сәтсіз'); })
+      .catch((e) => { if (!isCancelled()) setError(e.message || tx("Жүктеу сәтсіз")); })
       .finally(() => { if (!isCancelled()) setLoading(false); });
   }, []);
 
@@ -46,13 +47,13 @@ export default function ClientsList() {
   if (isWorker) return null;
 
   return (
-    <div className="flex flex-col min-h-full">
+    (<div className="flex flex-col min-h-full">
       <header className="sticky top-0 z-10 bg-bg-main/95 backdrop-blur border-b border-border-color/70 px-4 pt-3 pb-3 space-y-3">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => navigate(-1)} className="icon-btn -ml-1" aria-label="Артқа">
+          <button type="button" onClick={() => navigate(-1)} className="icon-btn -ml-1" aria-label={tx("Артқа")}>
             <span className="material-symbols-outlined text-[22px]">arrow_back</span>
           </button>
-          <h1 className="text-xl font-bold text-ink flex-1">Клиенттер</h1>
+          <h1 className="text-xl font-bold text-ink flex-1">{tx("Клиенттер")}</h1>
           {!loading && <span className="text-sm text-text-muted tabular-nums">{list.length}</span>}
         </div>
         <div className="relative">
@@ -61,7 +62,7 @@ export default function ClientsList() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Аты, телефон немесе мемлекеттік нөмір"
+            placeholder={tx("Аты, телефон немесе мемлекеттік нөмір")}
             className="field !py-2.5 pl-10"
           />
         </div>
@@ -71,7 +72,7 @@ export default function ClientsList() {
         {loading ? (
           <Loading />
         ) : list.length === 0 ? (
-          <EmptyState icon="group" title={search.trim() ? 'Ештеңе табылмады' : 'Клиенттер тізімі бос'} />
+          <EmptyState icon="group" title={search.trim() ? tx("Ештеңе табылмады") : tx("Клиенттер тізімі бос")} />
         ) : (
           <ul className="card divide-y divide-border-color/60 overflow-hidden">
             {list.map((c) => (
@@ -93,7 +94,7 @@ export default function ClientsList() {
                   {c.last_visit_date && (
                     <span className="text-right shrink-0">
                       <span className="block text-[13px] text-ink tabular-nums">{dayMonth(c.last_visit_date)}</span>
-                      <span className="block text-[11px] text-faint">соңғы келу</span>
+                      <span className="block text-[11px] text-faint">{tx("соңғы келу")}</span>
                     </span>
                   )}
                 </button>
@@ -102,6 +103,6 @@ export default function ClientsList() {
           </ul>
         )}
       </main>
-    </div>
+    </div>)
   );
 }
