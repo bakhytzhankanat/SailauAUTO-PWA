@@ -9,6 +9,8 @@ import {
 } from '../lib/api';
 import CarModelPicker from '../components/CarModelPicker';
 
+import { tx, txData } from '../i18n/index.js';
+
 const BOX_IDS = [1, 2];
 const ALPHARD_ESTIMA_NAMES = ['Toyota Alphard', 'Toyota Estima'];
 
@@ -60,7 +62,7 @@ export default function EditBooking() {
     try {
       const data = await getBooking(id);
       if (!allowedStatuses.includes(data.status)) {
-        setError('Тек жоспарланған немесе келген жазбаны өңдеуге болады');
+        setError(tx("Тек жоспарланған немесе келген жазбаны өңдеуге болады"));
         setBooking(data);
         setLoading(false);
         return;
@@ -95,7 +97,7 @@ export default function EditBooking() {
         })),
       });
     } catch (err) {
-      setError(err.message || 'Жазбаны жүктеу сәтсіз');
+      setError(err.message || tx("Жазбаны жүктеу сәтсіз"));
     } finally {
       setLoading(false);
     }
@@ -174,19 +176,19 @@ export default function EditBooking() {
     e.preventDefault();
     setError('');
     if (!form.client_name?.trim() || !form.phone?.trim()) {
-      setError('Клиент аты мен телефонды толтырыңыз');
+      setError(tx("Клиент аты мен телефонды толтырыңыз"));
       return;
     }
     if (!form.vehicle_catalog_id) {
-      setError('Көлікті таңдаңыз');
+      setError(tx("Көлікті таңдаңыз"));
       return;
     }
     if (!form.services?.length) {
-      setError('Кем дегенде бір қызметті таңдаңыз');
+      setError(tx("Кем дегенде бір қызметті таңдаңыз"));
       return;
     }
     if (!form.date || !form.start_time || !form.end_time || !form.box_id) {
-      setError('Күн, уақыт пен боксты толтырыңыз');
+      setError(tx("Күн, уақыт пен боксты толтырыңыз"));
       return;
     }
     setSubmitting(true);
@@ -213,7 +215,7 @@ export default function EditBooking() {
       });
       navigate(`/booking/${id}`, { replace: true });
     } catch (err) {
-      setError(err.message || 'Сақтау сәтсіз');
+      setError(err.message || tx("Сақтау сәтсіз"));
     } finally {
       setSubmitting(false);
     }
@@ -222,36 +224,36 @@ export default function EditBooking() {
   if (!canEdit) return null;
   if (loading) {
     return (
-      <div className="p-4">
-        <p className="text-text-muted">Жүктелуде...</p>
-      </div>
+      (<div className="p-4">
+        <p className="text-text-muted">{tx("Жүктелуде...")}</p>
+      </div>)
     );
   }
   if (error && !booking) {
     return (
-      <div className="p-4">
+      (<div className="p-4">
         <p className="text-danger">{error}</p>
-        <button type="button" onClick={() => navigate(-1)} className="mt-2 text-primary font-medium">Артқа</button>
-      </div>
+        <button type="button" onClick={() => navigate(-1)} className="mt-2 text-primary font-medium">{tx("Артқа")}</button>
+      </div>)
     );
   }
   if (booking && !allowedStatuses.includes(booking.status)) {
     return (
-      <div className="p-4">
-        <p className="text-warn">{error || 'Бұл жазбаны өңдеуге болмайды'}</p>
-        <button type="button" onClick={() => navigate(`/booking/${id}`)} className="mt-2 text-primary font-medium">Жазбаға оралу</button>
-      </div>
+      (<div className="p-4">
+        <p className="text-warn">{error || tx("Бұл жазбаны өңдеуге болмайды")}</p>
+        <button type="button" onClick={() => navigate(`/booking/${id}`)} className="mt-2 text-primary font-medium">{tx("Жазбаға оралу")}</button>
+      </div>)
     );
   }
 
   const renderServiceRow = (s) => {
     const selected = form.services?.find((x) => x.service_catalog_id === s.id);
     return (
-      <div
+      (<div
         key={s.id}
         className={`flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl border mb-2 ${selected ? 'bg-primary/10 border-primary' : 'bg-card-bg border-border-color'}`}
       >
-        <span className="font-medium text-ink">{s.name}</span>
+        <span className="font-medium text-ink">{txData(s.name)}</span>
         {selected ? (
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => (selected.quantity <= 1 ? toggleService(s.id) : setQuantity(s.id, selected.quantity - 1))} className="w-8 h-8 rounded-lg bg-raised flex items-center justify-center text-ink">−</button>
@@ -259,28 +261,28 @@ export default function EditBooking() {
             <button type="button" onClick={() => setQuantity(s.id, (selected.quantity || 1) + 1)} className="w-8 h-8 rounded-lg bg-raised flex items-center justify-center text-ink">+</button>
           </div>
         ) : (
-          <button type="button" onClick={() => toggleService(s.id)} className="text-primary text-sm font-medium">Қосу</button>
+          <button type="button" onClick={() => toggleService(s.id)} className="text-primary text-sm font-medium">{tx("Қосу")}</button>
         )}
-      </div>
+      </div>)
     );
   };
 
   return (
-    <div className="flex flex-col min-h-full">
+    (<div className="flex flex-col min-h-full">
       <header className="page-header">
         <button type="button" onClick={() => navigate(`/booking/${id}`)} className="icon-btn -ml-1">
           <span className="material-symbols-outlined text-ink text-2xl">arrow_back</span>
         </button>
-        <span className="page-title ml-1">Жазбаны өңдеу</span>
+        <span className="page-title ml-1">{tx("Жазбаны өңдеу")}</span>
       </header>
       <main className="flex-1 overflow-y-auto px-4 py-4 pb-24">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && <div className="rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>}
 
           <section className="card p-4">
-            <h2 className="section-label mb-3">Клиент</h2>
-            <input type="text" value={form.client_name} onChange={(e) => updateForm({ client_name: e.target.value })} placeholder="Аты" className="field !py-2.5 mb-2" />
-            <input type="tel" value={form.phone} onChange={(e) => updateForm({ phone: e.target.value })} placeholder="Телефон" className="field !py-2.5 mb-2" />
+            <h2 className="section-label mb-3">{tx("Клиент")}</h2>
+            <input type="text" value={form.client_name} onChange={(e) => updateForm({ client_name: e.target.value })} placeholder={tx("Аты")} className="field !py-2.5 mb-2" />
+            <input type="tel" value={form.phone} onChange={(e) => updateForm({ phone: e.target.value })} placeholder={tx("Телефон")} className="field !py-2.5 mb-2" />
             <div className="flex gap-2">
               {['live', 'whatsapp'].map((src) => (
                 <button key={src} type="button" onClick={() => updateForm({ source: src })} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${form.source === src ? 'bg-primary text-on-primary' : 'bg-raised text-text-muted'}`}>{src === 'live' ? 'Live' : 'WhatsApp'}</button>
@@ -289,9 +291,9 @@ export default function EditBooking() {
           </section>
 
           <section className="card p-4">
-            <h2 className="section-label mb-3">Көлік</h2>
+            <h2 className="section-label mb-3">{tx("Көлік")}</h2>
             <select value={form.vehicle_catalog_id || ''} onChange={(e) => updateForm({ vehicle_catalog_id: e.target.value || null })} className="field !py-2.5">
-              <option value="">Таңдаңыз</option>
+              <option value="">{tx("Таңдаңыз")}</option>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>{v.name}{v.year ? ` (${v.year})` : ''}</option>
               ))}
@@ -306,60 +308,60 @@ export default function EditBooking() {
             )}
             {selectedVehicle?.body_options?.length > 0 && (
               <select value={form.body_type} onChange={(e) => updateForm({ body_type: e.target.value })} className="w-full mt-2 bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink">
-                <option value="">Кузов</option>
+                <option value="">{tx("Кузов")}</option>
                 {selectedVehicle.body_options.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
             )}
-            <input type="text" value={form.plate_number} onChange={(e) => updateForm({ plate_number: e.target.value })} placeholder="Нөмір белгісі" className="w-full mt-2 bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" />
+            <input type="text" value={form.plate_number} onChange={(e) => updateForm({ plate_number: e.target.value })} placeholder={tx("Нөмір белгісі")} className="w-full mt-2 bg-bg-main border border-border-color rounded-lg px-3 py-2 text-ink" />
           </section>
 
           <section className="card p-4">
-            <h2 className="section-label mb-3">Уақыт және бокс</h2>
+            <h2 className="section-label mb-3">{tx("Уақыт және бокс")}</h2>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-text-muted block mb-1">Күн</label>
+                <label className="text-xs text-text-muted block mb-1">{tx("Күн")}</label>
                 <input type="date" value={form.date} onChange={(e) => updateForm({ date: e.target.value })} className="field !py-2.5" />
               </div>
               <div>
-                <label className="text-xs text-text-muted block mb-1">Бокс</label>
+                <label className="text-xs text-text-muted block mb-1">{tx("Бокс")}</label>
                 <select value={form.box_id} onChange={(e) => updateForm({ box_id: Number(e.target.value) })} className="field !py-2.5">
                   {BOX_IDS.map((bid) => <option key={bid} value={bid}>{bid}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs text-text-muted block mb-1">Басталу</label>
+                <label className="text-xs text-text-muted block mb-1">{tx("Басталу")}</label>
                 <input type="time" value={form.start_time} onChange={(e) => updateForm({ start_time: e.target.value })} className="field !py-2.5" />
               </div>
               <div>
-                <label className="text-xs text-text-muted block mb-1">Ұзақтығы (мин)</label>
+                <label className="text-xs text-text-muted block mb-1">{tx("Ұзақтығы (мин)")}</label>
                 <input type="number" min={15} max={480} value={form.duration} onChange={(e) => updateForm({ duration: Number(e.target.value) || 60 })} className="field !py-2.5" />
               </div>
             </div>
-            <p className="text-text-muted text-xs mt-2">Аяқталу: {form.end_time}</p>
+            <p className="text-text-muted text-xs mt-2">{tx("Аяқталу:")} {form.end_time}</p>
           </section>
 
           <section className="card p-4">
-            <h2 className="section-label mb-3">Қызметтер</h2>
+            <h2 className="section-label mb-3">{tx("Қызметтер")}</h2>
             {categoriesFiltered.map((cat) => (
               <div key={cat.id} className="mb-4">
-                <div className="text-sm font-medium text-ink mb-2">{cat.name}</div>
+                <div className="text-sm font-medium text-ink mb-2">{txData(cat.name)}</div>
                 {(cat.services || []).map(renderServiceRow)}
               </div>
             ))}
           </section>
 
           <section className="card p-4">
-            <h2 className="section-label mb-2">Ескерту</h2>
-            <textarea value={form.note} onChange={(e) => updateForm({ note: e.target.value })} placeholder="Қосымша ақпарат" rows={2} className="field !py-2.5 resize-none" />
+            <h2 className="section-label mb-2">{tx("Ескерту")}</h2>
+            <textarea value={form.note} onChange={(e) => updateForm({ note: e.target.value })} placeholder={tx("Қосымша ақпарат")} rows={2} className="field !py-2.5 resize-none" />
           </section>
 
           <button type="submit" disabled={submitting} className="btn-primary w-full">
-            {submitting ? 'Сақталуда...' : 'Өзгерістерді сақтау'}
+            {submitting ? tx("Сақталуда...") : tx("Өзгерістерді сақтау")}
           </button>
         </form>
       </main>
-    </div>
+    </div>)
   );
 }

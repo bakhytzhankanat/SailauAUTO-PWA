@@ -6,6 +6,8 @@ import { getBookings, deleteBooking } from '../lib/api';
 import { todayIso, addDays, dayMonth, weekday, weekOf, isTodayIso } from '../lib/dates';
 import { STATUS, StatusPill, Plate } from '../components/ui';
 
+import { tx, txData } from '../i18n/index.js';
+
 function parseHourStart(str) {
   if (!str) return 10;
   const part = String(str).slice(0, 5);
@@ -72,7 +74,7 @@ export default function Calendar() {
           if (!cancelled) setBookings(Array.isArray(data) ? data : []);
         })
         .catch((err) => {
-          if (!cancelled) setError(err.message || 'Жазбаларды жүктеу сәтсіз');
+          if (!cancelled) setError(err.message || tx("Жазбаларды жүктеу сәтсіз"));
         })
         .finally(() => {
           if (!cancelled) setLoading(false);
@@ -83,7 +85,7 @@ export default function Calendar() {
           if (!cancelled) setWeekBookings(results.map((data) => Array.isArray(data) ? data : []));
         })
         .catch((err) => {
-          if (!cancelled) setError(err.message || 'Жазбаларды жүктеу сәтсіз');
+          if (!cancelled) setError(err.message || tx("Жазбаларды жүктеу сәтсіз"));
         })
         .finally(() => {
           if (!cancelled) setLoading(false);
@@ -100,7 +102,9 @@ export default function Calendar() {
   const handleDeleteBooking = async (booking) => {
     if (!canDeleteBooking) return;
     if (!booking?.id) return;
-    if (!window.confirm('Бұл жазбаны толық жоюға сенімдісіз бе? Аяқталған немесе жұмыс үстіндегі жазбаны жоюға болмайды.')) {
+    if (!window.confirm(tx(
+      "Бұл жазбаны толық жоюға сенімдісіз бе? Аяқталған немесе жұмыс үстіндегі жазбаны жоюға болмайды."
+    ))) {
       return;
     }
     setDeletingId(booking.id);
@@ -114,7 +118,7 @@ export default function Calendar() {
         setWeekBookings(results.map((data) => (Array.isArray(data) ? data : [])));
       }
     } catch (e) {
-      setError(e.message || 'Жазбаны жою сәтсіз');
+      setError(e.message || tx("Жазбаны жою сәтсіз"));
     } finally {
       setDeletingId(null);
     }
@@ -157,7 +161,7 @@ export default function Calendar() {
     : `${dayMonth(weekDates[0])} – ${dayMonth(weekDates[6])}`;
 
   return (
-    <div className="flex flex-col h-full bg-bg-main">
+    (<div className="flex flex-col h-full bg-bg-main">
       <header className="sticky top-0 z-20 bg-bg-main/95 backdrop-blur border-b border-border-color/70 shrink-0">
         <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
@@ -167,30 +171,28 @@ export default function Calendar() {
                 <p className="text-sm text-text-muted mt-0.5 flex items-center gap-2 whitespace-nowrap">
                   <span className="capitalize">{weekday(date)}</span>
                   {isToday ? (
-                    <span className="text-primary font-semibold">Бүгін</span>
+                    <span className="text-primary font-semibold">{tx("Бүгін")}</span>
                   ) : (
-                    <button type="button" onClick={() => setDate(todayIso())} className="text-primary font-semibold">
-                      Бүгінге оралу
-                    </button>
+                    <button type="button" onClick={() => setDate(todayIso())} className="text-primary font-semibold">{tx("Бүгінге оралу")}</button>
                   )}
                 </p>
               </>
             ) : (
               <>
                 <h1 className="text-[20px] leading-tight font-bold text-ink tracking-tight">{weekLabel}</h1>
-                <p className="text-sm text-text-muted mt-0.5">Апта</p>
+                <p className="text-sm text-text-muted mt-0.5">{tx("Апта")}</p>
               </>
             )}
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-            <button type="button" onClick={() => step(-1)} className="icon-btn bg-card-bg border border-border-color" aria-label="Алдыңғы">
+            <button type="button" onClick={() => step(-1)} className="icon-btn bg-card-bg border border-border-color" aria-label={tx("Алдыңғы")}>
               <span className="material-symbols-outlined text-[24px]">chevron_left</span>
             </button>
-            <button type="button" onClick={() => step(1)} className="icon-btn bg-card-bg border border-border-color" aria-label="Келесі">
+            <button type="button" onClick={() => step(1)} className="icon-btn bg-card-bg border border-border-color" aria-label={tx("Келесі")}>
               <span className="material-symbols-outlined text-[24px]">chevron_right</span>
             </button>
             {canDayClose && (
-              <button type="button" onClick={() => navigate(`/day-close?date=${date}`)} className="icon-btn bg-card-bg border border-border-color" title="Ауысымды жабу" aria-label="Ауысымды жабу">
+              <button type="button" onClick={() => navigate(`/day-close?date=${date}`)} className="icon-btn bg-card-bg border border-border-color" title={tx("Ауысымды жабу")} aria-label={tx("Ауысымды жабу")}>
                 <span className="material-symbols-outlined text-[22px]">point_of_sale</span>
               </button>
             )}
@@ -200,7 +202,7 @@ export default function Calendar() {
               </button>
             )}
             {canAddBooking && (
-              <button type="button" onClick={() => navigate('/booking/add')} className="w-10 h-10 shrink-0 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition" aria-label="Жазба қосу">
+              <button type="button" onClick={() => navigate('/booking/add')} className="w-10 h-10 shrink-0 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition" aria-label={tx("Жазба қосу")}>
                 <span className="material-symbols-outlined text-2xl">add</span>
               </button>
             )}
@@ -209,27 +211,25 @@ export default function Calendar() {
 
         <div className="px-4 pb-3 flex items-center gap-3">
           <div className="segmented w-[210px] shrink-0">
-            <button type="button" aria-pressed={viewMode === 'day'} onClick={() => setViewMode('day')}>Күн</button>
-            <button type="button" aria-pressed={viewMode === 'list'} onClick={() => setViewMode('list')}>Тізім</button>
-            <button type="button" aria-pressed={viewMode === 'week'} onClick={() => setViewMode('week')}>Апта</button>
+            <button type="button" aria-pressed={viewMode === 'day'} onClick={() => setViewMode('day')}>{tx("Күн")}</button>
+            <button type="button" aria-pressed={viewMode === 'list'} onClick={() => setViewMode('list')}>{tx("Тізім")}</button>
+            <button type="button" aria-pressed={viewMode === 'week'} onClick={() => setViewMode('week')}>{tx("Апта")}</button>
           </div>
           {viewMode !== 'week' && !loading && dayStats.total > 0 && (
             <div className="flex-1 min-w-0 flex items-center justify-end gap-3 text-xs text-text-muted">
-              <span><b className="text-ink font-semibold tabular-nums">{dayStats.total}</b> жазба</span>
+              <span><b className="text-ink font-semibold tabular-nums">{dayStats.total}</b> {tx("жазба")}</span>
               {dayStats.working > 0 && <span className="flex items-center gap-1"><i className="w-1.5 h-1.5 rounded-full bg-status-progress" />{dayStats.working}</span>}
               <span className="flex items-center gap-1"><i className="w-1.5 h-1.5 rounded-full bg-status-completed" />{dayStats.done}</span>
             </div>
           )}
         </div>
       </header>
-
       {toastMessage && (
         <div className="mx-4 mt-3 p-3 rounded-xl bg-primary/15 border border-primary/40 text-ink text-sm font-medium text-center">
           {toastMessage}
         </div>
       )}
       {error && <div className="mx-4 mt-3 rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-danger text-sm">{error}</div>}
-
       <div className="flex-1 overflow-auto min-h-0">
         {viewMode === 'list' ? (
           <AgendaList bookings={bookings} loading={loading} canAddBooking={canAddBooking} onOpen={(b) => navigate(`/booking/${b.id}`)} onAdd={() => navigate('/booking/add')} />
@@ -238,7 +238,7 @@ export default function Calendar() {
             <div className="flex sticky top-0 z-10 ml-12 bg-bg-main shrink-0">
               {boxes.map((id) => (
                 <div key={id} className="flex-1 py-2.5 text-center">
-                  <span className="text-[13px] font-semibold text-ink">Бокс {id}</span>
+                  <span className="text-[13px] font-semibold text-ink">{tx("Бокс")} {id}</span>
                   <span className="ml-1.5 text-xs text-text-muted tabular-nums">{(bookingsByBox[id] || []).length}</span>
                 </div>
               ))}
@@ -257,16 +257,15 @@ export default function Calendar() {
                 {boxes.map((boxId) => (
                   <div key={boxId} className="flex-1 relative min-w-0 border-l border-border-color/50 first:border-l-0">
                     {loading && boxId === 1 && (
-                      <div className="absolute inset-x-0 top-24 flex items-center justify-center text-text-muted text-sm">Жүктелуде...</div>
+                      <div className="absolute inset-x-0 top-24 flex items-center justify-center text-text-muted text-sm">{tx("Жүктелуде...")}</div>
                     )}
                     {!loading && !error && boxId === 1 && bookings.length === 0 && (
                       <div className="absolute left-0 top-16 flex flex-col items-center text-center gap-2" style={{ width: `${boxes.length * 100}%` }}>
                         <span className="material-symbols-outlined text-[36px] text-faint">event_available</span>
-                        <p className="text-ink font-semibold">Бұл күнде жазбалар жоқ</p>
+                        <p className="text-ink font-semibold">{tx("Бұл күнде жазбалар жоқ")}</p>
                         {canAddBooking && (
                           <button type="button" onClick={() => navigate('/booking/add')} className="btn-secondary mt-1 text-sm">
-                            <span className="material-symbols-outlined text-lg">add</span>Жазба қосу
-                          </button>
+                            <span className="material-symbols-outlined text-lg">add</span>{tx("Жазба қосу")}</button>
                         )}
                       </div>
                     )}
@@ -287,19 +286,19 @@ export default function Calendar() {
           </>
         ) : (
           <div className="px-3 py-3 space-y-3">
-            {loading && <div className="flex items-center justify-center py-8 text-text-muted">Жүктелуде...</div>}
+            {loading && <div className="flex items-center justify-center py-8 text-text-muted">{tx("Жүктелуде...")}</div>}
             {!loading && !error && weekDates.map((dayDate, i) => {
               const count = (weekBookings[i] || []).length;
               return (
-                <section key={dayDate} className="card overflow-hidden">
+                (<section key={dayDate} className="card overflow-hidden">
                   <button type="button" onClick={() => { setDate(dayDate); setViewMode('day'); }} className="w-full px-4 py-3 flex items-center justify-between text-left">
                     <span className="font-semibold text-ink">
                       <span className="capitalize">{weekday(dayDate)}</span>
                       <span className="text-text-muted font-normal">, {dayMonth(dayDate)}</span>
                     </span>
                     <span className="flex items-center gap-2">
-                      {isTodayIso(dayDate) && <span className="text-xs font-semibold text-primary">Бүгін</span>}
-                      <span className="text-xs text-text-muted tabular-nums">{count ? `${count} жазба` : 'Бос'}</span>
+                      {isTodayIso(dayDate) && <span className="text-xs font-semibold text-primary">{tx("Бүгін")}</span>}
+                      <span className="text-xs text-text-muted tabular-nums">{count ? tx("{0} жазба", [count]) : tx("Бос")}</span>
                     </span>
                   </button>
                   {count > 0 && (
@@ -329,47 +328,46 @@ export default function Calendar() {
                       </div>
                     </div>
                   )}
-                </section>
+                </section>)
               );
             })}
           </div>
         )}
       </div>
-    </div>
+    </div>)
   );
 }
 
 function AgendaList({ bookings, loading, canAddBooking, onOpen, onAdd }) {
-  if (loading) return <div className="flex items-center justify-center py-16 text-text-muted text-sm">Жүктелуде...</div>;
+  if (loading) return <div className="flex items-center justify-center py-16 text-text-muted text-sm">{tx("Жүктелуде...")}</div>;
   const sorted = [...bookings].sort((a, b) => timeToMinutes(a.start_time) - timeToMinutes(b.start_time));
   if (sorted.length === 0) {
     return (
-      <div className="flex flex-col items-center text-center gap-2 py-16">
+      (<div className="flex flex-col items-center text-center gap-2 py-16">
         <span className="material-symbols-outlined text-[36px] text-faint">event_available</span>
-        <p className="text-ink font-semibold">Бұл күнде жазбалар жоқ</p>
+        <p className="text-ink font-semibold">{tx("Бұл күнде жазбалар жоқ")}</p>
         {canAddBooking && (
           <button type="button" onClick={onAdd} className="btn-secondary mt-1 text-sm">
-            <span className="material-symbols-outlined text-lg">add</span>Жазба қосу
-          </button>
+            <span className="material-symbols-outlined text-lg">add</span>{tx("Жазба қосу")}</button>
         )}
-      </div>
+      </div>)
     );
   }
   return (
-    <ol className="px-4 py-4 space-y-2.5">
+    (<ol className="px-4 py-4 space-y-2.5">
       {sorted.map((b) => {
         const s = STATUS[b.status] || STATUS.no_show;
         return (
-          <li key={b.id}>
+          (<li key={b.id}>
             <button type="button" onClick={() => onOpen(b)} className="card w-full text-left flex overflow-hidden active:scale-[0.99] transition">
               <div className="w-[68px] shrink-0 flex flex-col items-center justify-center gap-0.5 border-r border-border-color/70 bg-raised/40 py-3">
                 <span className="text-[15px] font-bold text-ink tabular-nums">{formatTime(b.start_time)}</span>
                 <span className="text-[11px] text-text-muted tabular-nums">{formatTime(b.end_time)}</span>
-                <span className="mt-1 text-[10px] font-semibold text-text-muted">Бокс {b.box_id}</span>
+                <span className="mt-1 text-[10px] font-semibold text-text-muted">{tx("Бокс")} {b.box_id}</span>
               </div>
               <div className="flex-1 min-w-0 px-3.5 py-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[15px] font-semibold text-ink truncate">{b.vehicle_name}</span>
+                  <span className="text-[15px] font-semibold text-ink truncate">{txData(b.vehicle_name)}</span>
                   <StatusPill status={b.status} />
                 </div>
                 <div className="mt-0.5 text-sm text-text-muted truncate">{b.client_name}</div>
@@ -382,15 +380,15 @@ function AgendaList({ bookings, loading, canAddBooking, onOpen, onAdd }) {
                   )}
                 </div>
                 {b.services?.length > 0 && (
-                  <div className="mt-2 text-xs text-muted-ink line-clamp-1">{b.services.map((x) => x.service_name).join(', ')}</div>
+                  <div className="mt-2 text-xs text-muted-ink line-clamp-1">{b.services.map((x) => txData(x.service_name)).join(', ')}</div>
                 )}
               </div>
               <span className={`w-1 shrink-0 ${s.bar}`} />
             </button>
-          </li>
+          </li>)
         );
       })}
-    </ol>
+    </ol>)
   );
 }
 
@@ -432,10 +430,10 @@ function BookingCard({ booking, startHour = 10, onClick, compact, onDelete, dele
   const top = ((startMinutes - startHour * 60) / 60) * rowH;
   const height = Math.max(((endMinutes - startMinutes) / 60) * rowH, compact ? 34 : 64);
   const dim = booking.status === 'no_show' || booking.status === 'completed';
-  const services = booking.services?.map((x) => x.service_name).join(', ');
+  const services = booking.services?.map((x) => txData(x.service_name)).join(', ');
 
   return (
-    <div
+    (<div
       role="button"
       tabIndex={0}
       onClick={onClick}
@@ -448,7 +446,7 @@ function BookingCard({ booking, startHour = 10, onClick, compact, onDelete, dele
       <div className={`relative h-full flex flex-col ${compact ? 'pl-2.5 pr-1.5 py-1' : 'pl-3.5 pr-2.5 py-2.5'}`}>
         {compact ? (
           <>
-            <div className="text-[11px] font-semibold text-ink truncate">{booking.vehicle_name}</div>
+            <div className="text-[11px] font-semibold text-ink truncate">{txData(booking.vehicle_name)}</div>
             <div className="text-[10px] text-text-muted truncate tabular-nums">{formatTime(booking.start_time)} · {booking.client_name}</div>
           </>
         ) : (
@@ -457,7 +455,7 @@ function BookingCard({ booking, startHour = 10, onClick, compact, onDelete, dele
               <span className="text-[11px] text-text-muted tabular-nums whitespace-nowrap">{formatTime(booking.start_time)}–{formatTime(booking.end_time)}</span>
               <span className={`text-[10px] font-semibold truncate ${s.text}`}>{s.label}</span>
             </div>
-            <div className="mt-1 text-[15px] leading-tight font-semibold text-ink truncate">{booking.vehicle_name}</div>
+            <div className="mt-1 text-[15px] leading-tight font-semibold text-ink truncate">{txData(booking.vehicle_name)}</div>
             <div className="mt-0.5 text-xs text-text-muted truncate">{booking.client_name}</div>
             {height >= 120 && booking.plate_number && <div className="mt-1.5"><Plate number={booking.plate_number} size="sm" /></div>}
             {height >= 160 && services && <div className="mt-2 text-xs text-ink/85 leading-snug line-clamp-2">{services}</div>}
@@ -474,7 +472,7 @@ function BookingCard({ booking, startHour = 10, onClick, compact, onDelete, dele
                   onClick={(e) => { e.stopPropagation(); if (!deleting) onDelete(); }}
                   className="w-7 h-7 -mr-1 shrink-0 rounded-lg flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger/10"
                   disabled={deleting}
-                  aria-label="Жазбаны жою"
+                  aria-label={tx("Жазбаны жою")}
                 >
                   <span className="material-symbols-outlined text-[17px]">delete</span>
                 </button>
@@ -483,7 +481,7 @@ function BookingCard({ booking, startHour = 10, onClick, compact, onDelete, dele
           </>
         )}
       </div>
-    </div>
+    </div>)
   );
 }
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dayMonth, localIso } from '../lib/dates';
 import { getWhatsappInbound } from '../lib/api';
+import { tx } from '../i18n/index.js';
 
 function formatTime(val) {
   if (!val) return '';
@@ -12,7 +13,7 @@ function formatTime(val) {
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
   if (d.toDateString() === today) return d.toLocaleTimeString('kk-KZ', { hour: '2-digit', minute: '2-digit' });
-  if (d.toDateString() === yesterday.toDateString()) return 'Кеше';
+  if (d.toDateString() === yesterday.toDateString()) return tx("Кеше");
   return dayMonth(localIso(d));
 }
 
@@ -37,7 +38,7 @@ export default function WhatsAppInbox() {
     setError('');
     getWhatsappInbound(search)
       .then((data) => setList(Array.isArray(data) ? data : []))
-      .catch((e) => setError(e.message || 'Жүктеу сәтсіз'))
+      .catch((e) => setError(e.message || tx("Жүктеу сәтсіз")))
       .finally(() => setLoading(false));
   }, [search]);
 
@@ -59,7 +60,7 @@ export default function WhatsAppInbox() {
   if (isWorker) return null;
 
   return (
-    <div className="flex flex-col min-h-full">
+    (<div className="flex flex-col min-h-full">
       <header className="px-4 py-4 border-b border-border-color bg-bg-main sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => navigate(-1)} className="icon-btn bg-card-bg border border-border-color">
@@ -75,7 +76,7 @@ export default function WhatsAppInbox() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Телефон немесе аты бойынша іздеу"
+            placeholder={tx("Телефон немесе аты бойынша іздеу")}
             className="w-full pl-10 pr-3 py-2.5 bg-card-bg border border-border-color rounded-lg text-ink placeholder-text-muted focus:ring-1 focus:ring-primary"
           />
         </div>
@@ -83,9 +84,9 @@ export default function WhatsAppInbox() {
       <main className="flex-1 overflow-y-auto p-4 pb-24">
         {error && <p className="text-danger text-sm mb-4">{error}</p>}
         {loading ? (
-          <p className="text-text-muted">Жүктелуде...</p>
+          <p className="text-text-muted">{tx("Жүктелуде...")}</p>
         ) : list.length === 0 ? (
-          <p className="text-text-muted">Хабарламалар жоқ</p>
+          <p className="text-text-muted">{tx("Хабарламалар жоқ")}</p>
         ) : (
           <div className="space-y-2">
             {list.map((item) => (
@@ -95,7 +96,7 @@ export default function WhatsAppInbox() {
               >
                 <div className="flex justify-between items-start gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="font-semibold text-ink truncate">{item.name?.trim() || 'Белгісіз'}</div>
+                    <div className="font-semibold text-ink truncate">{item.name?.trim() || tx("Белгісіз")}</div>
                     <div className="text-primary text-sm mt-0.5">{item.phone}</div>
                     {item.last_message && (
                       <p className="text-text-muted text-sm mt-1 line-clamp-1">{item.last_message}</p>
@@ -107,9 +108,7 @@ export default function WhatsAppInbox() {
                       type="button"
                       onClick={() => handleAddBooking(item)}
                       className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-on-primary text-sm font-medium"
-                    >
-                      Жазба қосу
-                    </button>
+                    >{tx("Жазба қосу")}</button>
                   </div>
                 </div>
               </div>
@@ -117,6 +116,6 @@ export default function WhatsAppInbox() {
           </div>
         )}
       </main>
-    </div>
+    </div>)
   );
 }

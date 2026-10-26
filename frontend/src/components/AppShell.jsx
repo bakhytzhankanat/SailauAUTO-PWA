@@ -3,16 +3,18 @@ import { NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { canAccessNotificationSettingsPage } from '../lib/staffNotificationsAccess';
 
+import { tx, LANG, setLang } from '../i18n/index.js';
+
 // Same order as before; whatever does not fit in five tabs moves into "Мәзір".
 const navItems = [
-  { to: '/', icon: 'calendar_month', label: 'Күнтізбе', roles: ['owner', 'manager', 'worker'] },
-  { to: '/booking/add', icon: 'add', label: 'Жазба', roles: ['owner', 'manager'], seniorWorker: true, accent: true },
-  { to: '/clients', icon: 'group', label: 'Клиенттер', roles: ['owner', 'manager'], seniorWorker: true },
-  { to: '/inventory', icon: 'inventory_2', label: 'Қойма', roles: ['owner', 'manager', 'worker'] },
-  { to: '/analytics', icon: 'monitoring', label: 'Есеп', roles: ['owner'] },
-  { to: '/reminders', icon: 'task_alt', label: 'Ескертпелер', roles: ['owner', 'manager', 'worker'] },
-  { to: '/admin', icon: 'admin_panel_settings', label: 'Админка', roles: ['super_admin'] },
-  { to: '/settings', icon: 'settings', label: 'Баптаулар', roles: ['owner'] },
+  { to: '/', icon: 'calendar_month', label: tx("Күнтізбе"), roles: ['owner', 'manager', 'worker'] },
+  { to: '/booking/add', icon: 'add', label: tx("Жазба"), roles: ['owner', 'manager'], seniorWorker: true, accent: true },
+  { to: '/clients', icon: 'group', label: tx("Клиенттер"), roles: ['owner', 'manager'], seniorWorker: true },
+  { to: '/inventory', icon: 'inventory_2', label: tx("Қойма"), roles: ['owner', 'manager', 'worker'] },
+  { to: '/analytics', icon: 'monitoring', label: tx("Есеп"), roles: ['owner'] },
+  { to: '/reminders', icon: 'task_alt', label: tx("Ескертпелер"), roles: ['owner', 'manager', 'worker'] },
+  { to: '/admin', icon: 'admin_panel_settings', label: tx("Админка"), roles: ['super_admin'] },
+  { to: '/settings', icon: 'settings', label: tx("Баптаулар"), roles: ['owner'] },
 ];
 const MAX_TABS = 5;
 
@@ -38,7 +40,7 @@ export default function AppShell({ children }) {
   const showNotifications = canAccessNotificationSettingsPage(user);
   const menuItems = [
     ...overflow,
-    ...(showNotifications ? [{ to: '/notifications', icon: 'notifications', label: 'Хабарландырулар' }] : []),
+    ...(showNotifications ? [{ to: '/notifications', icon: 'notifications', label: tx("Хабарландырулар") }] : []),
   ];
   const menuActive = menuItems.some((i) => isActivePath(location.pathname, i.to));
 
@@ -90,7 +92,7 @@ export default function AppShell({ children }) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg-main">
+    (<div className="flex flex-col min-h-screen bg-bg-main">
       <main className="flex-1 overflow-auto pb-24">
         {children}
         {draftExists && location.pathname !== '/booking/add' && (
@@ -99,16 +101,15 @@ export default function AppShell({ children }) {
               <span className="material-symbols-outlined text-xl">edit_note</span>
             </span>
             <button type="button" onClick={() => navigate('/booking/add')} className="flex-1 min-w-0 text-left">
-              <span className="block text-sm font-semibold text-ink">Жазбаны жалғастыру</span>
-              <span className="block text-xs text-text-muted">Аяқталмаған жаңа жазба бар</span>
+              <span className="block text-sm font-semibold text-ink">{tx("Жазбаны жалғастыру")}</span>
+              <span className="block text-xs text-text-muted">{tx("Аяқталмаған жаңа жазба бар")}</span>
             </button>
-            <button type="button" onClick={handleClearDraft} className="icon-btn w-9 h-9" aria-label="Жобаны өшіру">
+            <button type="button" onClick={handleClearDraft} className="icon-btn w-9 h-9" aria-label={tx("Жобаны өшіру")}>
               <span className="material-symbols-outlined text-lg">close</span>
             </button>
           </div>
         )}
       </main>
-
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border-color/80 bg-card-bg/95 backdrop-blur pb-safe">
         <div className="flex items-stretch justify-around px-1 pt-1.5 pb-2">
           {tabs.map((item) => {
@@ -140,7 +141,7 @@ export default function AppShell({ children }) {
                 <span className={`w-11 h-8 rounded-full flex items-center justify-center transition-colors ${menuOpen || menuActive ? 'bg-primary/15 text-primary' : 'text-text-muted'}`}>
                   <span className="material-symbols-outlined text-[22px]">menu</span>
                 </span>
-                <span className={`text-[10px] leading-none font-medium ${menuOpen || menuActive ? 'text-ink' : 'text-text-muted'}`}>Мәзір</span>
+                <span className={`text-[10px] leading-none font-medium ${menuOpen || menuActive ? 'text-ink' : 'text-text-muted'}`}>{tx("Мәзір")}</span>
               </button>
               {menuOpen && (
                 <div role="menu" className="absolute bottom-full right-1 mb-3 w-64 rounded-2xl border border-border-color bg-card-bg shadow-2xl shadow-black/60 overflow-hidden py-1.5">
@@ -165,18 +166,26 @@ export default function AppShell({ children }) {
                   <button
                     type="button"
                     role="menuitem"
+                    onClick={() => setLang(LANG === 'ru' ? 'kk' : 'ru')}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-[15px] text-ink hover:bg-raised border-t border-border-color/70 mt-1"
+                  >
+                    <span className="material-symbols-outlined text-xl text-text-muted" aria-hidden>translate</span>
+                    <span className="flex-1">{LANG === 'ru' ? 'Қазақша' : 'Русский'}</span>
+                    <span className="text-xs text-text-muted">{LANG === 'ru' ? 'RU → KZ' : 'KZ → RU'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left text-[15px] text-danger hover:bg-raised border-t border-border-color/70 mt-1"
                   >
-                    <span className="material-symbols-outlined text-xl" aria-hidden>logout</span>
-                    Шығу
-                  </button>
+                    <span className="material-symbols-outlined text-xl" aria-hidden>logout</span>{tx("Шығу")}</button>
                 </div>
               )}
             </div>
           )}
         </div>
       </nav>
-    </div>
+    </div>)
   );
 }

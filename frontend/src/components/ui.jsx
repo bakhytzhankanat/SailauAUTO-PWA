@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
+import { tx } from '../i18n/index.js';
 
 export const STATUS = {
-  planned: { label: 'Жоспарланған', dot: 'bg-status-planned', text: 'text-status-planned', soft: 'bg-status-planned/15', bar: 'bg-status-planned' },
-  arrived: { label: 'Келді', dot: 'bg-status-reached', text: 'text-status-reached', soft: 'bg-status-reached/15', bar: 'bg-status-reached' },
-  in_progress: { label: 'Жұмыста', dot: 'bg-status-progress', text: 'text-status-progress', soft: 'bg-status-progress/15', bar: 'bg-status-progress' },
-  completed: { label: 'Аяқталды', dot: 'bg-status-completed', text: 'text-status-completed', soft: 'bg-status-completed/15', bar: 'bg-status-completed' },
-  no_show: { label: 'Болмады', dot: 'bg-status-no-show', text: 'text-status-no-show', soft: 'bg-status-no-show/15', bar: 'bg-status-no-show' },
+  planned: { label: tx("Жоспарланған"), dot: 'bg-status-planned', text: 'text-status-planned', soft: 'bg-status-planned/15', bar: 'bg-status-planned' },
+  arrived: { label: tx("Келді"), dot: 'bg-status-reached', text: 'text-status-reached', soft: 'bg-status-reached/15', bar: 'bg-status-reached' },
+  in_progress: { label: tx("Жұмыста"), dot: 'bg-status-progress', text: 'text-status-progress', soft: 'bg-status-progress/15', bar: 'bg-status-progress' },
+  completed: { label: tx("Аяқталды"), dot: 'bg-status-completed', text: 'text-status-completed', soft: 'bg-status-completed/15', bar: 'bg-status-completed' },
+  no_show: { label: tx("Болмады"), dot: 'bg-status-no-show', text: 'text-status-no-show', soft: 'bg-status-no-show/15', bar: 'bg-status-no-show' },
 };
 
 export function StatusPill({ status, className = '' }) {
@@ -34,9 +35,9 @@ export function Plate({ number, size = 'md' }) {
 export function PageHeader({ title, subtitle, onBack, back = true, right = null }) {
   const navigate = useNavigate();
   return (
-    <header className="page-header">
+    (<header className="page-header">
       {back && (
-        <button type="button" onClick={onBack || (() => navigate(-1))} className="icon-btn -ml-1" aria-label="Артқа">
+        <button type="button" onClick={onBack || (() => navigate(-1))} className="icon-btn -ml-1" aria-label={tx("Артқа")}>
           <span className="material-symbols-outlined text-ink text-[22px]">arrow_back</span>
         </button>
       )}
@@ -45,16 +46,14 @@ export function PageHeader({ title, subtitle, onBack, back = true, right = null 
         {subtitle && <p className="text-xs text-text-muted truncate">{subtitle}</p>}
       </div>
       {right}
-    </header>
+    </header>)
   );
 }
 
 export function Loading() {
   return (
-    <div className="flex items-center justify-center gap-2 py-16 text-text-muted text-sm">
-      <span className="w-4 h-4 rounded-full border-2 border-border-color border-t-primary animate-spin" />
-      Жүктелуде...
-    </div>
+    (<div className="flex items-center justify-center gap-2 py-16 text-text-muted text-sm">
+      <span className="w-4 h-4 rounded-full border-2 border-border-color border-t-primary animate-spin" />{tx("Жүктелуде...")}</div>)
   );
 }
 
@@ -82,18 +81,18 @@ export function ErrorNote({ children }) {
 /** Bottom sheet on phones, centred dialog on wide screens. */
 export function Sheet({ title, onClose, children, busy = false }) {
   return (
-    <div className="scrim" onClick={() => !busy && onClose?.()}>
+    (<div className="scrim" onClick={() => !busy && onClose?.()}>
       <div className="sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="mx-auto -mt-2 mb-4 h-1 w-10 rounded-full bg-border-color sm:hidden" />
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-ink">{title}</h2>
-          <button type="button" onClick={onClose} disabled={busy} className="icon-btn -mr-2" aria-label="Жабу">
+          <button type="button" onClick={onClose} disabled={busy} className="icon-btn -mr-2" aria-label={tx("Жабу")}>
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
         {children}
       </div>
-    </div>
+    </div>)
   );
 }
 

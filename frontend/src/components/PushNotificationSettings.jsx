@@ -7,22 +7,25 @@ import {
   sendPushTestNotification,
 } from '../lib/pushNotifications';
 import { getPushPreferences, updatePushPreferences } from '../lib/api';
+import { tx } from '../i18n/index.js';
 
 const PREFERENCE_LABELS = {
-  bookings: 'Жаңа жазылулар',
-  work: 'Жұмыс барысы',
-  payments: 'Төлемдер',
-  inventory: 'Қойма',
-  day_close: 'Ауысым',
+  bookings: tx("Жаңа жазылулар"),
+  work: tx("Жұмыс барысы"),
+  payments: tx("Төлемдер"),
+  inventory: tx("Қойма"),
+  day_close: tx("Ауысым"),
 };
 
 function messageForError(error) {
   if (error?.message === 'PUSH_PERMISSION_DENIED') {
-    return 'Хабарландыруларға рұқсат берілмеді. Оларды құрылғы параметрлерінен қосуға болады.';
+    return tx(
+      "Хабарландыруларға рұқсат берілмеді. Оларды құрылғы параметрлерінен қосуға болады."
+    );
   }
-  if (error?.message === 'IOS_INSTALL_REQUIRED') return 'Алдымен қолданбаны Басты экранға қосыңыз.';
-  if (error?.message === 'PUSH_NOT_SUPPORTED') return 'Бұл құрылғы хабарландыруларды қолдамайды.';
-  return 'Хабарландыруларды қазір қосу мүмкін болмады. Кейінірек қайталап көріңіз.';
+  if (error?.message === 'IOS_INSTALL_REQUIRED') return tx("Алдымен қолданбаны Басты экранға қосыңыз.");
+  if (error?.message === 'PUSH_NOT_SUPPORTED') return tx("Бұл құрылғы хабарландыруларды қолдамайды.");
+  return tx("Хабарландыруларды қазір қосу мүмкін болмады. Кейінірек қайталап көріңіз.");
 }
 
 export default function PushNotificationSettings() {
@@ -65,7 +68,7 @@ export default function PushNotificationSettings() {
     try {
       const next = await enablePushNotifications();
       setStatus({ ...next, loading: false });
-      setMessage('Хабарландырулар қосылды');
+      setMessage(tx("Хабарландырулар қосылды"));
     } catch (error) {
       setMessage(messageForError(error));
       await refresh();
@@ -80,9 +83,9 @@ export default function PushNotificationSettings() {
     try {
       const next = await disablePushNotifications();
       setStatus({ ...next, loading: false });
-      setMessage('Хабарландырулар өшірілді');
+      setMessage(tx("Хабарландырулар өшірілді"));
     } catch {
-      setMessage('Хабарландыруларды өшіру мүмкін болмады. Кейінірек қайталап көріңіз.');
+      setMessage(tx("Хабарландыруларды өшіру мүмкін болмады. Кейінірек қайталап көріңіз."));
     } finally {
       setBusy(false);
     }
@@ -93,9 +96,9 @@ export default function PushNotificationSettings() {
     setMessage('');
     try {
       const result = await sendPushTestNotification();
-      setMessage(result.sent ? 'Сынақ хабарламасы жіберілді' : 'Бұл құрылғыда белсенді хабарландыру табылмады');
+      setMessage(result.sent ? tx("Сынақ хабарламасы жіберілді") : tx("Бұл құрылғыда белсенді хабарландыру табылмады"));
     } catch {
-      setMessage('Сынақ хабарламасын жіберу мүмкін болмады. Кейінірек қайталап көріңіз.');
+      setMessage(tx("Сынақ хабарламасын жіберу мүмкін болмады. Кейінірек қайталап көріңіз."));
     } finally {
       setBusy(false);
     }
@@ -107,72 +110,73 @@ export default function PushNotificationSettings() {
     try {
       const result = await updatePushPreferences({ [key]: enabled });
       setPreferences(Array.isArray(result.preferences) ? result.preferences : []);
-      setMessage('Хабарландыру баптаулары сақталды');
+      setMessage(tx("Хабарландыру баптаулары сақталды"));
     } catch {
-      setMessage('Хабарландыру баптауларын сақтау мүмкін болмады. Кейінірек қайталап көріңіз.');
+      setMessage(tx(
+        "Хабарландыру баптауларын сақтау мүмкін болмады. Кейінірек қайталап көріңіз."
+      ));
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <section className="card p-4">
+    (<section className="card p-4">
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 shrink-0 rounded-full bg-primary/20 flex items-center justify-center">
           <span className="material-symbols-outlined text-primary text-xl" aria-hidden>notifications</span>
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="font-semibold text-ink">Хабарландырулар</h2>
+          <h2 className="font-semibold text-ink">{tx("Хабарландырулар")}</h2>
           <p className="mt-2 text-sm leading-5 text-text-muted">
             {status.loading
-              ? 'Тексерілуде...'
+              ? tx("Тексерілуде...")
               : enabled
-                ? 'Осы құрылғыда хабарландырулар қосылған'
-                : 'Осы құрылғыда хабарландырулар өшірулі'}
+                ? tx("Осы құрылғыда хабарландырулар қосылған")
+                : tx("Осы құрылғыда хабарландырулар өшірулі")}
           </p>
         </div>
       </div>
-
       {!status.loading && !status.supported && (
-        <p className="mt-4 text-sm leading-5 text-text-muted">Бұл құрылғы хабарландыруларды қолдамайды.</p>
+        <p className="mt-4 text-sm leading-5 text-text-muted">{tx("Бұл құрылғы хабарландыруларды қолдамайды.")}</p>
       )}
       {!status.loading && status.needsIosInstall && (
-        <p className="mt-4 text-sm leading-5 text-text-muted">iPhone құрылғысында хабарландырулар орнатылған қолданбада ғана жұмыс істейді. Safari мәзірінен «Басты экранға қосу» таңдаңыз.</p>
+        <p className="mt-4 text-sm leading-5 text-text-muted">{tx(
+          "iPhone құрылғысында хабарландырулар орнатылған қолданбада ғана жұмыс істейді. Safari мәзірінен «Басты экранға қосу» таңдаңыз."
+        )}</p>
       )}
       {!status.loading && status.supported && !status.needsIosInstall && status.configured === false && (
-        <p className="mt-4 text-sm leading-5 text-text-muted">Хабарландырулар әзірге қолжетімсіз.</p>
+        <p className="mt-4 text-sm leading-5 text-text-muted">{tx("Хабарландырулар әзірге қолжетімсіз.")}</p>
       )}
       {!status.loading && permissionDenied && (
-        <p className="mt-4 text-sm leading-5 text-text-muted">Хабарландыруларға рұқсат берілмеді. Оларды құрылғы параметрлерінен қосуға болады.</p>
+        <p className="mt-4 text-sm leading-5 text-text-muted">{tx(
+          "Хабарландыруларға рұқсат берілмеді. Оларды құрылғы параметрлерінен қосуға болады."
+        )}</p>
       )}
       {message && <p className="mt-4 text-sm leading-5 text-text-muted" role="status">{message}</p>}
-
       {status.supported && !status.needsIosInstall && (
         <div className="mt-4 flex flex-wrap gap-2">
           {enabled ? (
             <>
-              <button type="button" onClick={handleTest} disabled={busy} className="px-4 py-2.5 rounded-lg bg-primary text-on-primary text-sm font-semibold hover:bg-primary/90 disabled:opacity-50">
-                Сынақ хабарламасы
-              </button>
+              <button type="button" onClick={handleTest} disabled={busy} className="px-4 py-2.5 rounded-lg bg-primary text-on-primary text-sm font-semibold hover:bg-primary/90 disabled:opacity-50">{tx("Сынақ хабарламасы")}</button>
               <button type="button" onClick={handleDisable} disabled={busy} className="px-4 py-2.5 rounded-lg border border-border-color text-sm font-medium text-ink hover:bg-bg-main disabled:opacity-50">
-                {busy ? 'Күте тұрыңыз...' : 'Хабарландыруларды өшіру'}
+                {busy ? tx("Күте тұрыңыз...") : tx("Хабарландыруларды өшіру")}
               </button>
             </>
           ) : (
             <button type="button" onClick={handleEnable} disabled={busy || !canEnable} className="px-4 py-2.5 rounded-lg bg-primary text-on-primary text-sm font-semibold hover:bg-primary/90 disabled:opacity-50">
-              {busy ? 'Қосылуда...' : 'Хабарландыруларды қосу'}
+              {busy ? tx("Қосылуда...") : tx("Хабарландыруларды қосу")}
             </button>
           )}
         </div>
       )}
-
       {preferences.length > 0 && (
         <div className="mt-5 pt-4 border-t border-border-color">
-          <h3 className="text-sm font-medium text-ink">Қандай хабарландырулар керек?</h3>
+          <h3 className="text-sm font-medium text-ink">{tx("Қандай хабарландырулар керек?")}</h3>
           <div className="mt-3 space-y-3">
             {preferences.map((preference) => (
               <label key={preference.key} className="flex items-center justify-between gap-4 cursor-pointer">
-                <span className="text-sm text-ink">{PREFERENCE_LABELS[preference.key] || 'Хабарландыру'}</span>
+                <span className="text-sm text-ink">{PREFERENCE_LABELS[preference.key] || tx("Хабарландыру")}</span>
                 <input
                   type="checkbox"
                   checked={Boolean(preference.enabled)}
@@ -185,6 +189,6 @@ export default function PushNotificationSettings() {
           </div>
         </div>
       )}
-    </section>
+    </section>)
   );
 }

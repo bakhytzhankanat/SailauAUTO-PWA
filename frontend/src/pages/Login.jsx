@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { login } from '../lib/api';
 import { ErrorNote } from '../components/ui';
 
+import { tx } from '../i18n/index.js';
+import LanguageSwitch from '../components/LanguageSwitch';
+
 export default function Login() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -24,26 +27,27 @@ export default function Login() {
       signIn(token, user);
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message || 'Кіру сәтсіз аяқталды');
+      setError(err.message || tx("Кіру сәтсіз аяқталды"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-bg-main">
+    (<div className="min-h-[100dvh] flex flex-col bg-bg-main">
       <div className="band relative overflow-hidden px-6 pt-16 pb-24 flex flex-col items-center text-center">
+        <div className="absolute top-4 right-4 z-10"><LanguageSwitch compact /></div>
         <div className="pointer-events-none absolute -bottom-24 -right-16 w-72 h-72 rounded-full border-[28px] border-white/[0.04]" />
         <div className="pointer-events-none absolute -top-20 -left-24 w-72 h-72 rounded-full border-[28px] border-white/[0.04]" />
         <img src="/logoW.png" alt="Sailau Auto" className="relative w-full max-w-[220px] h-auto object-contain" />
-        <p className="relative text-white/65 text-sm mt-4">Автосервис басқару жүйесі</p>
+        <p className="relative text-white/65 text-sm mt-4">{tx("Автосервис басқару жүйесі")}</p>
       </div>
       <div className="flex-1 px-4 -mt-14">
         <form onSubmit={handleSubmit} className="card relative mx-auto w-full max-w-sm p-5 space-y-4">
-          <h1 className="text-xl font-bold text-ink">Жүйеге кіру</h1>
+          <h1 className="text-xl font-bold text-ink">{tx("Жүйеге кіру")}</h1>
           <ErrorNote>{error}</ErrorNote>
           <div>
-            <label className="block text-sm font-medium text-muted-ink mb-1.5" htmlFor="phone">Телефон</label>
+            <label className="block text-sm font-medium text-muted-ink mb-1.5" htmlFor="phone">{tx("Телефон")}</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">smartphone</span>
               <input
@@ -60,7 +64,7 @@ export default function Login() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-muted-ink mb-1.5" htmlFor="password">Құпия сөз</label>
+            <label className="block text-sm font-medium text-muted-ink mb-1.5" htmlFor="password">{tx("Құпия сөз")}</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">lock</span>
               <input
@@ -77,18 +81,18 @@ export default function Login() {
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 icon-btn"
-                aria-label={showPassword ? 'Құпия сөзді жасыру' : 'Құпия сөзді көрсету'}
+                aria-label={showPassword ? tx("Құпия сөзді жасыру") : tx("Құпия сөзді көрсету")}
               >
                 <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
               </button>
             </div>
           </div>
           <button type="submit" disabled={submitting} className="btn-primary w-full text-base !mt-5">
-            {submitting ? '...' : 'Кіру'}
+            {submitting ? '...' : tx("Кіру")}
           </button>
         </form>
-        <p className="text-center text-xs text-faint py-6">Sailau Auto жүйесіне қош келдіңіз</p>
+        <p className="text-center text-xs text-faint py-6">{tx("Sailau Auto жүйесіне қош келдіңіз")}</p>
       </div>
-    </div>
+    </div>)
   );
 }

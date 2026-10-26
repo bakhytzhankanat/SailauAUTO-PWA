@@ -1,6 +1,9 @@
+import { tx, txServer } from '../i18n/index.js';
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '') + '/api';
 
-const NETWORK_ERROR_MSG = 'Серверге қосылу мүмкін емес. Интернетті тексеріңіз немесе кейін қайталаңыз.';
+const NETWORK_ERROR_MSG = tx(
+  "Серверге қосылу мүмкін емес. Интернетті тексеріңіз немесе кейін қайталаңыз."
+);
 
 function getToken() {
   return localStorage.getItem('sailau_token');
@@ -48,7 +51,7 @@ export async function api(path, options = {}) {
     if (res.status === 401 && token) {
       window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
     }
-    const error = new Error(data.error || res.statusText);
+    const error = new Error(txServer(data.error) || res.statusText);
     error.status = res.status;
     throw error;
   }
